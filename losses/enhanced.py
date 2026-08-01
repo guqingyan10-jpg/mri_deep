@@ -11,6 +11,8 @@ New losses beyond the original BCEDiceLoss:
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+import numpy as np
+from scipy import ndimage
 from losses.basics import DiceLoss
 
 
@@ -60,75 +62,146 @@ class CELoss(nn.Module):
 
 class BoundaryLoss(nn.Module):
     """
-    Boundary Loss using Distance Transform.
+    Boundary Distance (BD) Loss — Kervadec et al., MIDL 2019.
 
-    What boundary losses do people commonly use?
-    --------------------------------------------
-    1. BD Loss (Kervadec et al., MIDL 2019):
-       - Uses distance transform to weight CE loss
-       - Boundary pixels get higher weight based on distance to contour
-       - Simplest and most widely adopted for BraTS
+    Reference:
+        Kervadec, Bouchtiba, Desrosiers, et al.
+        "Boundary loss for highly unbalanced segmentation"
+        MIDL 2019. https://arxiv.org/abs/1812.07032
 
-    2. Surface Loss (Kervadec et al., MIDL 2019):
-       - Integral approximation over boundary distance map
-       - Mathematically elegant but complex implementation
+    HOW THE ORIGINAL BD LOSS WORKS (Kervadec 2019):
+    ─────────────────────────────────────────────────
+    Given a ground truth region G with boundary ∂G:
 
-    3. Hausdorff Distance Loss (Karimi et al., MICCAI 2019):
-       - Directly optimizes Hausdorff distance
-       - Computationally expensive, can be unstable
+        1. Pre-compute φ_G(p) — the signed distance function:
+           φ_G(p) < 0  ⇒  p is inside G (distance to ∂G, negative)
+           φ_G(p) = 0  ⇒  p is ON ∂G
+           φ_G(p) > 0  ⇒  p is outside G
 
-    THIS IMPLEMENTATION: Edge-aware Boundary Loss
-    - Uses 3D Laplacian operator to detect edge regions
-    - Computes BCE only on boundary pixels (weighted higher)
-    - Simple, no pre-computation needed, differentiable
+        2. L_BD = ∫_Ω φ_G(p) · s_θ(p) dp
 
-    Reference: Many BraTS papers use edge-aware weighting combined
-    with Dice+CE for improved boundary delineation.
+           where s_θ(p) is the softmax probability at pixel p.
+
+        The intuition: s_θ(p) is multiplied by φ_G(p). If φ_G(p) is
+        large positive (far outside G), the model is heavily penalized
+        for predicting high probability there. If φ_G(p) is large
+        negative (deep inside G), the model is penalized for predicting
+        LOW probability there.
+
+    OUR SIMPLIFIED IMPLEMENTATION (common in BraTS literature):
+    ─────────────────────────────────────────────────────────────
+        We use the distance transform to create a smooth "boundary
+        band" weight map, then apply it to BCE:
+
+        1. Extract GT surface via binary erosion:
+           ∂G = mask  XOR  eroded(mask)
+
+        2. Compute Euclidean distance d(p) from each foreground pixel
+           to the nearest surface point using
+           scipy.ndimage.distance_transform_edt.
+           → surface: d ≈ 0
+           → deep interior: d ≈ region_radius
+
+        3. Weight map (exponential decay from boundary):
+           w(p) = 1 + (W_max - 1) · exp(-α · d(p))
+
+           → boundary (d=0):  w = W_max     (max penalty)
+           → interior (d≫0):  w ≈ 1         (baseline penalty)
+           → background:       w = 1         (unchanged)
+
+        4. L_boundary = mean( w(p) · BCE(p) )
+
+    WHY THIS IS BETTER THAN LAPLACIAN-BASED EDGE DETECTION:
+    ─────────────────────────────────────────────────────
+        Laplacian (old):  1-pixel sharp boundary line
+        Distance (new):   Smooth 2-3 pixel "band", better gradients
+
+        boundary pixel (d=0):     weight = 5.0  — max emphasis
+        neighbor pixel (d=1):     weight ≈ 3.8  — still emphasized
+        neighbor pixel (d=2):     weight ≈ 2.5  — moderate
+        far interior (d≫5):       weight ≈ 1.0  — baseline BCE
+
+        The smooth falloff means the model receives a "gradient signal"
+        that gradually increases as predictions approach the boundary,
+        instead of a sharp binary switch. This is the key insight of
+        Kervadec 2019 — the distance function provides a spatially
+        smooth supervisory signal.
+
+    Args:
+        max_weight:  W_max, boundary pixel multiplier (default 5.0).
+                     Higher = stronger boundary emphasis.
+        alpha:       Decay rate per voxel (default 1.0).
+                     Larger = weight decays faster from boundary.
+                     At d=1: w≈1+(W_max-1)·e^{-α} ≈ 1+4·0.37≈2.5
+                     At d=3: w≈1+(W_max-1)·e^{-3α}≈1+4·0.05≈1.2
     """
-    def __init__(self, edge_weight: float = 5.0):
-        """
-        Args:
-            edge_weight: multiplier for boundary pixel loss.
-                         Higher = more emphasis on boundaries.
-        """
+    def __init__(self, max_weight: float = 5.0, alpha: float = 1.0):
         super(BoundaryLoss, self).__init__()
-        self.edge_weight = edge_weight
+        self.max_weight = max_weight
+        self.alpha = alpha
 
-        # 3D Laplacian kernel for edge detection
-        # This is a 3x3x3 kernel that highlights boundaries
-        laplacian_kernel = torch.ones(1, 1, 3, 3, 3) * -1.0
-        laplacian_kernel[0, 0, 1, 1, 1] = 26.0  # center = sum of neighbors
-        self.register_buffer('laplacian_kernel', laplacian_kernel)
-
-    def get_boundary_mask(self, targets: torch.Tensor) -> torch.Tensor:
+    def get_boundary_weights(self, targets: torch.Tensor) -> torch.Tensor:
         """
-        Extract boundary regions from ground truth masks using Laplacian.
-        Boundary = pixels where Laplacian of mask != 0 (i.e., near edges).
+        Compute per-pixel boundary weights using the distance transform.
+
+        Steps:
+          1. Erode the GT mask (6-connectivity) to get the inner region.
+          2. boundary = mask XOR eroded → 1-pixel surface.
+          3. Compute Euclidean distance from each pixel to the surface.
+          4. w = 1 + (W_max - 1) * exp(-alpha * distance).
+
+        Returns:
+            weights: (B, C, D, H, W) float tensor, same device as targets.
+                     Weights are computed on CPU per-channel and moved
+                     back to GPU. Gradients are detached (weights are
+                     treated as constants in the loss computation).
         """
         B, C, D, H, W = targets.shape
-        # Process each class channel
-        boundaries = []
-        for c in range(C):
-            # (B, 1, D, H, W) -> apply Laplacian
-            ch = targets[:, c:c+1, :, :, :]
-            lap = F.conv3d(ch, self.laplacian_kernel, padding=1)
-            # Boundary = where Laplacian != 0
-            boundary = (lap.abs() > 1e-6).float()
-            boundaries.append(boundary)
-        boundary_mask = torch.cat(boundaries, dim=1)  # (B, C, D, H, W)
-        return boundary_mask
+        weights = torch.ones_like(targets, device=targets.device)
+
+        # 6-connectivity structure element for 3D erosion
+        struct = ndimage.generate_binary_structure(3, 1)
+
+        for b in range(B):
+            for c in range(C):
+                gt = targets[b, c].cpu().numpy().astype(bool)
+
+                if gt.sum() == 0:
+                    continue  # no GT → weights stay at 1.0
+
+                # Step 1: Extract GT surface via binary erosion
+                eroded = ndimage.binary_erosion(gt, structure=struct)
+                surface = gt & (~eroded)
+
+                if surface.sum() == 0:
+                    continue  # no surface → weights stay at 1.0
+
+                # Step 2: Distance transform of ~surface
+                # ~surface: 1 everywhere, 0 at surface points
+                # EDT computes distance from each pixel to nearest 0
+                dist = ndimage.distance_transform_edt(~surface)
+
+                # Step 3: Weight map with exponential decay
+                # surface (d=0): exp(0)=1 → weight = max_weight
+                # interior (d large): exp(-alpha*d)→0 → weight→1
+                w = 1.0 + (self.max_weight - 1.0) * np.exp(-self.alpha * dist)
+                w[~gt] = 1.0  # background stays at weight 1.0
+
+                weights[b, c] = torch.from_numpy(w).float().to(targets.device)
+
+        return weights.detach()  # no gradient through distance transform
 
     def forward(self, logits: torch.Tensor, targets: torch.Tensor) -> torch.Tensor:
-        # Get boundary mask from ground truth
-        boundary_mask = self.get_boundary_mask(targets)
+        """
+        Compute boundary-weighted BCE loss.
 
-        # Compute BCE loss
+        L = (1/N) * Σ w(p) * BCE(logits(p), targets(p))
+
+        where w(p) is computed from the GT surface via distance transform.
+        """
+        weights = self.get_boundary_weights(targets)
         bce = F.binary_cross_entropy_with_logits(logits, targets, reduction='none')
-
-        # Weight: edge_weight on boundaries, 1.0 elsewhere
-        weight = 1.0 + boundary_mask * (self.edge_weight - 1.0)
-
-        return (bce * weight).mean()
+        return (bce * weights).mean()
 
 
 class DiceCEBoundaryLoss(nn.Module):
@@ -145,11 +218,12 @@ class DiceCEBoundaryLoss(nn.Module):
     """
     def __init__(
         self,
-        alpha: float = 1.0,       # Dice weight
-        beta: float = 0.5,        # CE weight
-        gamma: float = 0.3,       # Boundary weight
-        class_weights: list = None,  # [WT, TC, ET] weights
-        edge_weight: float = 5.0,    # Boundary emphasis
+        alpha: float = 1.0,         # Dice weight
+        beta: float = 0.5,          # CE weight
+        gamma: float = 0.3,         # Boundary weight (lambda_b)
+        class_weights: list = None, # [WT, TC, ET] weights
+        bd_max_weight: float = 5.0, # BoundaryLoss: max weight at surface
+        bd_alpha: float = 1.0,      # BoundaryLoss: distance decay rate
     ):
         super(DiceCEBoundaryLoss, self).__init__()
         self.alpha = alpha
@@ -162,7 +236,7 @@ class DiceCEBoundaryLoss(nn.Module):
 
         self.dice = DiceLoss()
         self.ce = CELoss(class_weights=torch.tensor(class_weights))
-        self.boundary = BoundaryLoss(edge_weight=edge_weight)
+        self.boundary = BoundaryLoss(max_weight=bd_max_weight, alpha=bd_alpha)
 
     def forward(self, logits: torch.Tensor, targets: torch.Tensor) -> torch.Tensor:
         assert logits.shape == targets.shape

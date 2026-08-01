@@ -93,7 +93,8 @@ criterion = DiceCEBoundaryLoss(
     beta=0.5,                       # CE weight (fixed)
     gamma=lambda_b,                 # Boundary weight ← THE TUNED PARAMETER
     class_weights=[1.0, 3.0, 5.0],  # WT=1.0, TC=3.0, ET=5.0
-    edge_weight=5.0,                # Boundary edge emphasis
+    bd_max_weight=5.0,              # BoundaryLoss: max weight at GT surface
+    bd_alpha=1.0,                   # BoundaryLoss: distance decay per voxel
 )
 
 print(f"\nLoss: DiceCEBoundaryLoss")
