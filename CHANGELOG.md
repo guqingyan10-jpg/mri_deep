@@ -149,4 +149,45 @@ print_comparison_table([unet_m, resunet_m, attunet_m, nnunet_m])
 
 ---
 
+## 2026-08-01 | λb 调优实验：Dice+CE+Boundary Loss
+
+### 实验设计
+**Loss 公式:** `L = 1.0 × DiceLoss + 0.5 × CELoss + λb × BoundaryLoss`
+
+| 参数 | 值 | 说明 |
+|---|---|---|
+| α (Dice) | 1.0 | 固定 |
+| β (CE) | 0.5 | 固定 |
+| **λb (Boundary)** | **0.1, 0.3, 0.5** | 调优变量 |
+| Class weights | WT=1.0, TC=3.0, ET=5.0 | ET/TC 高权重 |
+
+### 修改 `losses/enhanced.py`
+- 默认 class_weights: `[1.0, 2.0, 4.0]` → `[1.0, 3.0, 5.0]`
+
+### 新增 `scripts/train_enhanced.py`
+- 命令行训练脚本
+- 用法: `python scripts/train_enhanced.py --lambda_b 0.3`
+- 自动从 ResUNet baseline checkpoint warm-start
+- 每个 λb 保存到独立目录 `/root/autodl-tmp/ResUNet_Enhanced_lb{λb}_model/`
+
+### 新增 `notebooks/experiment_lambda_results.ipynb`
+- 加载 baseline + 3 个 λb 模型
+- 对比 ET/TC Dice、ET/TC HD95、Lesion Recall、边界可视化
+- 自动选出最优 λb
+- 输出 `lambda_experiment_results.csv`（论文表格用）
+
+### 服务器运行步骤
+```bash
+cd /root/autodl-tmp/mri_deep && git pull
+
+# 依次训练 3 个 λb (每个 ~200 epochs):
+python scripts/train_enhanced.py --lambda_b 0.1
+python scripts/train_enhanced.py --lambda_b 0.3
+python scripts/train_enhanced.py --lambda_b 0.5
+
+# 训练完后，打开 notebooks/experiment_lambda_results.ipynb 评估对比
+```
+
+---
+
 *最后更新: 2026-08-01*

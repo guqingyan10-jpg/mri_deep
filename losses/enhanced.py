@@ -140,8 +140,8 @@ class DiceCEBoundaryLoss(nn.Module):
          + gamma * BoundaryLoss
 
     Default weights tuned for BraTS:
-        alpha=1.0 (dice), beta=0.5 (CE), gamma=0.3 (boundary)
-        Class weights: WT=1.0, TC=2.0, ET=4.0
+        alpha=1.0 (dice), beta=0.5 (CE), gamma=lambda_b (boundary, tunable)
+        Class weights: WT=1.0, TC=3.0, ET=5.0 (higher penalty for ET/TC)
     """
     def __init__(
         self,
@@ -157,8 +157,8 @@ class DiceCEBoundaryLoss(nn.Module):
         self.gamma = gamma
 
         if class_weights is None:
-            # Default: ET highest (4x), TC medium (2x), WT baseline (1x)
-            class_weights = [1.0, 2.0, 4.0]
+            # Default: ET highest (5x), TC high (3x), WT baseline (1x)
+            class_weights = [1.0, 3.0, 5.0]
 
         self.dice = DiceLoss()
         self.ce = CELoss(class_weights=torch.tensor(class_weights))
