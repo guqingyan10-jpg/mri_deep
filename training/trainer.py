@@ -25,24 +25,31 @@ from training.metrics import Meter
 class Trainer():
     """
     Factory for training proccess.
+
     Args:
-        display_plot: if True - plot train history after each epoch.
-        net: neural network for mask prediction.
-        criterion: factory for calculating objective loss. i.e. bce loss + dice loss / others
-        optimizer: optimizer for weights updating. i.e. Adam
-        phases: list with train and validation phases.
-        dataloaders: dict with data loaders for train and val phases. i.e. DataLoader / dataloader
-        path_to_csv: path to csv file.
-        meter: factory for storing and updating metrics. -> return the jaccard coeff / dice loss
-        batch_size: data batch size for one step weights updating.
-        num_epochs: num weights updation for all data.
-        accumulation_steps: the number of steps after which the optimization step can be taken
-                    (https://www.kaggle.com/c/understanding_cloud_organization/discussion/105614).
-        lr: learning rate for optimizer.
-        scheduler: scheduler for control learning rate.
-        losses: dict for storing lists with losses for each phase.
-        jaccard_scores: dict for storing lists with jaccard scores for each phase.
-        dice_scores: dict for storing lists with dice scores for each phase.
+        net:                 neural network for mask prediction.
+        dataset:             BratsDataset class reference.
+        criterion:           loss function (e.g., BCEDiceLoss, DiceCEBoundaryLoss).
+        lr:                  learning rate (default: 5e-4).
+        accumulation_steps:  gradient accumulation steps (default: 4).
+        batch_size:          data batch size (default: 1).
+        fold:                fold number for cross-validation tracking.
+        num_epochs:          maximum number of training epochs.
+        path_to_csv:         path to tumourCSV.csv.
+        model_type:          checkpoint directory path.
+        display_plot:        if True, plot train history after last epoch.
+
+        early_stopping_patience: number of epochs without val_loss
+            improvement before stopping. Default 25.
+            - All experiments MUST use the same patience for fair comparison.
+            - Warm-start fine-tuning typically converges in 10-30 epochs,
+              so 25 is a safe default that catches convergence while
+              preventing excessive overfitting.
+            - The monitor metric is always val_loss (BCEDiceLoss or
+              equivalent combined loss).
+
+        min_delta: minimum absolute improvement in val_loss to count
+            as a meaningful improvement. Default 1e-4.
     """
     def __init__(self,
                  net: nn.Module,
@@ -55,8 +62,9 @@ class Trainer():
                  num_epochs: int,
                  path_to_csv: str,
                  model_type: str,
-                 display_plot: bool = True
-
+                 display_plot: bool = True,
+                 early_stopping_patience: int = 25,
+                 min_delta: float = 1e-4,
                 ):
 
         """Initialization."""
@@ -75,6 +83,11 @@ class Trainer():
         self.model_type = model_type
         self.epoch_value = self.check_epoch_number(self.model_type)
 
+        # Early stopping
+        self.early_stopping_patience = early_stopping_patience
+        self.min_delta = min_delta
+        self.epochs_without_improvement = 0
+        self.best_epoch = 0
 
         self.dataloaders = {
             phase: get_dataloader(
@@ -182,23 +195,40 @@ class Trainer():
             if self.display_plot and epoch == self.num_epochs:
                 self._plot_train_history()
 
-            if val_loss < self.best_loss:
+            # --- Early Stopping Check ---
+            # Only counts as improvement if val_loss drops by at least min_delta
+            if val_loss < (self.best_loss - self.min_delta):
                 print(f"\n{'#'*20}\nSaved new checkpoint\n{'#'*20}\n")
                 self.best_loss = val_loss
+                self.best_epoch = epoch
+                self.epochs_without_improvement = 0
 
+                # Remove old best_model and save new one
                 checkpoint_dir = check_path
-
-                # Get a list of all files in the checkpoint directory
                 all_files = os.listdir(checkpoint_dir)
                 best_model_current = [file for file in all_files if file.startswith("best_model_")]
                 for best_model in best_model_current:
                     os.remove(checkpoint_dir + "/" + best_model)
                 torch.save(self.net.state_dict(), f"{self.model_type}/best_model_{epoch}.pth")
+            else:
+                self.epochs_without_improvement += 1
 
             if epoch % 1 == 0:
                 self._save_train_history(epoch)
             print()
-        self._save_train_history()
+
+            # --- Early Stopping Trigger ---
+            if self.epochs_without_improvement >= self.early_stopping_patience:
+                print(f"\n{'='*60}")
+                print(f"EARLY STOPPING triggered at epoch {epoch}")
+                print(f"Best val_loss: {self.best_loss:.6f} at epoch {self.best_epoch}")
+                print(f"No improvement for {self.epochs_without_improvement} epochs")
+                print(f"Best model saved at: {self.model_type}/best_model_{self.best_epoch}.pth")
+                print(f"{'='*60}\n")
+                break
+
+        # Final save at exit (either max epochs or early stop)
+        self._save_train_history(epoch)
 
     def _plot_train_history(self):
         data = [self.losses, self.dice_scores, self.jaccard_scores]

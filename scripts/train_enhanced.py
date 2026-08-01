@@ -117,6 +117,8 @@ trainer = Trainer(
     path_to_csv=config.path_to_csv,
     model_type=CHECKPOINT_DIR,
     display_plot=True,
+    early_stopping_patience=25,   # stop if no improvement for 25 epochs
+    min_delta=1e-4,               # minimum val_loss drop to count as improvement
 )
 
 # ============================================================
