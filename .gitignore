@@ -26,6 +26,10 @@ train_df.csv
 val_df.csv
 test_df.csv
 
+# Generated statistics (keep — research outputs)
+# et_statistics.csv
+# et_components_detail.csv
+
 # IDE & OS
 .vscode/
 .idea/
