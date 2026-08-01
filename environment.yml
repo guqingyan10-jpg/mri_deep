@@ -1,0 +1,7 @@
+﻿name: mri_deep2
+channels:
+  - defaults
+dependencies:
+  - python=3.10
+  - ipykernel
+prefix: D:\Software\anaconda3\envs\mri_deep2

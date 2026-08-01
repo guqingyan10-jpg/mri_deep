@@ -1,0 +1,287 @@
+"""
+Trainer Class for BraTS2020 Model Training.
+Extracted from: MultiModel XAI Brats2020.ipynb (cell 39)
+
+Handles: training loop, validation, checkpointing, early stopping,
+         ReduceLROnPlateau scheduling, gradient accumulation.
+"""
+
+import os
+import time
+import numpy as np
+import pandas as pd
+import torch
+import torch.nn as nn
+from torch.optim import Adam
+from torch.optim.lr_scheduler import ReduceLROnPlateau
+import matplotlib.pyplot as plt
+from tqdm import tqdm
+from IPython.display import clear_output
+
+from data.dataset import get_dataloader
+from training.metrics import Meter
+
+
+class Trainer():
+    """
+    Factory for training proccess.
+    Args:
+        display_plot: if True - plot train history after each epoch.
+        net: neural network for mask prediction.
+        criterion: factory for calculating objective loss. i.e. bce loss + dice loss / others
+        optimizer: optimizer for weights updating. i.e. Adam
+        phases: list with train and validation phases.
+        dataloaders: dict with data loaders for train and val phases. i.e. DataLoader / dataloader
+        path_to_csv: path to csv file.
+        meter: factory for storing and updating metrics. -> return the jaccard coeff / dice loss
+        batch_size: data batch size for one step weights updating.
+        num_epochs: num weights updation for all data.
+        accumulation_steps: the number of steps after which the optimization step can be taken
+                    (https://www.kaggle.com/c/understanding_cloud_organization/discussion/105614).
+        lr: learning rate for optimizer.
+        scheduler: scheduler for control learning rate.
+        losses: dict for storing lists with losses for each phase.
+        jaccard_scores: dict for storing lists with jaccard scores for each phase.
+        dice_scores: dict for storing lists with dice scores for each phase.
+    """
+    def __init__(self,
+                 net: nn.Module,
+                 dataset: torch.utils.data.Dataset,
+                 criterion: nn.Module,
+                 lr: float,
+                 accumulation_steps: int,
+                 batch_size: int,
+                 fold: int,
+                 num_epochs: int,
+                 path_to_csv: str,
+                 model_type: str,
+                 display_plot: bool = True
+
+                ):
+
+        """Initialization."""
+        self.device = 'cuda' if torch.cuda.is_available() else 'cpu'
+        print("device:", self.device)
+        self.display_plot = display_plot
+        self.net = net
+        self.net = self.net.to(self.device)
+        self.criterion = criterion
+        self.optimizer = Adam(self.net.parameters(), lr=lr)
+        self.scheduler = ReduceLROnPlateau(self.optimizer, mode="min",
+                                           patience=2)
+        self.accumulation_steps = accumulation_steps // batch_size
+        self.phases = ["train", "valid"]
+        self.num_epochs = num_epochs
+        self.model_type = model_type
+        self.epoch_value = self.check_epoch_number(self.model_type)
+
+
+        self.dataloaders = {
+            phase: get_dataloader(
+                dataset = dataset,
+                path_to_csv = path_to_csv,
+                phase = phase,
+                fold = fold,
+                batch_size = batch_size,
+                num_workers = 0
+            )
+            for phase in self.phases
+        }
+
+        self.best_loss = float("inf")
+
+        # calculating the list of losses for both train & validation phases
+        self.losses = {phase: [] for phase in self.phases}
+
+        # calculating the dice scores for both train & validation phases
+        self.dice_scores = {phase: [] for phase in self.phases}
+
+        # calculating the jaccard scores for both train & validation phases
+        self.jaccard_scores = {phase: [] for phase in self.phases}
+
+        # calculating the time for both train & validation phases
+        self.time = {phase: [] for phase in self.phases}
+
+    def _compute_loss_and_outputs(self,
+                                  images: torch.Tensor,
+                                  targets: torch.Tensor):
+        images = images.to(self.device)
+        targets = targets.to(self.device)
+
+        # making images predictions symmetric using logits
+        logits = self.net(images)
+
+        # calculating the loss bce loss / dice loss / jaccard loss / combined loss
+        # as defined calcluating the mean square error loss
+        loss = self.criterion(logits, targets)
+        return loss, logits
+
+    def _do_epoch(self, epoch: int, phase: str):
+        start_time = time.time()
+        meter = Meter()
+        dataloader = self.dataloaders[phase]
+
+        total_batches = len(dataloader)
+        running_loss = 0.0
+
+        # Initialize tqdm progress bar
+        progress_bar = tqdm(dataloader, desc=f"{phase} epoch: {epoch}", unit="batch", dynamic_ncols=True)
+
+        self.net.train() if phase == "train" else self.net.eval()
+
+        for itr, data_batch in enumerate(progress_bar):
+            images, targets = data_batch['image'], data_batch['mask']
+
+
+            # BCEDiceLoss & raw prediction( logits ) are calculated
+
+            loss, logits = self._compute_loss_and_outputs(images, targets)
+            loss = loss / self.accumulation_steps
+
+            if phase == "train":
+                # Backpropagating the losses generated to train the Unet
+                loss.backward()
+
+                # if a certain no. is reached then all the gradient accumulated will be given to the optimizer & it gets trained
+                # after giving, gradient gets reset to 0
+                if (itr + 1) % self.accumulation_steps == 0:
+                    self.optimizer.step()
+                    self.optimizer.zero_grad()
+
+            running_loss += loss.item()
+            progress_bar.set_postfix({"loss": running_loss / (itr + 1)})  # Update loss in progress bar
+            meter.update(logits.detach().cpu(), targets.detach().cpu())
+
+        epoch_loss = (running_loss * self.accumulation_steps) / total_batches
+        epoch_dice, epoch_iou = meter.get_metrics()
+
+        self.losses[phase].append(epoch_loss)
+        self.dice_scores[phase].append(epoch_dice)
+
+        self.jaccard_scores[phase].append(epoch_iou)
+
+
+        # self.haus_scores[phase].append(epoch_haus)
+        end_time = time.time()
+
+        total_time = end_time - start_time
+
+        total_time = round(total_time, 2)
+        self.time[phase].append(total_time)
+        return epoch_loss
+
+    def run(self, check_path):
+        epoch = self.epoch_value
+
+        for epoch in range(int(self.epoch_value) + 1, self.num_epochs):
+            self._do_epoch(epoch, "train")
+            with torch.no_grad():
+                val_loss = self._do_epoch(epoch, "valid")
+                print(f"BCEDiceLoss for epoch {epoch} is : " , val_loss )
+                self.scheduler.step(val_loss)
+            if self.display_plot and epoch == self.num_epochs:
+                self._plot_train_history()
+
+            if val_loss < self.best_loss:
+                print(f"\n{'#'*20}\nSaved new checkpoint\n{'#'*20}\n")
+                self.best_loss = val_loss
+
+                checkpoint_dir = check_path
+
+                # Get a list of all files in the checkpoint directory
+                all_files = os.listdir(checkpoint_dir)
+                best_model_current = [file for file in all_files if file.startswith("best_model_")]
+                for best_model in best_model_current:
+                    os.remove(checkpoint_dir + "/" + best_model)
+                torch.save(self.net.state_dict(), f"{self.model_type}/best_model_{epoch}.pth")
+
+            if epoch % 1 == 0:
+                self._save_train_history(epoch)
+            print()
+        self._save_train_history()
+
+    def _plot_train_history(self):
+        data = [self.losses, self.dice_scores, self.jaccard_scores]
+        colors = ['deepskyblue', "crimson"]
+        labels = [
+            f"""
+            train loss {self.losses['train'][-1]}
+            val loss {self.losses['val'][-1]}
+            """,
+
+            f"""
+            train dice score {self.dice_scores['train'][-1]}
+            val dice score {self.dice_scores['val'][-1]}
+            """,
+
+            f"""
+            train jaccard score {self.jaccard_scores['train'][-1]}
+            val jaccard score {self.jaccard_scores['val'][-1]}
+            """
+        ]
+
+        clear_output(True)
+
+        fig, axes = plt.subplots(3, 1, figsize=(8, 10))
+        for i, ax in enumerate(axes):
+            ax.plot(data[i]['val'], c=colors[0], label="val")
+            ax.plot(data[i]['train'], c=colors[-1], label="train")
+            ax.set_title(labels[i])
+            ax.legend(loc="upper right")
+
+        plt.tight_layout()
+        plt.show()
+
+    def load_pretrain_model(self,
+                             state_path: str):
+
+        pretrain = torch.load(state_path, weights_only=False)
+        if isinstance(pretrain, dict):
+            self.net.load_state_dict(pretrain)
+        else:
+            self.net.load_state_dict(pretrain.state_dict())
+        print("Pretrain model loaded")
+
+    def check_epoch_number(self, checkpoint_dir):
+        value_of_hash = 0
+        # Get a list of all files in the checkpoint directory
+        all_files = os.listdir(checkpoint_dir)
+
+        # Filter the files to get only the model checkpoint files
+        model_checkpoint_files = [file for file in all_files if file.startswith("last_epoch_model")]
+
+        # Sort the model checkpoint files based on their names (assuming they contain the epoch number)
+
+        if model_checkpoint_files:
+
+            sorted_file_names = sorted(model_checkpoint_files, key=lambda x: int(x.split('_')[-1].split('.')[0]))
+
+            # Get the latest model checkpoint file
+            latest_checkpoint_file = sorted_file_names[-1]
+
+
+            # Construct the full path to the latest model checkpoint
+            pretrained_model_path = os.path.join(checkpoint_dir, latest_checkpoint_file)
+            latest = pretrained_model_path.split("_")
+            value_of_hash = latest[-1].split(".")[0]
+            return value_of_hash
+        else:
+            return value_of_hash
+
+    def _save_train_history(self, epoch):
+        """writing model weights and training logs to files."""
+        torch.save(self.net.state_dict(),
+                   f"{self.model_type}/last_epoch_model_{epoch}.pth")
+
+        logs_ = [self.losses, self.dice_scores, self.jaccard_scores, self.time]
+
+        log_names_ = ["_loss", "_dice", "_jaccard", "_time"]
+        logs = [logs_[i][key] for i in list(range(len(logs_)))
+                         for key in logs_[i]]
+        log_names = [key+log_names_[i]
+                     for i in list(range(len(logs_)))
+                     for key in logs_[i]
+                    ]
+        pd.DataFrame(
+            dict(zip(log_names, logs))
+        ).to_csv(f"{self.model_type}/train_log.csv", index=False)

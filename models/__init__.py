@@ -1,0 +1,27 @@
+"""
+BraTS2020 Models Package.
+
+Available models:
+  - UNet3d          (from unet3d)
+  - ResUNet3d       (from resunet3d)
+  - AttUNet3d       (from attunet3d)
+  - nnUNet3d        (from nnunet3d)
+
+Shared building blocks:
+  - DoubleConv, Down, Up, Out  (from base_blocks)
+
+Usage:
+    from models import ResUNet3d
+    from models.base_blocks import DoubleConv, Down, Up, Out
+"""
+
+from models.base_blocks import DoubleConv, Down, Up, Out
+from models.unet3d import UNet3d
+from models.resunet3d import ResUNet3d
+from models.attunet3d import AttUNet3d
+from models.nnunet3d import nnUNet3d
+
+__all__ = [
+    'DoubleConv', 'Down', 'Up', 'Out',
+    'UNet3d', 'ResUNet3d', 'AttUNet3d', 'nnUNet3d',
+]
