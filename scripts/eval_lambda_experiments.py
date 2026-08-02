@@ -44,8 +44,6 @@ MODELS = {
     'lb=0.3 (Dice+CE+0.3*BD)': '/root/autodl-tmp/ResUNet_Enhanced_lb0.3_model/best_model_5.pth',
     'lb=0.5 (Dice+CE+0.5*BD)': '/root/autodl-tmp/ResUNet_Enhanced_lb0.5_model/best_model_22.pth',
 }
-    'lb=0.5 (Dice+CE+0.5*BD)': '/root/autodl-tmp/ResUNet_Enhanced_lb0.5_model/best_model_5.pth',
-}
 
 # ============================================================
 # Load data
