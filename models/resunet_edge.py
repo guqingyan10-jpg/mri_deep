@@ -180,14 +180,17 @@ class EdgePyramid(nn.Module):
     Input:  (B, 4, 128, 128, 128) — Sobel edge maps
     Output: dict of (B, C_out, D_s, H_s, W_s) at each decoder resolution
 
-    Uses strided conv (learnable downsampling) to match encoder's
-    information-preserving approach.
+    Uses AvgPool3d(2,2) downsampling (NOT stride-2 conv) to match
+    the exact rounding behavior of encoder's MaxPool3d(2,2).
+    Both use floor division → identical spatial sizes at every stage.
 
     Channel progression matches decoder stages:
       level_4: (B,  24, 128³) — matches dec4 input (skip from conv)
       level_3: (B,  24,  64³) — matches dec3 input (skip from enc1)
       level_2: (B,  48,  32³) — matches dec2 input (skip from enc2)
       level_1: (B,  96,  16³) — matches dec1 input (skip from enc3)
+
+    Safety: ResUpEdge applies F.interpolate if sizes still differ by 1-2 voxels.
     """
 
     def __init__(self, in_channels=4, base_channels=24):
@@ -200,24 +203,21 @@ class EdgePyramid(nn.Module):
             nn.ReLU(inplace=True),
         )
 
-        # Downsampling stages (matching ResUNet encoder rates)
-        self.edge_down1 = nn.Sequential(
-            nn.Conv3d(base_channels, base_channels, kernel_size=3, stride=2, padding=1),
-            nn.GroupNorm(8, base_channels),
-            nn.ReLU(inplace=True),
-        )
+        # Downsampling: MUST use AvgPool not stride-2 conv.
+        # Reason: Encoder uses MaxPool3d(2,2) which truncates (floor),
+        #          while Conv3d(stride=2) rounds differently for odd dims.
+        #          AvgPool3d(2,2) gives SAME output size as MaxPool3d(2,2).
+        def make_down(in_ch, out_ch):
+            return nn.Sequential(
+                nn.AvgPool3d(2, 2),                         # same rounding as MaxPool
+                nn.Conv3d(in_ch, out_ch, kernel_size=3, padding=1),
+                nn.GroupNorm(8, out_ch),
+                nn.ReLU(inplace=True),
+            )
 
-        self.edge_down2 = nn.Sequential(
-            nn.Conv3d(base_channels, 2 * base_channels, kernel_size=3, stride=2, padding=1),
-            nn.GroupNorm(8, 2 * base_channels),
-            nn.ReLU(inplace=True),
-        )
-
-        self.edge_down3 = nn.Sequential(
-            nn.Conv3d(2 * base_channels, 4 * base_channels, kernel_size=3, stride=2, padding=1),
-            nn.GroupNorm(8, 4 * base_channels),
-            nn.ReLU(inplace=True),
-        )
+        self.edge_down1 = make_down(base_channels, base_channels)
+        self.edge_down2 = make_down(base_channels, 2 * base_channels)
+        self.edge_down3 = make_down(2 * base_channels, 4 * base_channels)
 
     def forward(self, edge_input):
         """
@@ -288,17 +288,23 @@ class ResUpEdge(nn.Module):
         """
         x1: deeper feature (C, smaller spatial)
         x2: skip feature (C, larger spatial)
-        edge_feat: edge pyramid feature at this resolution
+        edge_feat: edge pyramid feature at this resolution (may differ by 1-2 voxels)
         """
         x1 = self.up(x1)
 
-        # Size matching
+        # Size matching for x1 → x2
         diffZ = x2.size()[2] - x1.size()[2]
         diffY = x2.size()[3] - x1.size()[3]
         diffX = x2.size()[4] - x1.size()[4]
         x1 = F.pad(x1, [diffX // 2, diffX - diffX // 2,
                          diffY // 2, diffY - diffY // 2,
                          diffZ // 2, diffZ - diffZ // 2])
+
+        # Size matching for edge_feat → x2 (critical: AvgPool vs MaxPool rounding)
+        if edge_feat is not None:
+            if edge_feat.shape[2:] != x2.shape[2:]:
+                edge_feat = F.interpolate(edge_feat, size=x2.shape[2:],
+                                          mode='trilinear', align_corners=True)
 
         if self.fusion == 'concat':
             if edge_feat is not None:
