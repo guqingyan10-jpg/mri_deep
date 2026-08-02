@@ -251,23 +251,20 @@ tmux attach -t train_lb03    # 进入查看训练进度
 
 ### 结果
 
-| 指标 | Baseline (BCEDice) | λb=0.1 | λb=0.3 | 最优 |
-|---|---|---|---|---|
-| ET Dice | 0.7585 | 0.7534 | **0.7665** | λb=0.3 |
-| ET Recall | 0.7775 | 0.7951 | **0.7934** | λb=0.1 |
-| ET Precision | 0.7825 | 0.7442 | **0.7672** | Baseline |
-| ET HD95 (mm) | **10.26** | 12.30 | 11.77 | Baseline (越低越好) |
-| TC HD95 (mm) | **9.02** | 10.41 | 9.31 | Baseline (越低越好) |
-| Lesion Recall | 0.718 | **0.749** | 0.741 | λb=0.1 |
-| Small-case Dice | 0.621 | 0.634 | **0.642** | λb=0.3 |
+| 指标 | Baseline (BCEDice) | λb=0.1 | λb=0.3 | λb=0.5 | 最优 |
+|---|---|---|---|---|---|
+| ET Dice | 0.7585 | 0.7534 | **0.7665** | ❓待评估 | λb=0.3 |
+| ET Recall | 0.7775 | 0.7951 | **0.7934** | ❓ | λb=0.1 |
+| ET Precision | 0.7825 | 0.7442 | **0.7672** | ❓ | Baseline |
+| ET HD95 (mm) | **10.26** | 12.30 | 11.77 | ❓ | Baseline (越低越好) |
+| TC HD95 (mm) | **9.02** | 10.41 | 9.31 | ❓ | Baseline (越低越好) |
+| Lesion Recall | 0.718 | **0.749** | 0.741 | ❓ | λb=0.1 |
+| Small-case Dice | 0.621 | 0.634 | **0.642** | ❓ | λb=0.3 |
 
-### 关键发现
-
-1. **λb=0.3 在分割指标上最优** — ET Dice +0.8%, Small-case Dice +2.1%
-2. **检出率提升但边界退化** — Lesion Recall +2.3% 但 ET HD95 +1.5mm
-3. **Pure loss-level boundary supervision is insufficient** — 需要 V2 (高频边缘特征)
-4. **λb=0.1 过弱** — Dice 反而不如 baseline
-5. λb=0.5 训练未完成，待补充
+### λb=0.5 训练状态
+- Best epoch: 22, val_loss: 0.188226
+- Early stopping at epoch 47
+- 待评估（跑 `python scripts/eval_lambda_experiments.py`）
 
 ### 论文表述
 > Adding the Kervadec 2019 boundary distance loss (λb=0.3) improved ET Dice by 0.8% and Lesion-wise Recall by 2.3%. However, ET HD95 increased from 10.26mm to 11.77mm, suggesting loss-level boundary supervision alone is insufficient for boundary quality. This motivates explicit high-frequency edge feature integration (V2).
