@@ -190,4 +190,51 @@ python scripts/train_enhanced.py --lambda_b 0.5
 
 ---
 
-*最后更新: 2026-08-01*
+## 2026-08-02 | 训练规范：tmux 持久化 + 早停标准
+
+### 标准训练流程（每次训练必须遵守）
+
+```bash
+# ===== 第 1 步：创建 tmux 会话（断网/VSCode关闭也不停） =====
+tmux new -s train_lb03    # 自己命名，如 train_lb03, train_lb05, train_v2
+
+# ===== 第 2 步：更新代码并开始训练 =====
+cd /root/autodl-tmp/mri_deep && git pull
+python scripts/train_enhanced.py --lambda_b 0.3
+
+# ===== 第 3 步：退出 tmux（训练继续跑） =====
+# 按 Ctrl+B 然后按 D
+
+# ===== 第 4 步：关 VS Code / 断网 / 关电脑，训练不受影响 =====
+
+# ===== 下次连上后查看状态 =====
+tmux ls                      # 列出所有会话
+tmux attach -t train_lb03    # 进入查看训练进度
+# Ctrl+C                      # 在 tmux 内停止训练
+```
+
+### tmux 速查表
+
+| 操作 | 命令 |
+|---|---|
+| 创建会话 | `tmux new -s 名字` |
+| 退出（不停） | `Ctrl+B` 然后 `D` |
+| 重新进入 | `tmux attach -t 名字` |
+| 查看所有 | `tmux ls` |
+| 停止训练 | 在会话内 `Ctrl+C` |
+| 删除会话 | `tmux kill-session -t 名字` |
+
+### 早停标准（所有实验统一）
+
+| 参数 | 值 | 说明 |
+|---|---|---|
+| `early_stopping_patience` | 25 | 连续 25 epoch val_loss 不降 → 停止 |
+| `min_delta` | 1e-4 | val_loss 下降不足 1e-4 → 不算改善 |
+| 监控指标 | `val_loss` | 每次验证后比较 |
+| 选择 checkpoint | 最低 val_loss 的 epoch | 与 baseline 选择标准一致 |
+
+**为什么用这些参数:** warm-start 从 pretrained baseline 出发，通常在 10-30 epoch 收敛。25 epoch 耐心值在收敛后给足够余量，同时避免浪费 GPU。
+
+---
+
+*最后更新: 2026-08-02*
