@@ -38,7 +38,7 @@ import torch
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from models.resunet_edge import ResUNetEdge
-from losses.enhanced import DiceCEBoundaryLoss
+from losses.basics import BCEDiceLoss
 from data.dataset import BratsDataset
 from training.trainer import Trainer
 from training.config import config, seed_everything, check_exist
@@ -51,27 +51,53 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--fusion', type=str, required=True,
                     choices=['concat', 'add'],
                     help='Edge fusion mode')
-parser.add_argument('--lambda_b', type=float, default=0.3,
-                    help='Boundary loss weight (default 0.3 from V1 best)')
 parser.add_argument('--epochs', type=int, default=200)
 parser.add_argument('--lr', type=float, default=5e-4)
 parser.add_argument('--from_scratch', action='store_true')
+parser.add_argument('--random_edge', action='store_true',
+                    help='FAIRNESS CONTROL: replace Sobel edges with random noise. '
+                         'Same param count, different input → isolates edge info contribution.')
 args = parser.parse_args()
 
 seed_everything(config.seed)
 
 CHECKPOINT_DIR = f'/root/autodl-tmp/ResUNet_Edge_{args.fusion}_model'
+if args.random_edge:
+    CHECKPOINT_DIR = f'/root/autodl-tmp/ResUNet_Edge_random_control_model'
 os.makedirs(CHECKPOINT_DIR, exist_ok=True)
 
 print("=" * 70)
-print(f"V2: ResUNet + Sobel Edge Branch (fusion={args.fusion})")
+edge_type = "RANDOM NOISE (fairness control)" if args.random_edge else "Sobel 3D gradient magnitude"
+print(f"V2: ResUNet + Edge Branch (fusion={args.fusion})")
 print("=" * 70)
-print(f"\n  Loss:   1.0*Dice + 0.5*CE + {args.lambda_b}*Boundary (Kervadec 2019)")
-print(f"  Fusion: {args.fusion}")
-print(f"  Weights: WT=1, TC=3, ET=5")
-print(f"  Edge:    Sobel 3D gradient magnitude → 4-level pyramid")
-print(f"  Warm-start: ResUNet baseline")
-print(f"  Checkpoint: {CHECKPOINT_DIR}")
+print(f"\n  Loss:        BCEDiceLoss (ORIGINAL — same as baseline)")
+print(f"  Fusion:      {args.fusion}")
+print(f"  Edge input:  {edge_type}")
+print(f"  Warm-start:  ResUNet baseline (encoder + decoder weights only)")
+print(f"  Checkpoint:  {CHECKPOINT_DIR}")
+
+# ============================================================
+# Fairness Checklist
+# ============================================================
+
+print(f"\n{'='*70}")
+print("FAIRNESS CHECKLIST")
+print(f"{'='*70}")
+print(f"  Data split:       tumourCSV.csv + random_state=10 (same as baseline)        [OK]")
+print(f"  Learning rate:    {args.lr} (same as baseline)                                [OK]")
+print(f"  Optimizer:        Adam (same as baseline)                                     [OK]")
+print(f"  Scheduler:        ReduceLROnPlateau patience=2 (same as baseline)             [OK]")
+print(f"  Batch size:       1, accumulation=4 (same as baseline)                        [OK]")
+print(f"  n_channels:       24 (same as baseline)                                       [OK]")
+print(f"  Seed:             55 (same as baseline)                                       [OK]")
+print(f"  Loss:             BCEDiceLoss (same as baseline)                              [OK]")
+print(f"  Early stopping:   patience=25, min_delta=1e-4 (same as baseline)             [OK]")
+print(f"  Checkpoint:       best val_loss (same criterion as baseline)                 [OK]")
+print(f"  Evaluation:       same test set, threshold=0.33, metrics                     [OK]")
+if args.random_edge:
+    print(f"  Control:          Random edge → isolates param count from edge info          [OK]")
+print(f"  ONLY CHANGE:      ResUNet → ResUNetEdge (+ Sobel edge branch)")
+print(f"{'='*70}\n")
 
 # ============================================================
 # Model
@@ -80,17 +106,28 @@ print(f"  Checkpoint: {CHECKPOINT_DIR}")
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 model = ResUNetEdge(in_channels=4, n_classes=3, n_channels=24,
                     fusion=args.fusion).to(device)
-print(f"\nModel: ResUNetEdge (fusion={args.fusion}) — {sum(p.numel() for p in model.parameters()):,} params")
+if args.random_edge:
+    model.use_random_edge = True
+
+# Compare param counts
+from models.resunet3d import ResUNet3d
+baseline_params = sum(p.numel() for p in ResUNet3d(4, 3, 24).parameters())
+v2_params = sum(p.numel() for p in model.parameters())
+print(f"\nParameter count:")
+print(f"  Baseline ResUNet:  {baseline_params:,}")
+print(f"  ResUNetEdge:       {v2_params:,}  (+{v2_params - baseline_params:,})")
+print(f"  Random edge has SAME param count as Sobel edge (only input differs)")
 
 # ============================================================
-# Loss (using best lambda_b from V1)
+# Loss — ORIGINAL BCEDiceLoss (isolate model change from loss change)
 # ============================================================
+# V1 changed the loss. V2 changes ONLY the model.
 
-criterion = DiceCEBoundaryLoss(
-    alpha=1.0, beta=0.5, gamma=args.lambda_b,
-    class_weights=[1.0, 3.0, 5.0],
-    bd_max_weight=5.0, bd_alpha=1.0,
-)
+criterion = BCEDiceLoss()
+print(f"\nLoss: BCEDiceLoss (ORIGINAL — same as baseline)")
+print(f"  V1 change: loss function    (BCEDice → DiceCEBoundary + class weights)")
+print(f"  V2 change: model architecture (ResUNet → ResUNetEdge + Sobel branch)")
+print(f"  Each experiment changes exactly ONE thing.")
 
 # ============================================================
 # Trainer

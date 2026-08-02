@@ -326,6 +326,9 @@ class ResUNetEdge(nn.Module):
     Usage:
         model = ResUNetEdge(in_channels=4, n_classes=3, n_channels=24,
                             fusion='concat')
+
+        # Random edge control (fairness ablation):
+        model.use_random_edge = True
     """
 
     def __init__(self, in_channels=4, n_classes=3, n_channels=24,
@@ -338,6 +341,7 @@ class ResUNetEdge(nn.Module):
         self.fusion = fusion
         self.in_channels = in_channels
         self.n_channels = n_channels
+        self.use_random_edge = False  # fairness control flag
 
         # ---- Edge Branch ----
         self.sobel = SobelEdge3d()
@@ -378,7 +382,12 @@ class ResUNetEdge(nn.Module):
             mask: (B, 3, D, H, W) — WT, TC, ET predictions
         """
         # ---- Edge branch ----
-        edge_input = self.sobel(x)            # (B, 4, D, H, W)
+        if self.use_random_edge:
+            # Fairness control: random noise instead of Sobel edges
+            # Same dimensions, same param count, different information content
+            edge_input = torch.randn_like(x)
+        else:
+            edge_input = self.sobel(x)            # (B, 4, D, H, W)
         edge_dict = self.edge_pyramid(edge_input)  # multi-scale edge features
 
         # ---- Encoder ----
