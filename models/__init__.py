@@ -20,8 +20,10 @@ from models.unet3d import UNet3d
 from models.resunet3d import ResUNet3d
 from models.attunet3d import AttUNet3d
 from models.nnunet3d import nnUNet3d
+from models.resunet_edge import ResUNetEdge, SobelEdge3d
 
 __all__ = [
     'DoubleConv', 'Down', 'Up', 'Out',
     'UNet3d', 'ResUNet3d', 'AttUNet3d', 'nnUNet3d',
+    'ResUNetEdge', 'SobelEdge3d',
 ]
