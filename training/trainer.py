@@ -115,6 +115,42 @@ class Trainer():
         # calculating the time for both train & validation phases
         self.time = {phase: [] for phase in self.phases}
 
+        # --- Restore history from previous training if resuming ---
+        if self.epoch_value > 0:
+            self._restore_history()
+
+    def _restore_history(self):
+        """Load previous training logs so train_log.csv is not overwritten."""
+        log_path = f"{self.model_type}/train_log.csv"
+        if not os.path.exists(log_path):
+            return
+        try:
+            old_log = pd.read_csv(log_path)
+            # Map old column names back to our dicts
+            phase_map = {'train': 'train', 'valid': 'valid'}
+            metric_map = {
+                '_loss': 'losses',
+                '_dice': 'dice_scores',
+                '_jaccard': 'jaccard_scores',
+                '_time': 'time',
+            }
+            for col in old_log.columns:
+                for phase_key in ['train', 'valid']:
+                    for suffix, attr in metric_map.items():
+                        if col == phase_key + suffix:
+                            values = old_log[col].dropna().tolist()
+                            if len(values) > 0:
+                                getattr(self, attr)[phase_key] = values
+
+            # Restore best_loss from the loaded valid losses
+            if len(self.losses['valid']) > 0:
+                self.best_loss = min(self.losses['valid'])
+                self.best_epoch = self.losses['valid'].index(self.best_loss)
+                print(f"Restored training history: {len(self.losses['train'])} epochs, "
+                      f"best val_loss={self.best_loss:.6f} at epoch {self.best_epoch}")
+        except Exception as e:
+            print(f"[WARN] Could not restore training history: {e}")
+
     def _compute_loss_and_outputs(self,
                                   images: torch.Tensor,
                                   targets: torch.Tensor):
