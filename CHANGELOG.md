@@ -237,4 +237,57 @@ tmux attach -t train_lb03    # 进入查看训练进度
 
 ---
 
+## 2026-08-02 | V1 λb 消融实验结果
+
+### 实验配置
+- 架构: ResUNet3d (n_channels=24)
+- 训练数据: BraTS2020 Training Set (70%)
+- 评估数据: BraTS2020 Test Set (独立划分)
+- Warm-start: ResUNet baseline (BCEDiceLoss, epoch 199)
+- 早停: patience=25, min_delta=1e-4
+- Loss: `L = 1.0 × Dice + 0.5 × CE + λb × Boundary`
+  - Class weights: WT=1.0, TC=3.0, ET=5.0
+  - Boundary: Kervadec 2019 distance-transform BD Loss
+
+### 结果
+
+| 指标 | Baseline (BCEDice) | λb=0.1 | λb=0.3 | 最优 |
+|---|---|---|---|---|
+| ET Dice | 0.7585 | 0.7534 | **0.7665** | λb=0.3 |
+| ET Recall | 0.7775 | 0.7951 | **0.7934** | λb=0.1 |
+| ET Precision | 0.7825 | 0.7442 | **0.7672** | Baseline |
+| ET HD95 (mm) | **10.26** | 12.30 | 11.77 | Baseline (越低越好) |
+| TC HD95 (mm) | **9.02** | 10.41 | 9.31 | Baseline (越低越好) |
+| Lesion Recall | 0.718 | **0.749** | 0.741 | λb=0.1 |
+| Small-case Dice | 0.621 | 0.634 | **0.642** | λb=0.3 |
+
+### 关键发现
+
+1. **λb=0.3 在分割指标上最优** — ET Dice +0.8%, Small-case Dice +2.1%
+2. **检出率提升但边界退化** — Lesion Recall +2.3% 但 ET HD95 +1.5mm
+3. **Pure loss-level boundary supervision is insufficient** — 需要 V2 (高频边缘特征)
+4. **λb=0.1 过弱** — Dice 反而不如 baseline
+5. λb=0.5 训练未完成，待补充
+
+### 论文表述
+> Adding the Kervadec 2019 boundary distance loss (λb=0.3) improved ET Dice by 0.8% and Lesion-wise Recall by 2.3%. However, ET HD95 increased from 10.26mm to 11.77mm, suggesting loss-level boundary supervision alone is insufficient for boundary quality. This motivates explicit high-frequency edge feature integration (V2).
+
+---
+
+### 📝 术语解释：Baseline + ET/TC Patch 采样
+
+讲义中提到的 Exp-3 "baseline + ET/TC patch 采样":
+
+**问题:** BraTS2020 中 ET 体素仅占全图的 ~0.5%。随机采样 patch 时，ET 区域几乎不会出现 → 模型缺乏足够的 ET 训练信号。
+
+**方法:** 在训练时以更高概率从包含 ET/TC 的区域采样 3D patch：
+- 统计每个病例中 ET/TC 的质心位置
+- 采样 patch 时，50% 概率以 ET/TC 质心为中心
+- 另外 50% 概率随机采样
+- 保证小病灶在训练中出现的频率大幅提升
+
+**与你当前方法的关系:** 你用的 class_weights (ET=5, TC=3, WT=1) 和 patch 采样是**同一目标的两种实现**——都在让小病灶获得更多梯度。class weights 在 loss 层面，patch 采样在数据层面。两者可以组合使用。
+
+---
+
 *最后更新: 2026-08-02*
