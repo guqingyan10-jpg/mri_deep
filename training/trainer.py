@@ -81,7 +81,7 @@ class Trainer():
         self.phases = ["train", "valid"]
         self.num_epochs = num_epochs
         self.model_type = model_type
-        self.epoch_value = self.check_epoch_number(self.model_type)
+        self.epoch_value = int(self.check_epoch_number(self.model_type))
 
         # Early stopping
         self.early_stopping_patience = early_stopping_patience
