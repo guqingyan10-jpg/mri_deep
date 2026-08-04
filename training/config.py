@@ -45,24 +45,26 @@ seed_everything(config.seed)
 
 
 def check_exist(checkpoint_dir):
-    """Check if a pretrained model exists in checkpoint_dir."""
-    # Get a list of all files in the checkpoint directory
+    """Check if a pretrained model exists in checkpoint_dir.
+
+    Priority:
+      1. best_model_*.pth (lowest val_loss, preferred for warm-start)
+      2. last_epoch_model_*.pth (training endpoint, fallback)
+    """
     all_files = os.listdir(checkpoint_dir)
 
-    # Filter the files to get only the model checkpoint files
-    model_checkpoint_files = [file for file in all_files if file.startswith("last_epoch_model")]
+    # ── Priority 1: best_model (lowest val_loss) ──
+    best_files = [f for f in all_files if f.startswith("best_model_")]
+    if best_files:
+        best = sorted(best_files,
+                      key=lambda x: int(x.split('_')[-1].split('.')[0]))[-1]
+        return os.path.join(checkpoint_dir, best)
 
-    if model_checkpoint_files:
+    # ── Priority 2: last_epoch_model (training endpoint) ──
+    last_files = [f for f in all_files if f.startswith("last_epoch_model")]
+    if last_files:
+        last = sorted(last_files,
+                      key=lambda x: int(x.split('_')[-1].split('.')[0]))[-1]
+        return os.path.join(checkpoint_dir, last)
 
-        sorted_file_names = sorted(model_checkpoint_files, key=lambda x: int(x.split('_')[-1].split('.')[0]))
-
-        # Get the latest model checkpoint file
-        latest_checkpoint_file = sorted_file_names[-1]
-
-
-        # Construct the full path to the latest model checkpoint
-        pretrained_model_path = os.path.join(checkpoint_dir, latest_checkpoint_file)
-
-        return pretrained_model_path
-    else:
-        pretrained_model_path = None
+    return None
