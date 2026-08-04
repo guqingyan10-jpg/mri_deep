@@ -60,7 +60,7 @@ print('Loading models...')
 
 # Baseline ResUNet (BCEDiceLoss)
 baseline = ResUNet3d(in_channels=4, n_classes=3, n_channels=24).to(device)
-res_state = torch.load(r'ResUNet_model/best_model_68.pth', map_location=device)
+res_state = torch.load(check_exist(config.ResUNet_checkpoint_dir), map_location=device)
 res_state = {k.replace('out.conv.0.', 'out.conv.'): v for k, v in res_state.items()}
 baseline.load_state_dict(res_state)
 baseline.eval()

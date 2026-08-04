@@ -37,12 +37,15 @@ from evaluation.advanced_metrics import compute_all_advanced_metrics, print_comp
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 print(f'Device: {device}')
 
-# All models to compare
+# Baseline model — auto-detect best checkpoint
+BASELINE_CKPT = check_exist(config.ResUNet_checkpoint_dir)
+
+# All models to compare — auto-detect best checkpoints
 MODELS = {
-    'Baseline (BCEDice)': '/root/autodl-tmp/ResUNet_model/best_model_68.pth',
-    'lb=0.1 (Dice+CE+0.1*BD)': '/root/autodl-tmp/ResUNet_Enhanced_lb0.1_model/best_model_6.pth',
-    'lb=0.3 (Dice+CE+0.3*BD)': '/root/autodl-tmp/ResUNet_Enhanced_lb0.3_model/best_model_5.pth',
-    'lb=0.5 (Dice+CE+0.5*BD)': '/root/autodl-tmp/ResUNet_Enhanced_lb0.5_model/best_model_22.pth',
+    'Baseline (BCEDice)': BASELINE_CKPT,
+    'lb=0.1 (Dice+CE+0.1*BD)': check_exist('/root/autodl-tmp/ResUNet_Enhanced_lb0.1_model'),
+    'lb=0.3 (Dice+CE+0.3*BD)': check_exist('/root/autodl-tmp/ResUNet_Enhanced_lb0.3_model'),
+    'lb=0.5 (Dice+CE+0.5*BD)': check_exist('/root/autodl-tmp/ResUNet_Enhanced_lb0.5_model'),
 }
 
 # ============================================================

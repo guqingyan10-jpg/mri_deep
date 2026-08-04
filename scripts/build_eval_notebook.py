@@ -68,17 +68,17 @@ code("""# ============================================================
 print('Loading 4 baseline models from checkpoints...')
 
 UNet = UNet3d(in_channels=4, n_classes=3, n_channels=24).to(device)
-UNet.load_state_dict(torch.load(r'UNet_model/best_model_81.pth', map_location=device))
+UNet.load_state_dict(torch.load(check_exist(config.UNet_checkpoint_dir), map_location=device))
 UNet.eval()
 
 ResUNet = ResUNet3d(in_channels=4, n_classes=3, n_channels=24).to(device)
-res_state = torch.load(r'ResUNet_model/best_model_68.pth', map_location=device)
+res_state = torch.load(check_exist(config.ResUNet_checkpoint_dir), map_location=device)
 res_state = {k.replace('out.conv.0.', 'out.conv.'): v for k, v in res_state.items()}
 ResUNet.load_state_dict(res_state)
 ResUNet.eval()
 
 AttUNet = AttUNet3d(in_channels=4, n_classes=3, n_channels=24).to(device)
-att_state = torch.load(r'AttUNet_model/best_model_63.pth', map_location=device)
+att_state = torch.load(check_exist(config.Att_checkpoint_dir), map_location=device)
 att_state = {k.replace('out.conv.0.', 'out.conv.'): v for k, v in att_state.items()}
 AttUNet.load_state_dict(att_state)
 AttUNet.eval()
