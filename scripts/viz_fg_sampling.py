@@ -386,6 +386,173 @@ print(f"  Saved: et_content_distribution.png")
 
 
 # ============================================================
+# Figure 5: ET proportion (%) per strategy (normalized)
+# ============================================================
+
+print("\nGenerating ET proportion statistics (% of patch)...")
+
+patch_total_voxels = 1
+for d in fg_dataset.patch_size:
+    patch_total_voxels *= d
+
+strategy_et_pct = {s: [] for s in strategies}
+n_samples_pct = 200
+
+for strat in strategies:
+    for _ in range(n_samples_pct):
+        p_t1ce, p_et, bbox = sample_one_patch(
+            strat, demo_id, volume_shape, t1ce, et_mask
+        )
+        pct = (p_et.sum() / patch_total_voxels) * 100
+        strategy_et_pct[strat].append(pct)
+
+fig, ax = plt.subplots(figsize=(8, 5))
+positions = list(range(len(strategies)))
+bp = ax.boxplot([strategy_et_pct[s] for s in strategies],
+                positions=positions, patch_artist=True, widths=0.5)
+
+for i, strat in enumerate(strategies):
+    bp['boxes'][i].set_facecolor(strategy_colors[strat])
+    bp['boxes'][i].set_alpha(0.6)
+    y = strategy_et_pct[strat]
+    x = np.random.normal(i, 0.08, size=len(y))
+    ax.scatter(x, y, c=strategy_colors[strat], alpha=0.3, s=12)
+
+ax.set_xticks(positions)
+ax.set_xticklabels([s.replace('_', '\n') for s in strategies])
+ax.set_ylabel('ET Proportion in Patch (%)')
+ax.set_title(f'ET Proportion (% of patch) by Sampling Strategy\n'
+             f'Case: {demo_id}  ({n_all} ET components, {n_small} small)  '
+             f'Patch={fg_dataset.patch_size} → {patch_total_voxels:,} vox')
+ax.axhline(y=0, color='gray', linestyle='--', alpha=0.5)
+ax.grid(axis='y', alpha=0.3)
+
+plt.tight_layout()
+fig.savefig(os.path.join(OUTPUT_DIR, 'et_proportion_pct.png'),
+            dpi=150, bbox_inches='tight')
+plt.close()
+print(f"  Saved: et_proportion_pct.png")
+
+
+# ============================================================
+# Figure 6: Small-lesion targeting verification
+# ============================================================
+
+print("\nVerifying small-lesion targeting accuracy...")
+
+# Rebuild the labeled mask for component-level tracking
+from scipy.ndimage import label as connected_components
+from scipy.ndimage import center_of_mass
+
+full_et_binary = (et_mask > 0.5).astype(np.int32)
+labeled, num_comp = connected_components(full_et_binary)
+
+# Build component lookup: comp_id -> {'size': int, 'centroid': (z,y,x)}
+all_comp_info = {}
+for comp_id in range(1, num_comp + 1):
+    comp_mask = (labeled == comp_id)
+    comp_size = comp_mask.sum()
+    if comp_size < 10:
+        continue
+    cz, cy, cx = center_of_mass(comp_mask)
+    all_comp_info[comp_id] = {
+        'size': int(comp_size),
+        'centroid': (int(round(cz)), int(round(cy)), int(round(cx))),
+        'is_small': comp_size < 50,
+    }
+
+# For each small component, sample N patches with small_lesion strategy
+# and check: did the patch contain ANY voxel from that component?
+n_patches_per_comp = 10
+targeting_results = []
+
+for comp_id, info in sorted(all_comp_info.items()):
+    if not info['is_small']:
+        continue
+
+    comp_size = info['size']
+    comp_mask_3d = (labeled == comp_id)
+
+    hits = 0
+    et_in_patch_list = []
+
+    for _ in range(n_patches_per_comp):
+        # Force small_lesion strategy only
+        old_probs = list(sampler.strategy_probs)
+        strat_idx = sampler.strategy_names.index('small_lesion')
+        new_probs = [0.0] * len(sampler.strategy_names)
+        new_probs[strat_idx] = 1.0
+        sampler.strategy_probs = new_probs
+
+        z1, z2, y1, y2, x1, x2 = sampler.sample(demo_id, volume_shape)
+        sampler.strategy_probs = old_probs
+
+        # Check if this component's voxels appear in the patch
+        comp_in_patch = comp_mask_3d[z1:z2, y1:y2, x1:x2]
+        comp_vox_present = comp_in_patch.sum()
+
+        if comp_vox_present > 0:
+            hits += 1
+            et_in_patch_list.append(int(comp_vox_present))
+
+    hit_rate = hits / n_patches_per_comp * 100
+    targeting_results.append({
+        'comp_id': comp_id,
+        'size': comp_size,
+        'hit_rate': hit_rate,
+        'et_in_patch': et_in_patch_list,
+    })
+
+# ── Subplot 1: Hit rate per component ──
+fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(13, 5))
+
+comp_ids = [r['comp_id'] for r in targeting_results]
+comp_sizes = [r['size'] for r in targeting_results]
+hit_rates = [r['hit_rate'] for r in targeting_results]
+
+colors_bar = ['#27ae60' if h == 100 else '#e67e22' if h >= 50 else '#e74c3c'
+              for h in hit_rates]
+bars = ax1.bar(range(len(targeting_results)), hit_rates, color=colors_bar, alpha=0.85)
+ax1.axhline(y=100, color='green', linestyle='--', alpha=0.3, linewidth=1)
+ax1.set_xticks(range(len(targeting_results)))
+ax1.set_xticklabels([f"C{c}" for c in comp_ids], rotation=60, fontsize=7)
+for i, (h, s) in enumerate(zip(hit_rates, comp_sizes)):
+    ax1.text(i, h + 2, f"{s}vox", ha='center', fontsize=6, color='gray')
+ax1.set_ylabel('Hit Rate (%)')
+ax1.set_title(f'Small-Lesion Targeting Accuracy\n'
+              f'({n_patches_per_comp} patches/component × {len(targeting_results)} components)')
+ax1.set_ylim(0, 115)
+ax1.grid(axis='y', alpha=0.3)
+
+# ── Subplot 2: Component size vs fraction captured ──
+ax2.scatter(comp_sizes, hit_rates, c=colors_bar, s=80, alpha=0.8, edgecolors='black', linewidth=0.5)
+ax2.set_xlabel('Component Size (ET voxels)')
+ax2.set_ylabel('Hit Rate (%)')
+ax2.set_title('Component Size vs Targeting Hit Rate')
+ax2.axhline(y=100, color='green', linestyle='--', alpha=0.3)
+ax2.grid(alpha=0.3)
+
+plt.tight_layout()
+fig.savefig(os.path.join(OUTPUT_DIR, 'small_lesion_targeting.png'),
+            dpi=150, bbox_inches='tight')
+plt.close()
+print(f"  Saved: small_lesion_targeting.png")
+
+# ── Print targeting summary ──
+n_hit100 = sum(1 for r in targeting_results if r['hit_rate'] == 100)
+n_hit50 = sum(1 for r in targeting_results if r['hit_rate'] >= 50)
+print(f"  Small components: {len(targeting_results)}")
+print(f"  100% hit rate:    {n_hit100}/{len(targeting_results)}")
+print(f"  ≥50% hit rate:    {n_hit50}/{len(targeting_results)}")
+if n_hit100 < len(targeting_results):
+    print(f"  Components with <100%:")
+    for r in targeting_results:
+        if r['hit_rate'] < 100:
+            print(f"    Component #{r['comp_id']}: size={r['size']}, hit_rate={r['hit_rate']:.0f}%")
+            print(f"      → ET voxels captured per hit: {r['et_in_patch']}")
+
+
+# ============================================================
 # Summary
 # ============================================================
 
@@ -416,6 +583,15 @@ print(f"     - Colored dots = patch centers from each strategy")
 print(f"     - EXPECT: et_centered/small_lesion dots cluster on ET regions")
 print(f"     - EXPECT: random dots spread across entire volume")
 print(f"\n  4. et_content_distribution.png")
-print(f"     - Box plot of ET voxels per patch")
-print(f"     - EXPECT: et_centered/small_lesion has higher median ET count")
-print(f"     - EXPECT: random has many zero-ET patches")
+print(f"     - Box plot of ET voxels per patch (absolute count)")
+print(f"     - EXPECT: foreground highest (repeated large-tumor sampling)")
+print(f"     - EXPECT: small_lesion lowest (small components only, <50 vox)")
+print(f"\n  5. et_proportion_pct.png  ★ NEW")
+print(f"     - ET voxels / total patch voxels (%), normalized for patch size")
+print(f"     - SAME pattern as absolute count → confirms nothing pathological")
+print(f"     - More interpretable: ~1.5-2% max for ANY strategy")
+print(f"\n  6. small_lesion_targeting.png  ★ NEW")
+print(f"     - Per-component hit rate: does small_lesion strategy")
+print(f"       actually capture each of the 23 small ET components?")
+print(f"     - Color: green=100% hit, orange=50-99%, red=<50%")
+print(f"     - EXPECT: all green (100% hit rate for every small component)")
