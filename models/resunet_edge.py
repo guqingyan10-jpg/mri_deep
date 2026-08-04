@@ -4,10 +4,11 @@ ResUNet3d + High-Frequency Edge Auxiliary Branch (V2)
 =============================================================================
 Adds an explicit edge feature branch to ResUNet3d:
 
-  1. Sobel Edge Extraction:
-     - Apply 3D Sobel (dx, dy, dz) on each of 4 MRI modalities
-     - Compute gradient magnitude: |nabla I| = sqrt(Gx^2 + Gy^2 + Gz^2)
-     - Stack → (B, 4, D, H, W) edge volume
+  1. Edge Extraction (Dataset Transform, on raw MRI):
+     - Sobel (1st derivative): directional gradient magnitude |∇I|
+     - Laplacian (2nd derivative): I - Gaussian(I) = high-freq residual
+     - Random noise: fairness control (isolates param count from edge info)
+     - Output → (B, 4, D, H, W) edge volume
 
   2. Multi-scale Edge Pyramid:
      - Downsample edge volume via strided conv (or avgpool)
@@ -17,10 +18,11 @@ Adds an explicit edge feature branch to ResUNet3d:
      - Concat: torch.cat([decoder_feat, edge_feat], dim=1) → DoubleConv
      - Add:    decoder_feat + edge_feat (after 1x1x1 conv alignment)
 
-  4. Why Sobel not Laplacian:
-     - T1ce shows ET as bright vs surrounding dark → strong directional gradient
-     - Sobel x,y,z preserves direction info; Laplacian amplifies noise
-     - Gradient magnitude is the standard edge operator in medical imaging
+  4. Sobel vs Laplacian:
+     - Sobel (1st deriv): directional gradient, preserves edge orientation
+     - Laplacian (2nd deriv): isotropic, captures ALL edges regardless of direction
+     - Both are valid dataset transforms; comparison isolates derivative order
+     - FGFE uses Laplacian on decoder FEATURES (not raw MRI) — separate mechanism
 
   5. Why inject at decoder last 2 stages:
      - dec3 (64^3) and dec4 (128^3) are closest to output resolution
@@ -42,20 +44,22 @@ Architecture diagram:
        │                    └──> Decoder ──> Output (B, 3, 128³)
        │                         │    ▲
        │                         │    │
-       └──> Sobel Edge ──> Edge  │    │
-            Extraction    Pyramid │    │
-            (B,4,128³)    (B,C,  │    │
+       └──> Sobel/Laplacian    │    │
+            Edge Extraction  Edge │    │
+            (B,4,128³)    Pyramid │    │
+                          (B,C,   │    │
                            D,H,W)│    │
                                  │    │
                     Concat or Add ────┘
                     (at dec3, dec4)
 
 Usage:
-    from models.resunet_edge import ResUNetEdge, FusionMode
+    from models.resunet_edge import ResUNetEdge, SobelEdge3d, LaplacianEdge3d
 
     model = ResUNetEdge(
         in_channels=4, n_classes=3, n_channels=24,
-        fusion='concat'  # or 'add'
+        fusion='concat',   # 'concat' or 'add'
+        edge_type='sobel', # 'sobel', 'laplacian', or 'random'
     )
 
 Author: Generated for ResUNet enhancement project
@@ -167,6 +171,54 @@ class SobelEdge3d(nn.Module):
         grad_mag = grad_mag.view(B, C, D, H, W)
 
         return grad_mag
+
+
+# ============================================================
+# 3D Laplacian Edge Extraction
+# ============================================================
+
+class LaplacianEdge3d(nn.Module):
+    """
+    Extract high-frequency residual from raw MRI using Laplacian decomposition.
+
+    Algorithm (Dippel et al., IEEE TMI 2002):
+      1. Gaussian blur: I_smooth = GaussianFilter(I)  (3x3x3, sigma≈1)
+      2. High-freq:  I_h = I - I_smooth  (residual = edges/textures)
+
+    This is the 2nd-derivative counterpart to SobelEdge3d (1st derivative).
+    Laplacian is isotropic — it detects edges in ALL directions equally,
+    while Sobel preserves directional information per axis.
+
+    Applied PER MODALITY (4 times), stacked → (B, 4, D, H, W).
+    Same interface and output shape as SobelEdge3d → drop-in replacement.
+
+    Relationship to FGFE:
+      - LaplacianEdge3d: operates on RAW MRI pixels (dataset transform)
+      - FGFE.LaplacianPyramid3d: operates on DECODER FEATURES (learned repr.)
+      - Both use the same mathematical operation (I - blur(I))
+      - But apply it at DIFFERENT stages of the pipeline
+    """
+
+    def __init__(self):
+        super().__init__()
+        # 3D box filter (binomial approximation of Gaussian, sigma≈1)
+        k3d = torch.ones(1, 1, 3, 3, 3, dtype=torch.float32) / 27.0
+        self.register_buffer('blur_kernel', k3d)
+
+    def forward(self, x):
+        """
+        Args:
+            x: (B, C, D, H, W) — 4-modal MRI input
+
+        Returns:
+            high_freq: (B, C, D, H, W) — Laplacian high-freq residual
+        """
+        B, C, D, H, W = x.shape
+        x_flat = x.reshape(B * C, 1, D, H, W)
+        x_smooth = F.conv3d(x_flat, self.blur_kernel, padding=1)
+        x_smooth = x_smooth.reshape(B, C, D, H, W)
+        high_freq = x - x_smooth  # Laplacian: residual = edges
+        return high_freq
 
 
 # ============================================================
@@ -329,28 +381,41 @@ class ResUNetEdge(nn.Module):
     """
     ResUNet3d with High-Frequency Edge Auxiliary Branch.
 
+    Args:
+        edge_type: 'sobel' (1st derivative), 'laplacian' (2nd derivative),
+                   or 'random' (fairness control — noise instead of edges)
+
     Usage:
         model = ResUNetEdge(in_channels=4, n_classes=3, n_channels=24,
-                            fusion='concat')
+                            fusion='concat', edge_type='sobel')
 
         # Random edge control (fairness ablation):
-        model.use_random_edge = True
+        model = ResUNetEdge(..., edge_type='random')
     """
 
     def __init__(self, in_channels=4, n_classes=3, n_channels=24,
-                 fusion='concat'):
+                 fusion='concat', edge_type='sobel'):
         super().__init__()
 
         if fusion not in ('concat', 'add'):
             raise ValueError(f"fusion must be 'concat' or 'add', got {fusion}")
+        if edge_type not in ('sobel', 'laplacian', 'random'):
+            raise ValueError(f"edge_type must be 'sobel', 'laplacian', or 'random', got {edge_type}")
 
         self.fusion = fusion
+        self.edge_type = edge_type
         self.in_channels = in_channels
         self.n_channels = n_channels
-        self.use_random_edge = False  # fairness control flag
 
-        # ---- Edge Branch ----
-        self.sobel = SobelEdge3d()
+        # ---- Edge Extraction (dataset transform) ----
+        if edge_type == 'sobel':
+            self.edge_extractor = SobelEdge3d()
+        elif edge_type == 'laplacian':
+            self.edge_extractor = LaplacianEdge3d()
+        else:  # 'random' — extractor is unused, but keep for param count parity
+            self.edge_extractor = None
+
+        # ---- Edge Pyramid ----
         self.edge_pyramid = EdgePyramid(in_channels, n_channels)
 
         # ---- Encoder (unchanged from ResUNet3d) ----
@@ -388,12 +453,12 @@ class ResUNetEdge(nn.Module):
             mask: (B, 3, D, H, W) — WT, TC, ET predictions
         """
         # ---- Edge branch ----
-        if self.use_random_edge:
-            # Fairness control: random noise instead of Sobel edges
+        if self.edge_type == 'random':
+            # Fairness control: random noise instead of edge info
             # Same dimensions, same param count, different information content
             edge_input = torch.randn_like(x)
         else:
-            edge_input = self.sobel(x)            # (B, 4, D, H, W)
+            edge_input = self.edge_extractor(x)      # (B, 4, D, H, W)
         edge_dict = self.edge_pyramid(edge_input)  # multi-scale edge features
 
         # ---- Encoder ----

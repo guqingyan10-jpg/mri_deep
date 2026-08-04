@@ -6,14 +6,17 @@ Loss: Dice + CE + lambda_b * Boundary  (using best lambda_b from V1)
 Model: ResUNetEdge with Sobel edge extraction + multi-scale fusion
 
 Usage:
-    # Concat fusion (recommended):
-    python scripts/train_v2_edge.py --fusion concat
+    # Sobel edge (1st derivative):
+    python scripts/train_v2_edge.py --fusion concat --edge_type sobel
+
+    # Laplacian edge (2nd derivative):
+    python scripts/train_v2_edge.py --fusion concat --edge_type laplacian
+
+    # Random control (fairness ablation):
+    python scripts/train_v2_edge.py --fusion concat --edge_type random
 
     # Add fusion:
-    python scripts/train_v2_edge.py --fusion add
-
-    # Both (sequentially):
-    python scripts/train_v2_edge.py --fusion concat && python scripts/train_v2_edge.py --fusion add
+    python scripts/train_v2_edge.py --fusion add --edge_type sobel
 
 Architecture:
     4-modal MRI → Sobel 3D → Edge Pyramid → Decoder (concat/add)
@@ -21,8 +24,11 @@ Architecture:
                 ResUNet Encoder → Bottleneck → Decoder → Output
 
 Checkpoints:
-    /root/autodl-tmp/ResUNet_Edge_concat_model/
-    /root/autodl-tmp/ResUNet_Edge_add_model/
+    /root/autodl-tmp/ResUNet_Edge_concat_sobel_model/
+    /root/autodl-tmp/ResUNet_Edge_concat_laplacian_model/
+    /root/autodl-tmp/ResUNet_Edge_concat_random_model/
+    /root/autodl-tmp/ResUNet_Edge_add_sobel_model/
+    ...
 
 Author: Generated for ResUNet enhancement project
 Date:   2026-08-02
@@ -51,28 +57,33 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--fusion', type=str, required=True,
                     choices=['concat', 'add'],
                     help='Edge fusion mode')
+parser.add_argument('--edge_type', type=str, default='sobel',
+                    choices=['sobel', 'laplacian', 'random'],
+                    help='Edge extraction method. '
+                         'sobel: 1st-derivative gradient magnitude; '
+                         'laplacian: 2nd-derivative high-freq residual (I-blur(I)); '
+                         'random: fairness control (noise instead of edges)')
 parser.add_argument('--epochs', type=int, default=200)
 parser.add_argument('--lr', type=float, default=5e-4)
 parser.add_argument('--from_scratch', action='store_true')
-parser.add_argument('--random_edge', action='store_true',
-                    help='FAIRNESS CONTROL: replace Sobel edges with random noise. '
-                         'Same param count, different input → isolates edge info contribution.')
 args = parser.parse_args()
 
 seed_everything(config.seed)
 
-CHECKPOINT_DIR = f'/root/autodl-tmp/ResUNet_Edge_{args.fusion}_model'
-if args.random_edge:
-    CHECKPOINT_DIR = f'/root/autodl-tmp/ResUNet_Edge_random_control_model'
+CHECKPOINT_DIR = f'/root/autodl-tmp/ResUNet_Edge_{args.fusion}_{args.edge_type}_model'
 os.makedirs(CHECKPOINT_DIR, exist_ok=True)
 
 print("=" * 70)
-edge_type = "RANDOM NOISE (fairness control)" if args.random_edge else "Sobel 3D gradient magnitude"
-print(f"V2: ResUNet + Edge Branch (fusion={args.fusion})")
+edge_labels = {
+    'sobel':     'Sobel 3D gradient magnitude (1st derivative)',
+    'laplacian': 'Laplacian high-freq residual I-blur(I) (2nd derivative)',
+    'random':    'RANDOM NOISE (fairness control — isolates param count from edge info)',
+}
+print(f"V2: ResUNet + Edge Branch (fusion={args.fusion}, edge={args.edge_type})")
 print("=" * 70)
 print(f"\n  Loss:        BCEDiceLoss (ORIGINAL — same as baseline)")
 print(f"  Fusion:      {args.fusion}")
-print(f"  Edge input:  {edge_type}")
+print(f"  Edge input:  {edge_labels[args.edge_type]}")
 print(f"  Warm-start:  ResUNet baseline (encoder + decoder weights only)")
 print(f"  Checkpoint:  {CHECKPOINT_DIR}")
 
@@ -94,9 +105,11 @@ print(f"  Loss:             BCEDiceLoss (same as baseline)                      
 print(f"  Early stopping:   patience=25, min_delta=1e-4 (same as baseline)             [OK]")
 print(f"  Checkpoint:       best val_loss (same criterion as baseline)                 [OK]")
 print(f"  Evaluation:       same test set, threshold=0.33, metrics                     [OK]")
-if args.random_edge:
+if args.edge_type == 'random':
     print(f"  Control:          Random edge → isolates param count from edge info          [OK]")
-print(f"  ONLY CHANGE:      ResUNet → ResUNetEdge (+ Sobel edge branch)")
+elif args.edge_type == 'laplacian':
+    print(f"  Control:          Laplacian (2nd deriv) vs Sobel (1st deriv) → same param   [OK]")
+print(f"  ONLY CHANGE:      ResUNet → ResUNetEdge (+ {args.edge_type} edge branch)")
 print(f"{'='*70}\n")
 
 # ============================================================
@@ -105,9 +118,7 @@ print(f"{'='*70}\n")
 
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 model = ResUNetEdge(in_channels=4, n_classes=3, n_channels=24,
-                    fusion=args.fusion).to(device)
-if args.random_edge:
-    model.use_random_edge = True
+                    fusion=args.fusion, edge_type=args.edge_type).to(device)
 
 # Compare param counts
 from models.resunet3d import ResUNet3d
@@ -116,7 +127,10 @@ v2_params = sum(p.numel() for p in model.parameters())
 print(f"\nParameter count:")
 print(f"  Baseline ResUNet:  {baseline_params:,}")
 print(f"  ResUNetEdge:       {v2_params:,}  (+{v2_params - baseline_params:,})")
-print(f"  Random edge has SAME param count as Sobel edge (only input differs)")
+if args.edge_type == 'random':
+    print(f"  [CONTROL] Same param count as Sobel/Laplacian — only input differs (noise)")
+elif args.edge_type == 'laplacian':
+    print(f"  [ABLATION] Same param count as Sobel — only derivative order differs (1st vs 2nd)")
 
 # ============================================================
 # Loss — ORIGINAL BCEDiceLoss (isolate model change from loss change)
@@ -126,7 +140,7 @@ print(f"  Random edge has SAME param count as Sobel edge (only input differs)")
 criterion = BCEDiceLoss()
 print(f"\nLoss: BCEDiceLoss (ORIGINAL — same as baseline)")
 print(f"  V1 change: loss function    (BCEDice → DiceCEBoundary + class weights)")
-print(f"  V2 change: model architecture (ResUNet → ResUNetEdge + Sobel branch)")
+print(f"  V2 change: model architecture (ResUNet → ResUNetEdge + {args.edge_type} edge branch)")
 print(f"  Each experiment changes exactly ONE thing.")
 
 # ============================================================
