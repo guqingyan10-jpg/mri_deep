@@ -111,8 +111,8 @@ print(f"\nDemo case: {demo_id} ({n_all} ET components, {n_small} small)")
 # ============================================================
 
 sample = full_dataset[demo_idx]
-full_img = sample['image'].numpy()   # (4, D, H, W)
-full_mask = sample['mask'].numpy()   # (3, D, H, W)
+full_img = np.asarray(sample['image'])   # (4, D, H, W)
+full_mask = np.asarray(sample['mask'])   # (3, D, H, W)
 volume_shape = full_img.shape[1:]     # (D, H, W)
 
 # Extract channels for visualization
