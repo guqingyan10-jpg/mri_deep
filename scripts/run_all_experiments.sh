@@ -1,6 +1,6 @@
 #!/bin/bash
 # =============================================================================
-# Sequential Experiment Runner — 8 experiments, one variable each
+# Sequential Experiment Runner — 9 experiments, one variable each
 # =============================================================================
 # Warm-start: auto-detects baseline best_model via check_exist()
 # Skips: if best_model_*.pth already exists → skip (resume-safe)
@@ -19,6 +19,7 @@ echo "Baseline: $(python -c 'from training.config import check_exist; print(chec
 
 experiments=(
     # NAME              SCRIPT                                                CHECKPOINT_DIR
+    "lb=0.5             train_enhanced.py --lambda_b 0.5                        /root/autodl-tmp/ResUNet_Enhanced_lb0.5_model"
     "Edge concat        train_v2_edge.py --fusion concat --edge_type sobel       /root/autodl-tmp/ResUNet_Edge_concat_sobel_model"
     "Edge add           train_v2_edge.py --fusion add --edge_type sobel          /root/autodl-tmp/ResUNet_Edge_add_sobel_model"
     "Edge laplacian     train_v2_edge.py --fusion concat --edge_type laplacian   /root/autodl-tmp/ResUNet_Edge_concat_laplacian_model"
