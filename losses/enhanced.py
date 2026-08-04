@@ -476,3 +476,194 @@ class BCEDiceCCLoss(nn.Module):
             gd = self.dice_global(logits, targets).item()
             cd = self.dice_cc(logits, targets).item()
         return {'bce': bce, 'dice_global': gd, 'cc_dice': cd}
+
+
+# ================================================================
+# Pixel-wise Modulated (PM) Dice Loss — Hosseini, 2025
+# ================================================================
+
+class PMDiceLoss(nn.Module):
+    """
+    Pixel-wise Modulated Dice Loss.
+
+    Reference:
+        Hosseini, S.M. (2025). "Pixel-wise Modulated Dice Loss for
+        Medical Image Segmentation." arXiv:2506.15744.
+
+    Formula:
+        L = 1 - (1/C) Σ_c [ 2 Σ_i m_i^c·y_i^c·p_i^c + ε ] / [ Σ_i m_i^c·((y_i^c)² + (p_i^c)²) + ε ]
+
+        m_i^c = | y_i^c - p̂_i^c |^γ
+        p̂ = sigmoid(logits).detach()  — stop-gradient through modulating term
+
+    Intuition:
+        m ≈ 0  →  easy pixel (pred ≈ GT), no contribution to loss
+        m ≈ 1  →  hard pixel (pred far from GT), full contribution
+        Larger γ → steeper focus on hardest pixels.
+
+        γ = 0 → standard Dice (m = 1 for all pixels except trivial cases).
+                Actually |y-p|^0 = 1 (for any non-zero argument), near-standard.
+
+    Why this helps small lesions:
+        Small ET lesions at boundaries are "hard" pixels — the model is
+        uncertain about them. Background in deep brain interior is "easy"
+        — model confidently predicts 0. PM Dice automatically shifts
+        gradient budget toward small ET lesions and boundaries.
+
+    Args:
+        gamma: focusing parameter (default 2.0, paper tests γ∈{0.5,1,2,3}).
+               Higher → more aggressive focus on hard pixels.
+        eps: numerical stability.
+    """
+
+    def __init__(self, gamma=2.0, eps=1e-9):
+        super().__init__()
+        self.gamma = gamma
+        self.eps = eps
+
+    def forward(self, logits, targets):
+        """
+        Args:
+            logits: (B, C, D, H, W) raw logits.
+            targets: (B, C, D, H, W) binary GT.
+
+        Returns:
+            scalar PM Dice loss.
+        """
+        prob = torch.sigmoid(logits)
+
+        # Modulating term: m = |y - p_detach|^gamma
+        # Stop-gradient through p̂ (paper: "no gradient update through p̂")
+        prob_detach = prob.detach()
+        m = (targets - prob_detach).abs() ** self.gamma
+
+        B, C = logits.shape[:2]
+
+        total_loss = 0.0
+        for c in range(C):
+            y_c = targets[:, c]
+            p_c = prob[:, c]
+            m_c = m[:, c]
+
+            num = 2.0 * (m_c * y_c * p_c).sum()
+            denom = (m_c * (y_c ** 2 + p_c ** 2)).sum()
+
+            dice_c = (num + self.eps) / (denom + self.eps)
+            total_loss += (1.0 - dice_c)
+
+        return total_loss / C
+
+
+# ================================================================
+# BCE + PM Dice (Step 4)
+# ================================================================
+
+class BCEDicePMLoss(nn.Module):
+    """
+    BCEDiceLoss + Pixel-wise Modulated Dice — single variable from PM.
+
+    Formula:
+        L = BCE + Global Dice + λ_pm · PM Dice
+
+    Single-variable change:
+        BCEDiceLoss  = BCE + Global Dice
+        BCEDicePMLoss = BCE + Global Dice + λ_pm · PM Dice
+                                              └── new (Hosseini 2025)
+
+    Args:
+        lambda_pm: weight for PM Dice term (default 1.0).
+        pm_gamma: focusing parameter for PM Dice (default 2.0).
+        eps: numerical stability.
+    """
+
+    def __init__(self, lambda_pm=1.0, pm_gamma=2.0, eps=1e-9):
+        super().__init__()
+        self.lambda_pm = lambda_pm
+
+        self.bce = nn.BCEWithLogitsLoss()
+        self.dice_global = DiceLoss(eps=eps)
+        self.pm_dice = PMDiceLoss(gamma=pm_gamma, eps=eps)
+
+    def forward(self, logits, targets):
+        assert logits.shape == targets.shape
+
+        loss_bce = self.bce(logits, targets)
+        loss_global_dice = self.dice_global(logits, targets)
+        loss_pm_dice = self.pm_dice(logits, targets)
+
+        return loss_bce + loss_global_dice + self.lambda_pm * loss_pm_dice
+
+    def log_components(self, logits, targets):
+        with torch.no_grad():
+            bce = self.bce(logits, targets).item()
+            gd = self.dice_global(logits, targets).item()
+            pm = self.pm_dice(logits, targets).item()
+        return {'bce': bce, 'dice_global': gd, 'pm_dice': pm}
+
+
+# ================================================================
+# BCE + CC Dice + PM Dice (Step 5: A+B+C)
+# ================================================================
+
+class BCEDiceCCPMLoss(nn.Module):
+    """
+    All three Dice variants combined — ablation endpoint.
+
+    Formula:
+        L = BCE + Global Dice + λ_cc · CC Dice + λ_pm · PM Dice
+
+    Components:
+        Global Dice  — overall overlap (baseline)
+        CC Dice      — per-ET-component equal weight (instance-level)
+        PM Dice       — per-pixel difficulty modulation (Hosseini 2025)
+        BCE           — per-pixel classification
+
+    Each term addresses a different level:
+        Global Dice  → volume-level    (all pixels equal)
+        PM Dice      → pixel-level     (difficulty-weighted)
+        CC Dice      → lesion-level    (equal per instance)
+
+    Single-variable ablation:
+        Step 1: CC-Dice      → BCEDiceCCLoss (BCE + Global + CC)
+        Step 2: PM-Dice      → BCEDicePMLoss (BCE + Global + PM)
+        Step 3: CC+PM        → BCEDiceCCPMLoss (BCE + Global + CC + PM)
+
+        Compare each vs BCEDiceLoss to isolate contribution.
+
+    Args:
+        lambda_cc: weight for CC-level Dice (default 1.0).
+        lambda_pm: weight for PM Dice (default 1.0).
+        cc_min_size: minimum ET component voxels.
+        pm_gamma: focusing parameter for PM Dice (default 2.0).
+        eps: numerical stability.
+    """
+
+    def __init__(self, lambda_cc=1.0, lambda_pm=1.0,
+                 cc_min_size=10, pm_gamma=2.0, eps=1e-9):
+        super().__init__()
+        self.lambda_cc = lambda_cc
+        self.lambda_pm = lambda_pm
+
+        self.bce = nn.BCEWithLogitsLoss()
+        self.dice_global = DiceLoss(eps=eps)
+        self.dice_cc = CCLevelDiceLoss(
+            min_component_size=cc_min_size, eps=eps,
+            n_classes=3, et_channel=2,
+        )
+        self.pm_dice = PMDiceLoss(gamma=pm_gamma, eps=eps)
+
+    def forward(self, logits, targets):
+        assert logits.shape == targets.shape
+
+        return (self.bce(logits, targets)
+                + self.dice_global(logits, targets)
+                + self.lambda_cc * self.dice_cc(logits, targets)
+                + self.lambda_pm * self.pm_dice(logits, targets))
+
+    def log_components(self, logits, targets):
+        with torch.no_grad():
+            bce = self.bce(logits, targets).item()
+            gd = self.dice_global(logits, targets).item()
+            cd = self.dice_cc(logits, targets).item()
+            pm = self.pm_dice(logits, targets).item()
+        return {'bce': bce, 'dice_global': gd, 'cc_dice': cd, 'pm_dice': pm}
