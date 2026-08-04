@@ -1,24 +1,19 @@
 #!/bin/bash
-# =============================================================================
-# Terminal A — 6 experiments (V1 lb + Edge concat/add/laplacian/random)
-# =============================================================================
-# Usage: tmux new -s train_A && bash scripts/run_experiments_A.sh
-# =============================================================================
-
 set -e
 cd /root/autodl-tmp/mri_deep
 git pull
 
 echo "===== Terminal A | $(date) ====="
-echo "Baseline: $(python -c 'from training.config import check_exist; print(check_exist(\"/root/autodl-tmp/ResUNet_model\"))')"
+echo -n "Baseline: "
+python -c 'from training.config import check_exist; print(check_exist("/root/autodl-tmp/ResUNet_model"))'
 
 experiments=(
-    "lb=0.1             train_enhanced.py --lambda_b 0.1                        /root/autodl-tmp/ResUNet_Enhanced_lb0.1_model"
-    "lb=0.5             train_enhanced.py --lambda_b 0.5                        /root/autodl-tmp/ResUNet_Enhanced_lb0.5_model"
-    "Edge concat        train_v2_edge.py --fusion concat --edge_type sobel       /root/autodl-tmp/ResUNet_Edge_concat_sobel_model"
-    "Edge add           train_v2_edge.py --fusion add --edge_type sobel          /root/autodl-tmp/ResUNet_Edge_add_sobel_model"
-    "Edge laplacian     train_v2_edge.py --fusion concat --edge_type laplacian   /root/autodl-tmp/ResUNet_Edge_concat_laplacian_model"
-    "Edge random        train_v2_edge.py --fusion concat --edge_type random      /root/autodl-tmp/ResUNet_Edge_concat_random_model"
+    "lb=0.1|train_enhanced.py --lambda_b 0.1|/root/autodl-tmp/ResUNet_Enhanced_lb0.1_model"
+    "lb=0.5|train_enhanced.py --lambda_b 0.5|/root/autodl-tmp/ResUNet_Enhanced_lb0.5_model"
+    "Edge concat|train_v2_edge.py --fusion concat --edge_type sobel|/root/autodl-tmp/ResUNet_Edge_concat_sobel_model"
+    "Edge add|train_v2_edge.py --fusion add --edge_type sobel|/root/autodl-tmp/ResUNet_Edge_add_sobel_model"
+    "Edge laplacian|train_v2_edge.py --fusion concat --edge_type laplacian|/root/autodl-tmp/ResUNet_Edge_concat_laplacian_model"
+    "Edge random|train_v2_edge.py --fusion concat --edge_type random|/root/autodl-tmp/ResUNet_Edge_concat_random_model"
 )
 
 total=${#experiments[@]}

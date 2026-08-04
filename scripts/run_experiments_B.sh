@@ -1,23 +1,18 @@
 #!/bin/bash
-# =============================================================================
-# Terminal B — 5 experiments (lb=0.3 + FGFE + Sampling + Loss ablation)
-# =============================================================================
-# Usage: tmux new -s train_B && bash scripts/run_experiments_B.sh
-# =============================================================================
-
 set -e
 cd /root/autodl-tmp/mri_deep
 git pull
 
 echo "===== Terminal B | $(date) ====="
-echo "Baseline: $(python -c 'from training.config import check_exist; print(check_exist(\"/root/autodl-tmp/ResUNet_model\"))')"
+echo -n "Baseline: "
+python -c 'from training.config import check_exist; print(check_exist("/root/autodl-tmp/ResUNet_model"))'
 
 experiments=(
-    "lb=0.3             train_enhanced.py --lambda_b 0.3                        /root/autodl-tmp/ResUNet_Enhanced_lb0.3_model"
-    "FGFE               train_fgfe.py                                           /root/autodl-tmp/ResUNet_FGFE_model"
-    "FG Sampling        train_fg_sampling.py                                    /root/autodl-tmp/ResUNet_FG_Sampling_model"
-    "CC Dice            train_cc_dice.py                                        /root/autodl-tmp/ResUNet_CCDice_model"
-    "PM Dice            train_loss_ablation.py --mode pm --pm_gamma 2.0         /root/autodl-tmp/ResUNet_PMDice_model"
+    "lb=0.3|train_enhanced.py --lambda_b 0.3|/root/autodl-tmp/ResUNet_Enhanced_lb0.3_model"
+    "FGFE|train_fgfe.py|/root/autodl-tmp/ResUNet_FGFE_model"
+    "FG Sampling|train_fg_sampling.py|/root/autodl-tmp/ResUNet_FG_Sampling_model"
+    "CC Dice|train_cc_dice.py|/root/autodl-tmp/ResUNet_CCDice_model"
+    "PM Dice|train_loss_ablation.py --mode pm --pm_gamma 2.0|/root/autodl-tmp/ResUNet_PMDice_model"
 )
 
 total=${#experiments[@]}
