@@ -88,7 +88,7 @@ print("\nFinding cases with ET components...")
 eligible_cases = []
 for idx in range(len(full_dataset)):
     case_id = full_dataset.df.loc[idx, 'Brats20ID']
-    if sampler.has_foreground(case_id):
+    if sampler.has_index(case_id):
         n_small = sampler.num_small_components(case_id)
         n_total = sampler.num_components(case_id)
         eligible_cases.append((idx, case_id, n_total, n_small))
