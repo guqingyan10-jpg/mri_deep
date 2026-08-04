@@ -287,4 +287,187 @@ tmux attach -t train_lb03    # 进入查看训练进度
 
 ---
 
-*最后更新: 2026-08-02*
+## 2026-08-03 | V2 Edge Branch: concat vs add 评估
+
+### 评估脚本
+新增 `scripts/eval_v2_edge.py`，对比 Sobel 边缘分支的两种融合方式。
+
+### 结果
+
+| 指标 | concat | add | 赢家 | 差距 |
+|---|---|---|---|---|
+| ET Dice | 0.7726 | 0.7584 | **concat** | +1.42% |
+| TC Dice | 0.8221 | 0.7954 | **concat** | +2.67% |
+| WT Dice | 0.8882 | 0.8698 | **concat** | +1.84% |
+| ET HD95 (mm) | 7.73 | 11.50 | **concat** | -3.78mm |
+| TC HD95 (mm) | 8.85 | 10.22 | **concat** | -1.37mm |
+| Lesion Recall | 0.7346 | 0.7440 | add | -0.94% |
+| Small-case ET Dice | 0.6642 | 0.6323 | **concat** | +3.20% |
+
+**结论: concat 全维度碾压 add（6:1），后续 V2 实验全部用 concat。**
+
+### 与 Baseline 对比 (ResUNet + BCEDiceLoss)
+
+| 指标 | Baseline | V2 Edge (concat) | 改善 |
+|---|---|---|---|
+| ET Dice | 0.7585 | **0.7726** | +1.41% |
+| ET HD95 (mm) | 10.26 | **7.73** | **-2.53mm (-24.7%)** |
+| Lesion Recall | 0.718 | **0.7346** | +1.66% |
+| Small-case Dice | 0.621 | **0.6642** | +4.32% |
+
+**ET HD95 改善显著（-2.53mm），证明 Sobel 边缘分支有效提升了边界质量。**
+
+---
+
+## 2026-08-04 | V2 Edge: 新增 LaplacianEdge3d + edge_type 参数
+
+### 改动
+- `models/resunet_edge.py`: 新增 `LaplacianEdge3d`（对原始 MRI 做 I−blur(I)，二阶导数边缘）
+- `ResUNetEdge` 新增 `edge_type` 参数: `'sobel'` / `'laplacian'` / `'random'`
+- `scripts/train_v2_edge.py`: `--random_edge` flag → `--edge_type` 参数
+- Checkpoint 目录: `ResUNet_Edge_{fusion}_{edge_type}_model`
+
+### 当前 V2 实验矩阵
+
+| # | edge_type | fusion | 目录 | 状态 |
+|---|---|---|---|---|
+| 1 | sobel | concat | `ResUNet_Edge_concat_model` | ✅ 已评估 |
+| 2 | sobel | add | `ResUNet_Edge_add_model` | ✅ 已评估 |
+| 3 | random | concat | `ResUNet_Edge_random_control_model` | 🔄 训练中 |
+| 4 | laplacian | concat | `ResUNet_Edge_concat_laplacian_model` | 🔄 训练中 |
+
+### 对照逻辑
+
+```
+Baseline ──(改模型)──→ Edge concat (Sobel, 1st deriv)
+                          │
+                          ├──→ Edge add    (改融合方式)
+                          ├──→ Edge random (改边缘信息→噪声, 公平性对照)
+                          └──→ Edge laplacian (改导数阶数, 1st vs 2nd)
+```
+
+**每个实验只改一个变量。**
+
+---
+
+## 2026-08-04 | FGFE: Feature-level Frequency Enhancement
+
+### 来源
+Yao et al., BraTS-UMamba, MICCAI 2025.  
+`models/fgfe_module.py` + `models/resunet_fgfe.py`
+
+### 机制
+- 作用在 **Decoder 特征图**（不是原始 MRI）
+- Laplacian 分解 → F_h (高频) + F_l (低频)
+- Cross-Attention: F_h/F_l 各自去查 F_s 中有用的部分
+- 残差连接: F_s + 增强输出
+
+### 与 Edge Branch 的区别
+
+| | Edge Branch | FGFE |
+|---|---|---|
+| 作用对象 | 原始 MRI 像素（4通道） | Decoder 特征图（24-96通道） |
+| 机制 | 数学算子（先验知识） | 可学习增强（带参数 attention） |
+| 维度 | 数据层面 | 特征层面 |
+
+**两者不是替代关系，可以组合。**
+
+---
+
+## 2026-08-04 | SLA-FB Step 1: Foreground-Aware 3D Patch Sampling
+
+### 来源
+STSNet (Zhao et al., Scientific Reports 2025), https://github.com/zlxokok/STSNet
+
+### STSNet 原始做法（2.5D）
+1. **离线增强** (`3_augu_labeled2.py`): label_count < 1000 的小病灶图 → 4 级中心裁窗+resize → 每张小病灶图生成 15 张增强版
+2. **中心裁剪放大** (`4_find_label_center_together.py`): findContours → minAreaRect → 质心 → 裁 300×300 窗口 → resize 回 480×480 → 病灶放大 1.5-2×
+3. **Batch 采样** (`TwoStreamBatchSampler`): 每个 batch = 75% 正常图 + 25% 小病灶增强图
+
+### 我们的 3D 适配
+
+| STSNet | 我们的实现 |
+|---|---|
+| findContours + minAreaRect | `scipy.ndimage.label` (3D 26-连通域) |
+| center_h, center_w | `scipy.ndimage.center_of_mass` (z, y, x) |
+| resize 放大 (2D) | ❌ 不做（3D resize 太慢+各向异性语义有问题） |
+| 离线生成增强图存磁盘 | 在线实时采样（只建索引缓存，不增磁盘） |
+| TwoStreamBatchSampler | 4 策略加权随机选择 |
+| 物理放大病灶 | **高频曝光**（增加采样频率）替代 |
+
+### 4 种采样策略
+
+```
+策略             规则                              比例    STSNet 对应
+───────────────────────────────────────────────────────────────────
+random          均匀随机 crop                      20%    标准 DataLoader
+foreground      以 WT 肿瘤像素为中心                30%    TwoStreamBatchSampler primary
+et_centered     以 ET 连通域质心为中心（等权）      30%    中心裁剪（每个灶等概率）
+small_lesion    只从小 ET 灶（<50 vox）质心采样     20%    label_count < 1000 + 中心裁剪
+```
+
+### 核心设计决策
+
+- **离线索引 vs 离线增强**: 只跑一次连通域分析建索引（2分钟），训练时在线决定采哪
+- **放大 vs 高频曝光**: 不做 3D resize。用采样频率（80% 在 ET 区域）替代物理放大
+- **降级链**: small_lesion → et_centered → foreground → random（池空时自动降级）
+- **单变量改动**: 模型/Loss/超参不变，只改采样策略
+
+### 新增文件
+
+| 文件 | 作用 |
+|---|---|
+| `data/foreground_sampler.py` | 4 策略加权 3D patch 采样器（417 行） |
+| `data/dataset.py` (+215行) | `BratsDatasetWithFGSampling` + pickle 索引缓存 |
+| `models/sla_module.py` | SLA3D 注意力模块（Step 2 预留，369 行） |
+| `scripts/train_fg_sampling.py` | 一键训练脚本 |
+| `scripts/viz_fg_sampling.py` | 采样验证可视化（6 张图） |
+
+### 验证结果（BraTS20_Training_293, 30 ET 灶, 23 个小灶）
+
+| 策略 | 中位 ET 体素 | 分布特征 |
+|---|---|---|
+| random | ~30,000 | 最低，IQR 最宽，大量低值样本 |
+| **foreground** | **~38,500** | 最高中位数，最窄箱体（重复采大灶 WT，高密度） |
+| et_centered | ~36,500 | 双峰：大灶高值簇 + 小灶低值簇（等权采样导致） |
+| small_lesion | ~32,000 | 靶向策略中最低（只采<50 vox 小灶），分布最集中 |
+
+**foreground 单样本 ET 密度最高但可能漏小灶（WT 覆盖不均）；et_centered 和 small_lesion 牺牲单样本密度换取小灶全覆盖。** 三种靶向策略互补。
+
+### 全脑 257 例统计
+
+```
+Cases with ET:           237/257 (92.2%)
+Total ET components:     701
+Small ET components:     302 (43.1%)
+Avg components/case:     3.0
+```
+
+**43.1% 的 ET 病灶 < 50 体素，证明小病灶采样问题确实存在且严重。**
+
+---
+
+## 完整实验路线总览
+
+```
+ResUNet Baseline + BCEDiceLoss
+│
+├── V1: 改 Loss 函数
+│   └── DiceCEBoundary (λb = 0.1, 0.3, 0.5)     ✅ 完成
+│
+├── V2: 改模型架构
+│   ├── Edge Branch (Sobel concat/add)             ✅ 完成
+│   ├── Edge Branch (Laplacian concat)             🔄 训练中
+│   ├── Edge Branch (Random control)               🔄 训练中
+│   └── FGFE (decoder 特征层 Laplacian+CA)        🔄 训练中
+│
+└── SLA-FB: 改数据采样
+    ├── Step 1: Foreground-Aware Patch Sampling    ⏳ 待启动
+    └── Step 2: SLA3D 小病灶注意力（预留）         📋 待设计
+```
+
+**每个实验只改一个变量。** V1 改 Loss，V2 改模型，SLA-FB 改数据采样。
+
+---
+
+*最后更新: 2026-08-04*
