@@ -409,86 +409,70 @@ class CCLevelDiceLoss(nn.Module):
 
 
 # ================================================================
-# SLA-FB Step 2 Loss: Global Dice + CC-Level Dice + Weighted CE
+# BCEDiceLoss + CC-Level Dice (single-variable change from baseline)
 # ================================================================
 
-class DiceCCELoss(nn.Module):
+class BCEDiceCCLoss(nn.Module):
     """
-    SLA-FB Step 2 Loss — Global Dice + Instance-Level Dice + Weighted CE.
+    Baseline loss + Instance-Level Dice — single variable change.
 
     Formula:
-        L = L_Dice_global + λ_cc · L_Dice_cc + γ · L_CE_weighted
+        L = L_BCEDice + λ_cc · L_CCDice
 
     Where:
-      - L_Dice_global: standard global Dice (all classes, all pixels equal).
-        Preserves overall segmentation quality.
-      - L_Dice_cc: per-ET-connected-component Dice, averaged equally.
-        Forces small lesions to contribute equally to large ones.
-      - L_CE_weighted: per-pixel BCE with class weights (ET > TC > WT).
-        ET=5, TC=3, WT=1 — standard class rebalancing from V1.
+      - L_BCEDice = BCE(logits, GT) + Dice_global(logits, GT)
+        **Identical** to the original baseline BCEDiceLoss.
+      - L_CCDice = per-ET-connected-component Dice, averaged equally.
+        A 20-voxel small ET lesion contributes the same weight as a
+        5000-voxel large tumor in this term.
 
-    Key design decisions:
-      1. CC-level Dice is ET-only (the hardest and most fragmented tumor).
-      2. λ_cc = 1.0 by default (equal weight to global Dice).
-      3. γ = 0.5 by default (same as V1's CE weight).
-      4. Each component is evaluated in its LOCAL spatial extent,
-         not globally — isolates lesion-level signal.
+    Single-variable change:
+        BCEDiceLoss  = BCE + Global Dice
+        BCEDiceCCLoss = BCE + Global Dice + λ_cc · CC-Level Dice
+                                                    └── only new term
 
-    Single-variable ablation:
-      vs BCEDiceLoss (baseline):
-        BCEDiceLoss     = Global Dice + BCE (no weights)
-        DiceCCELoss     = Global Dice + CC-level Dice + Class-Weighted BCE
-                          └─────── new ──────┘  └─ from V1 ─┘
-        → Two changes: CC-level Dice (new) + class weights (V1)
-        → For pure CC-level ablation, set class_weights to None or [1,1,1]
+        Model, data, optimizer, lr, scheduler — all unchanged.
+        Delta = net contribution of instance-level Dice supervision.
 
-      vs DiceCEBoundaryLoss (V1):
-        DiceCEBoundaryLoss = Global Dice + Class-Weighted CE + Boundary Loss
-        DiceCCELoss        = Global Dice + CC-level Dice + Class-Weighted CE
-        → Boundary Loss replaced by CC-Level Dice
+    Reference:
+        "Instance-level Dice Loss for Brain Tumor Segmentation"
+        Each ET connected component contributes equally to the loss,
+        preventing large tumors from dominating small-lesion gradients.
 
     Args:
-        lambda_cc: weight for CC-level Dice (default 1.0).
-        gamma_ce: weight for CE term (default 0.5).
-        class_weights: [WT, TC, ET] weights for CE (default [1.0, 3.0, 5.0]).
-                       Pass None or [1,1,1] for pure CC-Dice ablation.
-        cc_min_size: minimum ET component voxels for CC-level Dice.
+        lambda_cc: weight for CC-level Dice term (default 1.0).
+        cc_min_size: minimum ET component voxels (default 10, filter noise).
         eps: numerical stability.
     """
 
-    def __init__(self, lambda_cc=1.0, gamma_ce=0.5,
-                 class_weights=None, cc_min_size=10, eps=1e-9):
+    def __init__(self, lambda_cc=1.0, cc_min_size=10, eps=1e-9):
         super().__init__()
         self.lambda_cc = lambda_cc
-        self.gamma_ce = gamma_ce
 
-        if class_weights is None:
-            class_weights = [1.0, 3.0, 5.0]
-
+        self.bce = nn.BCEWithLogitsLoss()
         self.dice_global = DiceLoss(eps=eps)
         self.dice_cc = CCLevelDiceLoss(
             min_component_size=cc_min_size, eps=eps,
             n_classes=3, et_channel=2,
         )
-        self.ce = CELoss(class_weights=torch.tensor(class_weights))
 
     def forward(self, logits, targets):
         assert logits.shape == targets.shape
 
+        # Original baseline loss (BCE + Global Dice)
+        loss_bce = self.bce(logits, targets)
         loss_global_dice = self.dice_global(logits, targets)
+
+        # CC-level Dice: each ET lesion contributes equally
         loss_cc_dice = self.dice_cc(logits, targets)
-        loss_ce = self.ce(logits, targets)
 
-        total = (loss_global_dice
-                 + self.lambda_cc * loss_cc_dice
-                 + self.gamma_ce * loss_ce)
-
+        total = loss_bce + loss_global_dice + self.lambda_cc * loss_cc_dice
         return total
 
     def log_components(self, logits, targets):
         """Return individual loss components for logging."""
         with torch.no_grad():
+            bce = self.bce(logits, targets).item()
             gd = self.dice_global(logits, targets).item()
             cd = self.dice_cc(logits, targets).item()
-            ce = self.ce(logits, targets).item()
-        return {'dice_global': gd, 'cc_dice': cd, 'ce': ce}
+        return {'bce': bce, 'dice_global': gd, 'cc_dice': cd}
