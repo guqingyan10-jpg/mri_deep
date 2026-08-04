@@ -204,3 +204,207 @@ class BratsDataset(Dataset):
         mask = np.moveaxis(mask, (0, 1, 2, 3), (0, 3, 2, 1))
 
         return mask
+
+
+# ============================================================
+# Foreground-Aware Patch Sampling Dataset Wrapper
+# ============================================================
+
+import pickle
+
+from data.foreground_sampler import ForegroundAwarePatchSampler
+
+
+class BratsDatasetWithFGSampling(BratsDataset):
+    """
+    BraTS2020 dataset with foreground-aware 3D patch sampling.
+
+    Wraps BratsDataset, adding STSNet-inspired patch sampling strategies:
+      random (20%) + foreground (30%) + et_centered (30%) + small_lesion (20%)
+
+    Workflow:
+      1. Pre-indexing: scan training masks → build ET connected-component index
+      2. Training: each __getitem__ samples a patch using the configured strategy
+         mix, then crops the full volume to that patch
+
+    STSNet mapping:
+      BratsDataset.resize() → (170, 170, 100) → corresponds to 480×480 in STSNet
+      patch_size=(128,128,128) → corresponds to STSNet's random(150,160) crop window
+      build_index() → corresponds to 4_find_label_center_together.py
+      4-strategy mix → corresponds to TwoStreamBatchSampler
+
+    Usage:
+        dataset = BratsDatasetWithFGSampling(df, phase='train', patch_size=(128,128,96))
+        dataset.build_foreground_index()  # once before training
+        patch = dataset[0]  # returns {'image': (4,D,H,W), 'mask': (3,D,H,W)}
+    """
+
+    def __init__(self, df, phase='train', is_resize=True,
+                 patch_size=(128, 128, 96),
+                 ratios=None,
+                 small_threshold=50):
+        """
+        Args:
+            df: training dataframe
+            phase: 'train' (sampling enabled), 'valid'/'test' (sampling disabled)
+            is_resize: whether to apply BratsDataset.resize()
+            patch_size: (D, H, W) of patches to sample
+            ratios: sampling strategy ratios dict
+            small_threshold: max ET voxels for 'small_lesion' category
+        """
+        super().__init__(df, phase, is_resize)
+        self.patch_size = tuple(patch_size)
+
+        if phase == 'train':
+            self.sampler = ForegroundAwarePatchSampler(
+                patch_size=self.patch_size,
+                ratios=ratios,
+                small_threshold=small_threshold,
+            )
+            self._index_built = False
+        else:
+            self.sampler = None
+            self._index_built = True
+
+    # ── Pre-indexing ────────────────────────────────────────────
+
+    def build_foreground_index(self, cache_path=None):
+        """
+        Scan all training cases and build ET connected-component index.
+
+        Must be called ONCE before training starts.
+        If cache_path is provided, saves/loads the index from disk.
+
+        STSNet equivalent:
+          4_find_label_center_together.py iterates over all images
+          in the dataset, runs findContours+minAreaRect for each.
+
+        Args:
+            cache_path: optional path to save/load cached index (.pkl)
+        """
+        if self.phase != 'train':
+            print("[SKIP] Not in train phase, no index needed.")
+            return
+
+        # Try loading from cache
+        if cache_path and os.path.exists(cache_path):
+            print(f"Loading cached foreground index from: {cache_path}")
+            with open(cache_path, 'rb') as f:
+                cache = pickle.load(f)
+            self.sampler._fg_index = cache.get('fg_index', {})
+            self.sampler._small_index = cache.get('small_index', {})
+            self.sampler._fg_coords = cache.get('fg_coords', {})
+            self.sampler.stats = cache.get('stats', {})
+            self._index_built = True
+            self.sampler.print_stats()
+            return
+
+        print(f"Building foreground index for {len(self.df)} training cases...")
+        for idx in range(len(self.df)):
+            id_ = self.df.loc[idx, 'Brats20ID']
+            root_path = self.df.loc[self.df['Brats20ID'] == id_]['path'].values[0]
+
+            mask_path = os.path.join(root_path, id_ + "_seg.nii")
+            mask = self.load_img(mask_path)
+            if self.is_resize:
+                mask = self.resize(mask)
+            mask = self.preprocess_mask_labels(mask)  # (3, D, H, W)
+
+            self.sampler.build_index(id_, mask)
+
+            if (idx + 1) % 50 == 0:
+                print(f"  ... {idx + 1}/{len(self.df)} cases indexed")
+
+        self._index_built = True
+        self.sampler.print_stats()
+
+        # Save to cache
+        if cache_path:
+            print(f"Saving foreground index to: {cache_path}")
+            with open(cache_path, 'wb') as f:
+                pickle.dump({
+                    'fg_index': self.sampler._fg_index,
+                    'small_index': self.sampler._small_index,
+                    'fg_coords': self.sampler._fg_coords,
+                    'stats': self.sampler.stats,
+                }, f)
+
+    # ── Patch Sampling ──────────────────────────────────────────
+
+    def get_sampler_stats(self):
+        """Return foreground sampler statistics (for logging)."""
+        if self.sampler is not None:
+            return self.sampler.get_stats()
+        return {}
+
+    def __getitem__(self, idx):
+        """
+        Returns a patch from the case, sampled using the strategy mix.
+
+        For train phase: samples a patch using ForegroundAwarePatchSampler,
+        then crops both image and mask to that patch.
+
+        For valid/test phase: returns the full volume (same as BratsDataset).
+        """
+        # Load full volume using parent class logic
+        id_ = self.df.loc[idx, 'Brats20ID']
+        root_path = self.df.loc[self.df['Brats20ID'] == id_]['path'].values[0]
+
+        # Load all modalities
+        images = []
+        for data_type in self.data_types:
+            img_path = os.path.join(root_path, id_ + data_type)
+            img = self.load_img(img_path)
+            if self.is_resize:
+                img = self.resize(img)
+            img = self.normalize(img)
+            images.append(img)
+        img = np.stack(images)
+        img = np.moveaxis(img, (0, 1, 2, 3), (0, 3, 2, 1))
+
+        # Load mask
+        mask_path = os.path.join(root_path, id_ + "_seg.nii")
+        mask = self.load_img(mask_path)
+        if self.is_resize:
+            mask = self.resize(mask)
+        mask = self.preprocess_mask_labels(mask)
+
+        # ── Patch Sampling (train only) ──
+        if self.phase == 'train' and self.sampler is not None:
+            if not self._index_built:
+                raise RuntimeError(
+                    "Foreground index not built! Call build_foreground_index() before training."
+                )
+
+            volume_shape = img.shape[1:]  # (D, H, W)
+            z1, z2, y1, y2, x1, x2 = self.sampler.sample(id_, volume_shape)
+
+            # Crop to patch
+            img = img[:, z1:z2, y1:y2, x1:x2]
+            mask = mask[:, z1:z2, y1:y2, x1:x2]
+
+            # If patch is smaller than expected (edge case near boundary), pad
+            pD, pH, pW = self.patch_size
+            if img.shape[1:] != (pD, pH, pW):
+                pad_d = max(0, pD - img.shape[1])
+                pad_h = max(0, pH - img.shape[2])
+                pad_w = max(0, pW - img.shape[3])
+                if pad_d > 0 or pad_h > 0 or pad_w > 0:
+                    img = np.pad(img, ((0,0),(0,pad_d),(0,pad_h),(0,pad_w)),
+                                 mode='constant')
+                    mask = np.pad(mask, ((0,0),(0,pad_d),(0,pad_h),(0,pad_w)),
+                                  mode='constant')
+
+        # Augmentations
+        augmented = self.augmentations(
+            image=img.astype(np.float32),
+            mask=mask.astype(np.float32),
+        )
+        img = augmented['image']
+        mask = augmented['mask']
+
+        return {
+            "Id": id_,
+            "image": img,
+            "mask": mask,
+        }
