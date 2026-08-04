@@ -45,26 +45,53 @@ seed_everything(config.seed)
 
 
 def check_exist(checkpoint_dir):
-    """Check if a pretrained model exists in checkpoint_dir.
+    """
+    Find checkpoint for WARM-START (from another model's best weights).
 
     Priority:
-      1. best_model_*.pth (lowest val_loss, preferred for warm-start)
-      2. last_epoch_model_*.pth (training endpoint, fallback)
+      1. best_model_*.pth (lowest val_loss)
+      2. last_epoch_model_*.pth (fallback, e.g. before any best_model saved)
     """
     all_files = os.listdir(checkpoint_dir)
 
-    # ── Priority 1: best_model (lowest val_loss) ──
     best_files = [f for f in all_files if f.startswith("best_model_")]
     if best_files:
         best = sorted(best_files,
                       key=lambda x: int(x.split('_')[-1].split('.')[0]))[-1]
         return os.path.join(checkpoint_dir, best)
 
-    # ── Priority 2: last_epoch_model (training endpoint) ──
     last_files = [f for f in all_files if f.startswith("last_epoch_model")]
     if last_files:
         last = sorted(last_files,
                       key=lambda x: int(x.split('_')[-1].split('.')[0]))[-1]
         return os.path.join(checkpoint_dir, last)
+
+    return None
+
+
+def check_exist_last(checkpoint_dir):
+    """
+    Find checkpoint for RESUME (continue training from where it stopped).
+
+    Priority:
+      1. last_epoch_model_*.pth (latest epoch, keep training)
+      2. best_model_*.pth (fallback if no last_epoch_model exists)
+
+    This is DIFFERENT from check_exist() which prefers best_model
+    for warm-starting new experiments from baseline.
+    """
+    all_files = os.listdir(checkpoint_dir)
+
+    last_files = [f for f in all_files if f.startswith("last_epoch_model")]
+    if last_files:
+        last = sorted(last_files,
+                      key=lambda x: int(x.split('_')[-1].split('.')[0]))[-1]
+        return os.path.join(checkpoint_dir, last)
+
+    best_files = [f for f in all_files if f.startswith("best_model_")]
+    if best_files:
+        best = sorted(best_files,
+                      key=lambda x: int(x.split('_')[-1].split('.')[0]))[-1]
+        return os.path.join(checkpoint_dir, best)
 
     return None

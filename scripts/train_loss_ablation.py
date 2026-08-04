@@ -41,7 +41,7 @@ from models.resunet3d import ResUNet3d
 from losses.enhanced import BCEDiceCCLoss, BCEDicePMLoss, BCEDiceCCPMLoss
 from data.dataset import BratsDataset
 from training.trainer import Trainer
-from training.config import config, seed_everything, check_exist
+from training.config import config, seed_everything, check_exist, check_exist_last
 
 # ============================================================
 # Parse
@@ -207,7 +207,7 @@ if not args.from_scratch:
     else:
         print(f"\n[WARN] No pretrained baseline found — training from scratch")
 
-resume = check_exist(CHECKPOINT_DIR)
+resume = check_exist_last(CHECKPOINT_DIR)
 if resume:
     print(f"Resuming from: {resume}")
     trainer.load_pretrain_model(resume)

@@ -35,7 +35,7 @@ from models.resunet3d import ResUNet3d
 from losses.enhanced import DiceCEBoundaryLoss
 from data.dataset import BratsDataset
 from training.trainer import Trainer
-from training.config import config, seed_everything, check_exist
+from training.config import config, seed_everything, check_exist, check_exist_last
 
 # ============================================================
 # Parse arguments
@@ -137,7 +137,7 @@ else:
     print("\nTraining from scratch (--from_scratch)")
 
 # Resume if already partially trained
-resume_path = check_exist(CHECKPOINT_DIR)
+resume_path = check_exist_last(CHECKPOINT_DIR)
 if resume_path is not None:
     print(f"Resuming from checkpoint: {resume_path}")
     trainer.load_pretrain_model(resume_path)
