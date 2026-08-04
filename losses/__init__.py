@@ -2,17 +2,20 @@
 BraTS2020 Loss Functions Package.
 
 Available losses:
-  - DiceLoss, BCEDiceLoss  (from basics) — original baseline loss
-  - CELoss, BoundaryLoss, DiceCEBoundaryLoss  (from enhanced) — improved losses
+  - DiceLoss, BCEDiceLoss          (from basics) — original baseline loss
+  - CELoss, BoundaryLoss, DiceCEBoundaryLoss (from enhanced) — V1 losses
+  - CCLevelDiceLoss, DiceCCELoss   (from enhanced) — SLA-FB Step 2 losses
 
 Usage:
-    from losses import BCEDiceLoss, DiceCEBoundaryLoss
+    from losses import BCEDiceLoss, DiceCCELoss, CCLevelDiceLoss
 """
 
 from losses.basics import DiceLoss, BCEDiceLoss
-from losses.enhanced import CELoss, BoundaryLoss, DiceCEBoundaryLoss
+from losses.enhanced import (CELoss, BoundaryLoss, DiceCEBoundaryLoss,
+                             CCLevelDiceLoss, DiceCCELoss)
 
 __all__ = [
     'DiceLoss', 'BCEDiceLoss',
     'CELoss', 'BoundaryLoss', 'DiceCEBoundaryLoss',
+    'CCLevelDiceLoss', 'DiceCCELoss',
 ]

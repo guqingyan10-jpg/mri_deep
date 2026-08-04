@@ -4,8 +4,17 @@ Extracted from: resunet_enhanced.py
 
 New losses beyond the original BCEDiceLoss:
   - CELoss: Weighted Cross-Entropy with class weights (ET > TC > WT)
-  - BoundaryLoss: Edge-aware loss using 3D Laplacian
+  - BoundaryLoss: Edge-aware loss using distance transform (Kervadec 2019)
   - DiceCEBoundaryLoss: Combined loss = alpha*Dice + beta*CE + gamma*Boundary
+  - CCLevelDiceLoss: Instance-level Dice — per-connected-component Dice
+    averaged equally (small lesions get same vote as large ones)
+  - DiceCCELoss: Global Dice + CC-level Dice + weighted CE — SLA-FB
+    Step 2 loss, single-variable change from BCEDiceLoss
+
+Reference for CC-level Dice:
+    "Instance-level Dice Loss for Brain Tumor Segmentation"
+    — Each ET connected component contributes equally to the loss,
+      preventing large tumors from dominating small-lesion gradients.
 """
 
 import torch
@@ -255,3 +264,231 @@ class DiceCEBoundaryLoss(nn.Module):
             c = self.ce(logits, targets).item()
             b = self.boundary(logits, targets).item()
         return {'dice': d, 'ce': c, 'boundary': b}
+
+
+# ================================================================
+# Instance-Level (CC-Level) Dice Loss
+# ================================================================
+
+class CCLevelDiceLoss(nn.Module):
+    """
+    Instance-level Dice Loss — per-connected-component Dice.
+
+    Reference:
+        "Instance-level Dice Loss for Brain Tumor Segmentation"
+        — Each ET connected component contributes equally to the loss,
+          preventing large tumors from dominating small-lesion gradients.
+
+    Motivation:
+      Global Dice computes one scalar over the entire volume:
+        L = 1 - 2·Σ(pred·GT) / (Σ(pred²) + Σ(GT²))
+      This is dominated by large tumors (thousands of voxels → large
+      gradient contribution). A 20-voxel ET lesion contributes ~0.4%
+      of the gradient → functionally invisible.
+
+    Solution:
+      1. Extract all ET connected components from GT (3D 26-connectivity).
+      2. For each component, compute Dice over the component's spatial
+         extent (NOT the full volume — each lesion is evaluated in its
+         own local context).
+      3. Average the per-component Dice losses with EQUAL weight.
+         → A 20-voxel lesion contributes as much as a 5000-voxel one.
+
+    Args:
+        min_component_size: ignore components smaller than this (noise).
+        eps: numerical stability for Dice computation.
+        n_classes: number of output classes (3 for BraTS: WT, TC, ET).
+        et_channel: which channel index corresponds to ET (default 2).
+    """
+
+    def __init__(self, min_component_size=10, eps=1e-9,
+                 n_classes=3, et_channel=2):
+        super().__init__()
+        self.min_size = min_component_size
+        self.eps = eps
+        self.n_classes = n_classes
+        self.et_channel = et_channel
+
+    def _extract_components(self, gt_et):
+        """
+        Extract ET connected components from GT.
+
+        Args:
+            gt_et: (D, H, W) numpy binary array, ET channel only.
+
+        Returns:
+            list of (D,H,W) numpy binary masks, one per component,
+            or empty list if no components found.
+        """
+        from scipy.ndimage import label as connected_components
+
+        labeled, n_comp = connected_components(gt_et)
+
+        components = []
+        for k in range(1, n_comp + 1):
+            comp_mask = (labeled == k)
+            if comp_mask.sum() < self.min_size:
+                continue
+            components.append(comp_mask.astype(bool))
+
+        return components
+
+    def _per_component_dice(self, pred_batch, gt_batch, components_batch):
+        """
+        Compute instance-level Dice for a batch of samples.
+
+        Args:
+            pred_batch: (B, D, H, W) probability map for ET channel (sigmoid output).
+            gt_batch:   (B, D, H, W) binary GT for ET channel.
+            components_batch: list of lists — for each sample in batch,
+                              a list of component binary masks.
+
+        Returns:
+            cc_loss: scalar tensor — average (1 - Dice_k) across all
+                     valid components in the batch.
+            n_components: int — total number of components used.
+        """
+        total_loss = 0.0
+        total_comp = 0
+
+        for b in range(len(components_batch)):
+            comps = components_batch[b]
+            if len(comps) == 0:
+                continue
+
+            pred = pred_batch[b]  # (D, H, W)
+            gt = gt_batch[b]      # (D, H, W)
+
+            for comp_mask in comps:
+                # Only evaluate Dice within this component's spatial extent.
+                # This isolates each lesion — no cross-contamination from
+                # other lesions or background.
+                comp_t = torch.from_numpy(comp_mask).to(pred.device)
+
+                # Crop to component bounding box for efficiency
+                # (optional — keeps the math simple for now)
+                p_comp = pred * comp_t.float()
+                g_comp = gt  * comp_t.float()
+
+                # Local Dice within the component's footprint
+                intersection = 2.0 * (p_comp * g_comp).sum()
+                union = (p_comp ** 2).sum() + (g_comp ** 2).sum()
+
+                dice_k = (intersection + self.eps) / (union + self.eps)
+                total_loss += (1.0 - dice_k)
+                total_comp += 1
+
+        if total_comp == 0:
+            # No ET components found in this batch — return zero
+            return torch.tensor(0.0, device=pred_batch.device,
+                                requires_grad=True), 0
+
+        return total_loss / total_comp, total_comp
+
+    def forward(self, logits, targets):
+        """
+        Args:
+            logits: (B, C, D, H, W) raw logits.
+            targets: (B, C, D, H, W) one-hot GT.
+
+        Returns:
+            cc_loss: scalar — average per-component Dice loss.
+        """
+        # Extract ET channel
+        pred_et = torch.sigmoid(logits[:, self.et_channel])  # (B, D, H, W)
+        gt_et_cpu = (targets[:, self.et_channel] > 0.5).cpu().numpy()
+
+        # Extract components per sample (CPU, pre-computed once per forward)
+        all_components = []
+        for b in range(targets.shape[0]):
+            comps = self._extract_components(gt_et_cpu[b])
+            all_components.append(comps)
+
+        cc_loss, n_comp = self._per_component_dice(pred_et, targets[:, self.et_channel], all_components)
+        return cc_loss
+
+
+# ================================================================
+# SLA-FB Step 2 Loss: Global Dice + CC-Level Dice + Weighted CE
+# ================================================================
+
+class DiceCCELoss(nn.Module):
+    """
+    SLA-FB Step 2 Loss — Global Dice + Instance-Level Dice + Weighted CE.
+
+    Formula:
+        L = L_Dice_global + λ_cc · L_Dice_cc + γ · L_CE_weighted
+
+    Where:
+      - L_Dice_global: standard global Dice (all classes, all pixels equal).
+        Preserves overall segmentation quality.
+      - L_Dice_cc: per-ET-connected-component Dice, averaged equally.
+        Forces small lesions to contribute equally to large ones.
+      - L_CE_weighted: per-pixel BCE with class weights (ET > TC > WT).
+        ET=5, TC=3, WT=1 — standard class rebalancing from V1.
+
+    Key design decisions:
+      1. CC-level Dice is ET-only (the hardest and most fragmented tumor).
+      2. λ_cc = 1.0 by default (equal weight to global Dice).
+      3. γ = 0.5 by default (same as V1's CE weight).
+      4. Each component is evaluated in its LOCAL spatial extent,
+         not globally — isolates lesion-level signal.
+
+    Single-variable ablation:
+      vs BCEDiceLoss (baseline):
+        BCEDiceLoss     = Global Dice + BCE (no weights)
+        DiceCCELoss     = Global Dice + CC-level Dice + Class-Weighted BCE
+                          └─────── new ──────┘  └─ from V1 ─┘
+        → Two changes: CC-level Dice (new) + class weights (V1)
+        → For pure CC-level ablation, set class_weights to None or [1,1,1]
+
+      vs DiceCEBoundaryLoss (V1):
+        DiceCEBoundaryLoss = Global Dice + Class-Weighted CE + Boundary Loss
+        DiceCCELoss        = Global Dice + CC-level Dice + Class-Weighted CE
+        → Boundary Loss replaced by CC-Level Dice
+
+    Args:
+        lambda_cc: weight for CC-level Dice (default 1.0).
+        gamma_ce: weight for CE term (default 0.5).
+        class_weights: [WT, TC, ET] weights for CE (default [1.0, 3.0, 5.0]).
+                       Pass None or [1,1,1] for pure CC-Dice ablation.
+        cc_min_size: minimum ET component voxels for CC-level Dice.
+        eps: numerical stability.
+    """
+
+    def __init__(self, lambda_cc=1.0, gamma_ce=0.5,
+                 class_weights=None, cc_min_size=10, eps=1e-9):
+        super().__init__()
+        self.lambda_cc = lambda_cc
+        self.gamma_ce = gamma_ce
+
+        if class_weights is None:
+            class_weights = [1.0, 3.0, 5.0]
+
+        self.dice_global = DiceLoss(eps=eps)
+        self.dice_cc = CCLevelDiceLoss(
+            min_component_size=cc_min_size, eps=eps,
+            n_classes=3, et_channel=2,
+        )
+        self.ce = CELoss(class_weights=torch.tensor(class_weights))
+
+    def forward(self, logits, targets):
+        assert logits.shape == targets.shape
+
+        loss_global_dice = self.dice_global(logits, targets)
+        loss_cc_dice = self.dice_cc(logits, targets)
+        loss_ce = self.ce(logits, targets)
+
+        total = (loss_global_dice
+                 + self.lambda_cc * loss_cc_dice
+                 + self.gamma_ce * loss_ce)
+
+        return total
+
+    def log_components(self, logits, targets):
+        """Return individual loss components for logging."""
+        with torch.no_grad():
+            gd = self.dice_global(logits, targets).item()
+            cd = self.dice_cc(logits, targets).item()
+            ce = self.ce(logits, targets).item()
+        return {'dice_global': gd, 'cc_dice': cd, 'ce': ce}
