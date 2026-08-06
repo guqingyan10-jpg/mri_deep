@@ -1,15 +1,25 @@
 #!/bin/bash
+# =============================================================================
+# Sequential Runner — 11 experiments, ONE GPU, ONE at a time
+# =============================================================================
+# Usage: tmux new -s train_all && bash scripts/run_all.sh
+# =============================================================================
 set -e
 cd /root/autodl-tmp/mri_deep
 git pull
 
-echo "===== Terminal B | $(date) ====="
+echo "===== Runner | $(date) ====="
 echo -n "Baseline: "
 python -c 'from training.config import check_exist; print(check_exist("/root/autodl-tmp/ResUNet_model"))'
 
 experiments=(
+    "lb=0.1|train_enhanced.py --lambda_b 0.1|/root/autodl-tmp/ResUNet_Enhanced_lb0.1_model"
     "lb=0.3|train_enhanced.py --lambda_b 0.3|/root/autodl-tmp/ResUNet_Enhanced_lb0.3_model"
-    "FGFE|train_fgfe.py|/root/autodl-tmp/ResUNet_FGFE_model"
+    "lb=0.5|train_enhanced.py --lambda_b 0.5|/root/autodl-tmp/ResUNet_Enhanced_lb0.5_model"
+    "Edge concat|train_v2_edge.py --fusion concat --edge_type sobel|/root/autodl-tmp/ResUNet_Edge_concat_sobel_model"
+    "Edge add|train_v2_edge.py --fusion add --edge_type sobel|/root/autodl-tmp/ResUNet_Edge_add_sobel_model"
+    "Edge laplacian|train_v2_edge.py --fusion concat --edge_type laplacian|/root/autodl-tmp/ResUNet_Edge_concat_laplacian_model"
+    "Edge random|train_v2_edge.py --fusion concat --edge_type random|/root/autodl-tmp/ResUNet_Edge_concat_random_model"
     "FG Sampling|train_fg_sampling.py|/root/autodl-tmp/ResUNet_FG_Sampling_model"
     "CC Dice|train_cc_dice.py|/root/autodl-tmp/ResUNet_CCDice_model"
     "PM Dice|train_loss_ablation.py --mode pm --pm_gamma 2.0|/root/autodl-tmp/ResUNet_PMDice_model"
@@ -47,4 +57,4 @@ for exp in "${experiments[@]}"; do
 done
 
 echo ""
-echo "===== Terminal B DONE | Ran:$run Skip:$skip Fail:$fail | $(date) ====="
+echo "===== DONE | Ran:$run Skip:$skip Fail:$fail | $(date) ====="
