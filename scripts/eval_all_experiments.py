@@ -644,6 +644,10 @@ def main():
                         help='Skip inference time measurement')
     parser.add_argument('--no-save', action='store_true',
                         help='Skip saving output files')
+    parser.add_argument('--figures', action='store_true',
+                        help='Generate paper-ready figures (bar charts + case overlays)')
+    parser.add_argument('--figures-dir', type=str, default='figures',
+                        help='Output directory for figures (default: figures/)')
     args = parser.parse_args()
 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -701,6 +705,43 @@ def main():
     # ── Save outputs ─────────────────────────────────────────
     if not args.no_save:
         _save_all_outputs(all_metrics, all_histories, baseline)
+
+    # ── Generate figures (optional) ───────────────────────────
+    if args.figures:
+        print("\n" + "=" * 80)
+        print("GENERATING PAPER-READY FIGURES")
+        print("=" * 80)
+        try:
+            from evaluation.visualize_report import generate_all_figures
+
+            # Reload models for qualitative visualization
+            print("\nReloading models for visualization...")
+            models_dict = {}
+            for spec in exps:
+                ckpt_path, epoch = find_checkpoint(spec['dir'])
+                if ckpt_path is None:
+                    continue
+                model, _, _ = load_model(spec, ckpt_path, device)
+                model.eval()
+                models_dict[spec['label']] = model
+                print(f"  Loaded: {spec['label']}")
+
+            generate_all_figures(
+                all_metrics, all_histories,
+                test_loader, models_dict,
+                output_dir=args.figures_dir,
+            )
+
+            # Free models
+            for m in models_dict.values():
+                del m
+            gc.collect()
+            torch.cuda.empty_cache()
+
+        except Exception as e:
+            print(f"  [WARN] Figure generation failed: {e}")
+            import traceback
+            traceback.print_exc()
 
     # ── Errors ───────────────────────────────────────────────
     if errors:
