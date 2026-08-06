@@ -470,4 +470,53 @@ ResUNet Baseline + BCEDiceLoss
 
 ---
 
-*最后更新: 2026-08-04*
+---
+
+## 2026-08-06 | Phase 1 完成: 统一评估框架 + 项目清理
+
+### 新增 `scripts/eval_all_experiments.py` — 统一可扩展评估脚本
+- 可扩展注册表 `EXPERIMENTS`，新模型加一个 dict 即可
+- 13 项指标: Dice(WT/TC/ET), Recall, Precision, HD95, NSD, Lesion-wise, Small-case
+- 参数量 + 推理时间测量
+- 输出: `all_experiments_results.json/csv`, `paper_table.md`, `training_curves.png`
+- CLI: `--filter`, `--no-timing`, `--figures`, `--figures-dir`
+
+### 新增 `evaluation/visualize_report.py` — 论文配图生成器
+- 定量: ET Dice / HD95 / Lesion Recall / Small-case Dice 柱状图
+- 定性: MRI+GT+预测覆盖图, 小病灶局部放大
+- 统一配色方案
+
+### 新增 `evaluation/advanced_metrics.py` — NSD (Normalized Surface Dice)
+- `nsd_single(pred, gt, tau=1.0)`: 边界匹配率, 互补于 HD95
+- 集成到 `compute_all_advanced_metrics`, 所有评估自动获得 NSD
+
+### 更新 `scripts/run_all.sh` — 智能跳过/续训
+- 旧逻辑: 有 `best_model` 就跳过
+- 新逻辑: `last ≥ 195` 或 `gap(=last-best) ≥ 20` 才认为是已完成
+- 中断实验自动续训, 不需要手动删 best_model
+
+### 项目清理 (2026-08-06)
+删除:
+- `resunet_enhanced.py` (已被 `train_enhanced.py` 替代)
+- `scripts/run_all_experiments.sh` (已被 `run_all.sh` 替代)
+- `scripts/run_parallel.py` (多 GPU 废弃)
+- `scripts/eval_lambda_experiments.py`, `eval_v2_edge.py` (已被统一框架替代)
+- `scripts/build_eval_notebook.py`, `build_lambda_notebook.py` (废弃)
+- 所有 `__pycache__/`, PDF, 临时 PNG, 自动生成 CSV
+
+### 实验状态 (Phase 1 完成)
+| 维度 | 实验 | 状态 |
+|---|---|---|
+| Baseline | ResUNet (BCEDice) | ✅ |
+| V1 Loss | λb=0.1, 0.3, 0.5 | ✅ |
+| V2 Architecture | Edge (Sobel concat/add, Laplacian concat), FGFE | ✅ |
+| SLA-FB Data | FG Sampling (4-strategy) | ✅ |
+| SLA-FB Loss | CC-Dice, PM-Dice | ✅ |
+| 总计 | 11 个模型 | ✅ |
+
+### 文档
+- 新增 `PROJECT_STRUCTURE.md` — 项目文件结构和核心代码速查
+
+---
+
+*最后更新: 2026-08-06*
