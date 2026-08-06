@@ -44,6 +44,7 @@ from evaluation.visualization import (
 from evaluation.advanced_metrics import (
     per_class_recall_precision,
     hd95_single,
+    nsd_single,
     compute_hd95_all,
     lesion_wise_detection,
     compute_lesion_wise_all,

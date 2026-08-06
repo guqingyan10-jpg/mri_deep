@@ -400,6 +400,63 @@ def compute_small_case_dice(per_case_et_dice, et_volumes, percentile=25):
 
 
 # ============================================================
+# 4b. NSD — Normalized Surface Dice
+# ============================================================
+
+def nsd_single(pred_mask, gt_mask, tau=1.0, voxel_spacing=(1, 1, 1)):
+    """
+    Normalized Surface Dice (NSD) between two binary 3D masks.
+
+    NSD = (|S_gt ∩ B_pred^τ| + |S_pred ∩ B_gt^τ|) / (|S_gt| + |S_pred|)
+
+    where S = surface, B^τ = band within distance τ.
+
+    This tells you what fraction of the boundary is within τ mm of the
+    other boundary — complementary to HD95. HD95 reports the worst-case
+    distance; NSD reports the fraction of boundary that is "good enough."
+
+    Args:
+        pred_mask: (D, H, W) binary prediction
+        gt_mask:   (D, H, W) binary ground truth
+        tau:       tolerance distance in mm (default 1)
+        voxel_spacing: (dz, dy, dx) in mm
+
+    Returns:
+        nsd: float, or NaN if either surface is empty
+    """
+    if gt_mask.sum() == 0 or pred_mask.sum() == 0:
+        return float('nan')
+
+    struct = ndimage.generate_binary_structure(3, 1)  # 6-connectivity
+
+    # Ground truth surface
+    gt_eroded = ndimage.binary_erosion(gt_mask, structure=struct)
+    S_gt = (gt_mask > 0) & ~gt_eroded
+    n_S_gt = S_gt.sum()
+
+    # Prediction surface
+    pred_eroded = ndimage.binary_erosion(pred_mask, structure=struct)
+    S_pred = (pred_mask > 0) & ~pred_eroded
+    n_S_pred = S_pred.sum()
+
+    if n_S_gt == 0 or n_S_pred == 0:
+        return float('nan')
+
+    # Distance transform from pred surface
+    dt_pred = ndimage.distance_transform_edt(~S_pred, sampling=voxel_spacing)
+    dt_gt   = ndimage.distance_transform_edt(~S_gt,   sampling=voxel_spacing)
+
+    # GT surface points within τ of pred surface
+    matched_gt = (dt_pred[S_gt] <= tau).sum()
+
+    # Pred surface points within τ of gt surface
+    matched_pred = (dt_gt[S_pred] <= tau).sum()
+
+    nsd = (matched_gt + matched_pred) / (n_S_gt + n_S_pred)
+    return float(nsd)
+
+
+# ============================================================
 # 5. Boundary Overlay Visualization
 # ============================================================
 
@@ -555,6 +612,7 @@ def compute_all_advanced_metrics(model, dataloader, threshold=0.33,
     all_recall = {'WT': [], 'TC': [], 'ET': []}
     all_precision = {'WT': [], 'TC': [], 'ET': []}
     all_hd95 = {'WT': [], 'TC': [], 'ET': []}
+    all_nsd  = {'WT': [], 'TC': [], 'ET': []}
     et_vols = []
     case_ids = []
 
@@ -596,6 +654,10 @@ def compute_all_advanced_metrics(model, dataloader, threshold=0.33,
                         hd = hd95_single(preds_np[i, c_idx], targets_np[i, c_idx])
                         all_hd95[cls].append(hd)
 
+                        # NSD (Normalized Surface Dice, τ=1mm)
+                        nsd_val = nsd_single(preds_np[i, c_idx], targets_np[i, c_idx], tau=1.0)
+                        all_nsd[cls].append(nsd_val)
+
                 # ET volume
                 et_vols.append(float(targets_np[i, 2].sum()))
                 case_ids.append(ids[i] if isinstance(ids, list) else ids)
@@ -617,6 +679,10 @@ def compute_all_advanced_metrics(model, dataloader, threshold=0.33,
         hd_vals = [h for h in all_hd95[cls] if not np.isnan(h)]
         metrics[f'{cls}_HD95_mean'] = np.mean(hd_vals) if hd_vals else np.nan
         metrics[f'{cls}_HD95_std']  = np.std(hd_vals) if hd_vals else np.nan
+
+        nsd_vals = [n for n in all_nsd[cls] if not np.isnan(n)]
+        metrics[f'{cls}_NSD_mean'] = np.mean(nsd_vals) if nsd_vals else np.nan
+        metrics[f'{cls}_NSD_std']  = np.std(nsd_vals) if nsd_vals else np.nan
 
     # Lesion-wise summary
     valid_lr = [lr for lr in lesion_results if lr['gt_lesions'] > 0]
@@ -644,6 +710,7 @@ def compute_all_advanced_metrics(model, dataloader, threshold=0.33,
     # Store raw data for later use
     metrics['_raw_dice'] = all_dice
     metrics['_raw_hd95'] = all_hd95
+    metrics['_raw_nsd']  = all_nsd
     metrics['_raw_recall'] = all_recall
     metrics['_raw_precision'] = all_precision
     metrics['_et_volumes'] = et_vols

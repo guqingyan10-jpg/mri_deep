@@ -38,8 +38,20 @@ for exp in "${experiments[@]}"; do
     echo "===== [$((run+skip+1))/$total] $NAME ====="
     echo "  $(date '+%H:%M:%S')"
 
-    if ls "$CKPT_DIR"/best_model_*.pth 1>/dev/null 2>&1; then
-        echo "  [SKIP] $(ls "$CKPT_DIR"/best_model_*.pth | tail -1)"
+    best_epoch=$(ls "$CKPT_DIR"/best_model_*.pth 2>/dev/null | grep -oP 'model_\K\d+' | tail -1)
+    last_epoch=$(ls "$CKPT_DIR"/last_epoch_model_*.pth 2>/dev/null | grep -oP 'epoch_model_\K\d+' | tail -1)
+
+    if [ -n "$best_epoch" ] && [ -n "$last_epoch" ]; then
+        gap=$((last_epoch - best_epoch))
+        if [ "$last_epoch" -ge 195 ] || [ "$gap" -ge 20 ]; then
+            echo "  [SKIP] best=$best_epoch last=$last_epoch — completed"
+            skip=$((skip+1))
+            continue
+        else
+            echo "  [RESUME] best=$best_epoch last=$last_epoch gap=$gap — interrupted, will resume"
+        fi
+    elif [ -n "$best_epoch" ] && [ -z "$last_epoch" ]; then
+        echo "  [SKIP] best=$best_epoch (no last_epoch) — assumed completed"
         skip=$((skip+1))
         continue
     fi
