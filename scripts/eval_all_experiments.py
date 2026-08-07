@@ -58,6 +58,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from models.resunet3d import ResUNet3d
 from models.resunet_edge import ResUNetEdge
 from models.resunet_fgfe import ResUNetFGFE
+from models.resunet_hf_boundary import ResUNetHFBoundary
 from data.dataset import BratsDataset, get_dataloader
 from evaluation.advanced_metrics import (
     compute_all_advanced_metrics,
@@ -201,6 +202,17 @@ EXPERIMENTS = [
         'model_kwargs': {'in_channels': 4, 'n_classes': 3, 'n_channels': 24},
         'label': 'Full (Global+CC+PM)',
         'category': 'SLA-FB: Loss',
+        'key_remap': None,
+    },
+
+    # ── HF Boundary Branch ─────────────────────────────────
+    {
+        'dir': '/root/autodl-tmp/ResUNet_HFBoundary_model',
+        'model_class': ResUNetHFBoundary,
+        'model_kwargs': {'in_channels': 4, 'n_classes': 3, 'n_channels': 24,
+                         'edge_type': 'sobel'},
+        'label': 'HF Boundary (Sobel)',
+        'category': 'V2: Architecture',
         'key_remap': None,
     },
 ]

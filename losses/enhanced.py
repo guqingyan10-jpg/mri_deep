@@ -789,3 +789,91 @@ class BCEDiceCCPMLoss(nn.Module):
             cd = self.dice_cc(logits, targets).item()
             pm = self.pm_dice(logits, targets).item()
         return {'bce': bce, 'dice_global': gd, 'cc_dice': cd, 'pm_dice': pm}
+
+
+# ================================================================
+# BCEDiceLoss + Boundary BCE (HF Boundary Branch)
+# ================================================================
+
+class BCEDiceWithBoundaryLoss(nn.Module):
+    """
+    Baseline BCEDiceLoss + auxiliary boundary BCE — for HF Boundary Branch.
+
+    Formula:
+        Total = BCEDiceLoss(seg, GT) + λ_boundary * BCE(boundary_pred, boundary_GT)
+
+    Where:
+      - BCEDiceLoss = BCE + Global Dice (100% identical to baseline)
+      - boundary_BCE = BCEWithLogitsLoss on boundary head output
+      - boundary_GT = extracted from GT mask via morphology erosion (GPU)
+
+    Single-variable change:
+        BCEDiceLoss               = BCE + Global Dice           (baseline)
+        BCEDiceWithBoundaryLoss   = BCE + Global Dice           (unchanged main)
+                                  + λ_boundary * Boundary BCE   (NEW auxiliary)
+
+    boundary_GT extraction (GPU, no scipy):
+        eroded = avg_pool3d(GT, 3x3x3) > 0.999  — approximate binary erosion
+        boundary_GT = GT - eroded                 — surface voxels only
+
+    Args:
+        boundary_weight: λ_boundary, weight for boundary auxiliary loss (default 0.2).
+        eps: numerical stability.
+    """
+
+    def __init__(self, boundary_weight=0.2, eps=1e-9):
+        super().__init__()
+        self.boundary_weight = boundary_weight
+
+        from losses.basics import BCEDiceLoss
+        self.main_loss = BCEDiceLoss()
+        self.boundary_bce = nn.BCEWithLogitsLoss()
+
+    def _extract_boundary_gt(self, gt):
+        """
+        Extract boundary (surface) voxels from GT masks.
+
+        Uses GPU-only ops: avg_pool3d as approximate binary erosion.
+        boundary_GT = GT - eroded(GT)
+        → 1 at surface voxels, 0 elsewhere (interior & background).
+
+        Args:
+            gt: (B, C, D, H, W) binary GT masks.
+
+        Returns:
+            boundary_gt: (B, C, D, H, W) — same shape, binary surface mask.
+        """
+        gt_f = gt.float()
+        # Approximate 3D binary erosion via avg_pool: center=1 only if all 27 neighbors=1
+        eroded = (F.avg_pool3d(gt_f, kernel_size=3, stride=1, padding=1) > 0.999).float()
+        boundary_gt = gt_f - eroded  # surface voxels = 1, interior & bg = 0
+        return boundary_gt
+
+    def forward(self, logits, targets):
+        """
+        Args:
+            logits: tuple of (seg, boundary_pred)
+                - seg: (B, 3, D, H, W) — main segmentation logits
+                - boundary_pred: (B, 3, D, H, W) — boundary head logits
+            targets: (B, 3, D, H, W) — GT masks
+
+        Returns:
+            total_loss: scalar
+        """
+        seg, boundary_pred = logits
+
+        # Main loss: identical to baseline BCEDiceLoss
+        loss_main = self.main_loss(seg, targets)
+
+        # Auxiliary boundary loss
+        boundary_gt = self._extract_boundary_gt(targets)
+        loss_boundary = self.boundary_bce(boundary_pred, boundary_gt)
+
+        return loss_main + self.boundary_weight * loss_boundary
+
+    def log_components(self, logits, targets):
+        """Return individual loss components for logging."""
+        seg, boundary_pred = logits
+        with torch.no_grad():
+            b = self.boundary_bce(boundary_pred, self._extract_boundary_gt(targets)).item()
+        return {'main_bcedice': None, 'boundary_bce': b}

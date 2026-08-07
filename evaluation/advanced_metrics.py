@@ -200,6 +200,8 @@ def compute_hd95_all(model, dataloader, threshold=0.33,
             imgs, targets = data['image'], data['mask']
             imgs, targets = imgs.to(device), targets.to(device)
             logits = model(imgs)
+            if isinstance(logits, tuple):
+                logits = logits[0]  # HF Boundary model returns (seg, boundary)
             probs = torch.sigmoid(logits)
             preds = (probs >= threshold).float()
 
@@ -317,6 +319,8 @@ def compute_lesion_wise_all(model, dataloader, threshold=0.33, min_size=10):
             imgs, targets = data['image'], data['mask']
             imgs, targets = imgs.to(device), targets.to(device)
             logits = model(imgs)
+            if isinstance(logits, tuple):
+                logits = logits[0]  # HF Boundary model returns (seg, boundary)
             probs = torch.sigmoid(logits)
             preds = (probs >= threshold).float()
 
@@ -624,6 +628,8 @@ def compute_all_advanced_metrics(model, dataloader, threshold=0.33,
             imgs, targets = data['image'], data['mask']
             imgs, targets = imgs.to(device), targets.to(device)
             logits = model(imgs)
+            if isinstance(logits, tuple):
+                logits = logits[0]  # HF Boundary model returns (seg, boundary)
             probs = torch.sigmoid(logits)
             preds = (probs >= threshold).float()
 

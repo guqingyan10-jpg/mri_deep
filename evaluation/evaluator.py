@@ -42,6 +42,8 @@ def compute_metrics(model, dataloader, threshold=0.33):
             targets = targets.to(device)
 
             logits = model(images)
+            if isinstance(logits, tuple):
+                logits = logits[0]
             probabilities = torch.sigmoid(logits)
             predictions = (probabilities >= threshold).float()
 
@@ -135,6 +137,8 @@ def compute_scores_per_classes(model,          # model
             imgs, targets = data['image'], data['mask']
             imgs, targets = imgs.to(device), targets.to(device)
             logits = model(imgs)
+            if isinstance(logits, tuple):
+                logits = logits[0]
             logits = logits.detach().cpu().numpy()
             targets = targets.detach().cpu().numpy()
 
@@ -187,6 +191,8 @@ def compute_results(model,
             id_, imgs, targets = data['Id'], data['image'], data['mask']
             imgs, targets = imgs.to(device), targets.to(device)
             logits = model(imgs)
+            if isinstance(logits, tuple):
+                logits = logits[0]
 
             probs = torch.sigmoid(logits)
 

@@ -711,6 +711,8 @@ def compute_scores_per_classes(model, dataloader, classes=['WT', 'TC', 'ET']):
             imgs, targets = data['image'], data['mask']
             imgs, targets = imgs.to(device), targets.to(device)
             logits = model(imgs)
+            if isinstance(logits, tuple):
+                logits = logits[0]
             logits = logits.detach().cpu().numpy()
             targets = targets.detach().cpu().numpy()
 

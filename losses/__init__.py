@@ -14,11 +14,12 @@ from losses.basics import DiceLoss, BCEDiceLoss
 from losses.enhanced import (CELoss, BoundaryLoss, DiceCEBoundaryLoss,
                              CCLevelDiceLoss, BCEDiceCCLoss, BCECCDiceLoss,
                              PMDiceLoss, BCEDicePMLoss, BCEPMDiceLoss,
-                             BCEDiceCCPMLoss)
+                             BCEDiceCCPMLoss, BCEDiceWithBoundaryLoss)
 
 __all__ = [
     'DiceLoss', 'BCEDiceLoss',
     'CELoss', 'BoundaryLoss', 'DiceCEBoundaryLoss',
     'CCLevelDiceLoss', 'BCEDiceCCLoss', 'BCECCDiceLoss',
     'PMDiceLoss', 'BCEDicePMLoss', 'BCEPMDiceLoss', 'BCEDiceCCPMLoss',
+    'BCEDiceWithBoundaryLoss',
 ]
