@@ -160,20 +160,44 @@ class FGFE(nn.Module):
         F_h, F_l = self.lap(F_s)
 
         # Step 2: Map to query/key/value spaces
-        # Reshape: (B, C, D, H, W) → (B, mid_c, D*H*W) → (B, D*H*W, mid_c)
-        Q_h = self.qh_map(F_h).reshape(B, -1, D * H * W).permute(0, 2, 1)  # (B, N, d)
-        Q_l = self.ql_map(F_l).reshape(B, -1, D * H * W).permute(0, 2, 1)  # (B, N, d)
-        K   = self.k_map(F_s).reshape(B, -1, D * H * W).permute(0, 2, 1)  # (B, N, d)
-        V   = self.v_map(F_s).reshape(B, -1, D * H * W).permute(0, 2, 1)  # (B, N, d)
+        Q_h_raw = self.qh_map(F_h)  # (B, d, D, H, W)
+        Q_l_raw = self.ql_map(F_l)  # (B, d, D, H, W)
+        K_raw   = self.k_map(F_s)   # (B, d, D, H, W)
+        V_raw   = self.v_map(F_s)   # (B, d, D, H, W)
 
-        # Step 3: Scaled dot-product attention
-        # attn_weight = softmax(QK^T / sqrt(d)) * V
+        # Step 3: Spatial pooling for memory-efficient attention
+        #   Full 3D attention (D*H*W)² is infeasible for 128³ data:
+        #     dec1 (16³): 67 MB ✓         dec2 (32³): 4.3 GB ✗
+        #     dec3 (64³): 274 GB ✗         dec4 (128³): 17 TB ✗
+        #   Fix: pool K,V to max 16³; Q stays at original resolution.
+        #   Q(N_full, d) @ K(N_pool, d)^T → (N_full, N_pool) ≤ 67 MB.
+        max_spatial = 16
+        pool_size = tuple(min(s, max_spatial) for s in (D, H, W))
+        need_pool = any(s > max_spatial for s in (D, H, W))
+
+        if need_pool:
+            K = F.adaptive_avg_pool3d(K_raw, pool_size)
+            V = F.adaptive_avg_pool3d(V_raw, pool_size)
+        else:
+            K, V = K_raw, V_raw
+
+        # Reshape to (B, N, d) for attention
+        N_full = D * H * W
+        N_pool = pool_size[0] * pool_size[1] * pool_size[2]
+        mid_c = Q_h_raw.shape[1]
+
+        Q_h = Q_h_raw.reshape(B, mid_c, N_full).permute(0, 2, 1)  # (B, N_full, d)
+        Q_l = Q_l_raw.reshape(B, mid_c, N_full).permute(0, 2, 1)  # (B, N_full, d)
+        K   = K.reshape(B, mid_c, N_pool).permute(0, 2, 1)         # (B, N_pool, d)
+        V   = V.reshape(B, mid_c, N_pool).permute(0, 2, 1)         # (B, N_pool, d)
+
+        # Step 4: Scaled dot-product attention (memory-efficient)
         attn_h = F.softmax((Q_h @ K.transpose(-2, -1)) / self.scale, dim=-1) @ V
         attn_l = F.softmax((Q_l @ K.transpose(-2, -1)) / self.scale, dim=-1) @ V
 
-        # Step 4: Reshape back & concat → project
-        attn_h = attn_h.permute(0, 2, 1).reshape(B, -1, D, H, W)
-        attn_l = attn_l.permute(0, 2, 1).reshape(B, -1, D, H, W)
+        # Step 5: Reshape back & concat → project
+        attn_h = attn_h.permute(0, 2, 1).reshape(B, mid_c, D, H, W)
+        attn_l = attn_l.permute(0, 2, 1).reshape(B, mid_c, D, H, W)
 
         out = self.out_proj(torch.cat([attn_h, attn_l], dim=1))
 
