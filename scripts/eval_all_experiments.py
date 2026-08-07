@@ -195,6 +195,14 @@ EXPERIMENTS = [
         'category': 'SLA-FB: Loss',
         'key_remap': None,
     },
+    {
+        'dir': '/root/autodl-tmp/ResUNet_FullCombined_model',
+        'model_class': ResUNet3d,
+        'model_kwargs': {'in_channels': 4, 'n_classes': 3, 'n_channels': 24},
+        'label': 'Full (Global+CC+PM)',
+        'category': 'SLA-FB: Loss',
+        'key_remap': None,
+    },
 ]
 
 
