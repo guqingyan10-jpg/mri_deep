@@ -620,6 +620,66 @@ class BCECCDiceLoss(nn.Module):
         return {'bce': bce, 'cc_dice': cd}
 
 
+# ================================================================
+# BCE + PM Dice (no global Dice) — new experiment
+# ================================================================
+
+class BCEPMDiceLoss(nn.Module):
+    """
+    BCE + PM Dice Loss — single-variable change from baseline (replacement).
+
+    Formula:
+        L = BCE + λ_pm · L_PMDice
+
+    Where:
+      - BCE = Binary Cross-Entropy per pixel (standard classification)
+      - L_PMDice = Pixel-wise Modulated Dice (Hosseini 2025)
+        m = |y - p̂|^γ  (stop-gradient through p̂)
+        modulates per-pixel contribution: easy pixels get near-zero weight,
+        hard pixels (boundaries, small lesions) get full weight.
+
+    KEY DIFFERENCE from BCEDicePMLoss:
+        BCEDiceLoss   = BCE + Global Dice                        (baseline)
+        BCEDicePMLoss = BCE + Global Dice + λ_pm·PM Dice        (existing)
+        BCEPMDiceLoss = BCE + λ_pm·PM Dice   ← THIS             (NEW)
+
+    Single-variable change from baseline:
+        Replaces Global Dice with PM Dice.
+        Tests: can difficulty-modulated per-pixel Dice replace global Dice?
+
+        Model, data, optimizer, lr, scheduler — all unchanged.
+        Delta = PM Dice (replacing Global Dice) vs pure BCE.
+
+    Args:
+        lambda_pm: weight for PM Dice term (default 1.0).
+        pm_gamma: focusing parameter for PM Dice (default 2.0).
+        eps: numerical stability.
+    """
+
+    def __init__(self, lambda_pm=1.0, pm_gamma=2.0, eps=1e-9):
+        super().__init__()
+        self.lambda_pm = lambda_pm
+
+        self.bce = nn.BCEWithLogitsLoss()
+        self.pm_dice = PMDiceLoss(gamma=pm_gamma, eps=eps)
+
+    def forward(self, logits, targets):
+        assert logits.shape == targets.shape
+
+        loss_bce = self.bce(logits, targets)
+        loss_pm_dice = self.pm_dice(logits, targets)
+
+        total = loss_bce + self.lambda_pm * loss_pm_dice
+        return total
+
+    def log_components(self, logits, targets):
+        """Return individual loss components for logging."""
+        with torch.no_grad():
+            bce = self.bce(logits, targets).item()
+            pm = self.pm_dice(logits, targets).item()
+        return {'bce': bce, 'pm_dice': pm}
+
+
 class BCEDicePMLoss(nn.Module):
     """
     BCEDiceLoss + Pixel-wise Modulated Dice — single variable from PM.
