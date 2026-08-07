@@ -19,8 +19,11 @@ Reference:
     Yi et al., "Frequency-Aware Ensemble", BraTS 2025, arXiv:2509.19353
 
 Usage:
-    # Default (Sobel edges, boundary_weight=0.3):
+    # Default (Laplacian edges, boundary_weight=0.3):
     python scripts/train_hf_boundary.py
+
+    # Compare with w=0.2:
+    python scripts/train_hf_boundary.py --boundary_weight 0.2
 
     # Laplacian edges:
     python scripts/train_hf_boundary.py --edge_type laplacian
@@ -72,7 +75,7 @@ class HFBoundaryTrainer(Trainer):
 parser = argparse.ArgumentParser(
     description='Train ResUNet + HF Boundary auxiliary branch',
 )
-parser.add_argument('--edge_type', type=str, default='sobel',
+parser.add_argument('--edge_type', type=str, default='laplacian',
                     choices=['sobel', 'laplacian'],
                     help='Edge extraction method: sobel (1st deriv) or laplacian (2nd deriv)')
 parser.add_argument('--boundary_weight', type=float, default=0.2,
@@ -90,7 +93,7 @@ args = parser.parse_args()
 seed_everything(config.seed)
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
-CHECKPOINT_DIR = '/root/autodl-tmp/ResUNet_HFBoundary_model'
+CHECKPOINT_DIR = f'/root/autodl-tmp/ResUNet_HFBoundary_w{args.boundary_weight}_model'
 os.makedirs(CHECKPOINT_DIR, exist_ok=True)
 
 # ============================================================

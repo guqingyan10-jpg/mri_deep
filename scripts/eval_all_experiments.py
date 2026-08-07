@@ -207,11 +207,20 @@ EXPERIMENTS = [
 
     # ── HF Boundary Branch ─────────────────────────────────
     {
-        'dir': '/root/autodl-tmp/ResUNet_HFBoundary_model',
+        'dir': '/root/autodl-tmp/ResUNet_HFBoundary_w0.2_model',
         'model_class': ResUNetHFBoundary,
         'model_kwargs': {'in_channels': 4, 'n_classes': 3, 'n_channels': 24,
-                         'edge_type': 'sobel'},
-        'label': 'HF Boundary (Sobel)',
+                         'edge_type': 'laplacian'},
+        'label': 'HF Boundary (Laplacian, w=0.2)',
+        'category': 'V2: Architecture',
+        'key_remap': None,
+    },
+    {
+        'dir': '/root/autodl-tmp/ResUNet_HFBoundary_w0.3_model',
+        'model_class': ResUNetHFBoundary,
+        'model_kwargs': {'in_channels': 4, 'n_classes': 3, 'n_channels': 24,
+                         'edge_type': 'laplacian'},
+        'label': 'HF Boundary (Laplacian, w=0.3)',
         'category': 'V2: Architecture',
         'key_remap': None,
     },
