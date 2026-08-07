@@ -821,7 +821,7 @@ class BCEDiceWithBoundaryLoss(nn.Module):
         eps: numerical stability.
     """
 
-    def __init__(self, boundary_weight=0.2, eps=1e-9):
+    def __init__(self, boundary_weight=0.3, eps=1e-9):
         super().__init__()
         self.boundary_weight = boundary_weight
 

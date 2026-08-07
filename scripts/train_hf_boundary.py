@@ -19,7 +19,7 @@ Reference:
     Yi et al., "Frequency-Aware Ensemble", BraTS 2025, arXiv:2509.19353
 
 Usage:
-    # Default (Sobel edges, boundary_weight=0.2):
+    # Default (Sobel edges, boundary_weight=0.3):
     python scripts/train_hf_boundary.py
 
     # Laplacian edges:
