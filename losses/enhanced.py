@@ -558,6 +558,68 @@ class PMDiceLoss(nn.Module):
 # BCE + PM Dice (Step 4)
 # ================================================================
 
+# ================================================================
+# BCE + CC-Level Dice (no global Dice) — new experiment
+# ================================================================
+
+class BCECCDiceLoss(nn.Module):
+    """
+    BCE + CC-Level Dice Loss — single-variable change from baseline.
+
+    Formula:
+        L = BCE + λ_cc · L_CCDice
+
+    Where:
+      - BCE = Binary Cross-Entropy per pixel (standard classification)
+      - L_CCDice = per-ET-connected-component Dice, averaged equally.
+        A 20-voxel small ET lesion contributes the same weight as a
+        5000-voxel large tumor in this term.
+
+    KEY DIFFERENCE from BCEDiceCCLoss:
+        BCEDiceLoss   = BCE + Global Dice                        (baseline)
+        BCEDiceCCLoss = BCE + Global Dice + λ_cc · CC Dice      (existing)
+        BCECCDiceLoss = BCE + λ_cc · CC Dice   ← THIS           (NEW)
+
+    Single-variable change from baseline:
+        Replaces Global Dice with CC-Level Dice.
+        Tests: can instance-level Dice replace global Dice entirely?
+
+        Model, data, optimizer, lr, scheduler — all unchanged.
+        Delta = CC-Level Dice (replacing Global Dice) vs pure BCE.
+
+    Args:
+        lambda_cc: weight for CC-level Dice term (default 1.0).
+        cc_min_size: minimum ET component voxels (default 10, filter noise).
+        eps: numerical stability.
+    """
+
+    def __init__(self, lambda_cc=1.0, cc_min_size=10, eps=1e-9):
+        super().__init__()
+        self.lambda_cc = lambda_cc
+
+        self.bce = nn.BCEWithLogitsLoss()
+        self.dice_cc = CCLevelDiceLoss(
+            min_component_size=cc_min_size, eps=eps,
+            n_classes=3, et_channel=2,
+        )
+
+    def forward(self, logits, targets):
+        assert logits.shape == targets.shape
+
+        loss_bce = self.bce(logits, targets)
+        loss_cc_dice = self.dice_cc(logits, targets)
+
+        total = loss_bce + self.lambda_cc * loss_cc_dice
+        return total
+
+    def log_components(self, logits, targets):
+        """Return individual loss components for logging."""
+        with torch.no_grad():
+            bce = self.bce(logits, targets).item()
+            cd = self.dice_cc(logits, targets).item()
+        return {'bce': bce, 'cc_dice': cd}
+
+
 class BCEDicePMLoss(nn.Module):
     """
     BCEDiceLoss + Pixel-wise Modulated Dice — single variable from PM.

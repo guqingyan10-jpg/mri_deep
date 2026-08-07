@@ -179,6 +179,14 @@ EXPERIMENTS = [
         'category': 'SLA-FB: Loss',
         'key_remap': None,
     },
+    {
+        'dir': '/root/autodl-tmp/ResUNet_BCECCDice_model',
+        'model_class': ResUNet3d,
+        'model_kwargs': {'in_channels': 4, 'n_classes': 3, 'n_channels': 24},
+        'label': 'BCE+CC-Dice (no Global Dice)',
+        'category': 'SLA-FB: Loss',
+        'key_remap': None,
+    },
 ]
 
 
