@@ -96,7 +96,7 @@ device = 'cuda' if torch.cuda.is_available() else 'cpu'
 if args.boundary_weight == 0.3:
     CHECKPOINT_DIR = '/root/autodl-tmp/ResUNet_HFBoundary_Plus_model'
 else:
-    CHECKPOINT_DIR = f'/root/autodl-tmp/ResUNet_HFBoundary_w{args.boundary_weight}_model'
+    CHECKPOINT_DIR = '/root/autodl-tmp/ResUNet_HFBoundary_model'
 os.makedirs(CHECKPOINT_DIR, exist_ok=True)
 
 # ============================================================
