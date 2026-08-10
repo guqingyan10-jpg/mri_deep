@@ -352,6 +352,8 @@ def generate_case_overlay(dataloader, models_dict, case_indices,
             for name, model in models_dict.items():
                 model.eval()
                 logits = model(case['image'])
+                if isinstance(logits, tuple):
+                    logits = logits[0]
                 probs = torch.sigmoid(logits)
                 pred = (probs >= 0.33).float()
                 preds[name] = pred[0].cpu().numpy()  # (3, D, H, W)
@@ -578,6 +580,8 @@ def generate_multipanel_qualitative(dataloader, models_dict, case_idx,
         for name, model in models_dict.items():
             model.eval()
             logits = model(case['image'])
+            if isinstance(logits, tuple):
+                logits = logits[0]
             probs = torch.sigmoid(logits)
             preds[name] = (probs >= 0.33).float()[0].cpu().numpy()
 
