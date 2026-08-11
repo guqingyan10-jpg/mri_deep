@@ -1,6 +1,6 @@
 # Project Structure — ResUNet Enhancement for BraTS2020
 
-> 最后更新: 2026-08-06 | 实验数: 11 | 状态: Phase 1 完成
+> 最后更新: 2026-08-11 | 实验数: 16 | 状态: Phase 2 评估中
 
 ```
 enhance_resu/
@@ -43,15 +43,17 @@ enhance_resu/
 │   │                                #   Lesion-wise Recall, Small-case Dice, 边界叠加
 │   └── visualize_report.py          #   论文配图: 柱状图 + 定性覆盖 + 小病灶放大
 │
-├── scripts/                         # 训练 & 评估脚本 (10 个 .py + 1 个 .sh)
+├── scripts/                         # 训练 & 评估脚本 (11 个 .py + 1 个 .sh)
 │   ├── train_enhanced.py            #   V1: λb=0.1/0.3/0.5 训练入口
-│   ├── train_v2_edge.py             #   V2: Edge Branch (sobel/laplacian/random, concat/add)
+│   ├── train_v2_edge.py             #   V2: Edge Branch (sobel/laplacian, concat/add)
 │   ├── train_fgfe.py                #   V2: FGFE 训练入口
+│   ├── train_hf_boundary.py         #   V2: HF Boundary 训练入口
 │   ├── train_fg_sampling.py         #   SLA-FB: FG-aware patch sampling
 │   ├── train_cc_dice.py             #   SLA-FB: CC-Level Dice Loss
-│   ├── train_loss_ablation.py       #   SLA-FB: PM-Dice / CC+PM 统一入口
-│   ├── eval_all_experiments.py      #   ★ 统一评估框架 (可扩展注册表)
-│   ├── run_all.sh                   #   ★ 顺序训练 runner (智能跳过/续训)
+│   ├── train_loss_ablation.py       #   SLA-FB: PM-Dice / CC+PM / Full Combined
+│   ├── eval_all_experiments.py      #   统一评估框架 (可扩展注册表, 13项高级指标)
+│   ├── eval_comprehensive.py        #   🆕 综合评估 (HFF标准指标+已有高级指标合并)
+│   ├── run_all.sh                   #   顺序训练 runner (智能跳过/续训)
 │   ├── et_statistics.py             #   ET 病灶统计分析
 │   ├── visualize_lesions.py         #   交互式病灶 3D+2D 验证 (Plotly HTML)
 │   └── viz_fg_sampling.py           #   FG sampling 策略可视化验证
@@ -62,12 +64,10 @@ enhance_resu/
 │
 ├── tumourCSV.csv                    # ★ 标准数据划分 (所有实验共用)
 │
-├── MultiModel XAI Brats2020.ipynb   #   原始 4 基线训练 notebook
-├── ResUNet_Enhanced.ipynb           #   ResUNet 增强实验 notebook
+├── MultiModel XAI Brats2020.ipynb   #   原始 4 基线训练 notebook (HFF项目)
+├── ResUNet_Enhanced.ipynb           #   ResUNet 增强实验 notebook (历史参考)
 │
-├── nnunet.py                        #   遗留: nnUNet 独立训练脚本
-├── nnunet_model.py                  #   遗留: nnUNet 纯模型定义
-├── patch_notebook.py                #   遗留: notebook 补丁工具
+├── paper_draft.md                   #   🆕 中文实验报告 (16模型+空白指标表)
 │
 ├── CHANGELOG.md                     #   详细修改日志
 ├── RESEARCH_RECORDS.md              #   ET 病灶统计研究记录
@@ -80,7 +80,7 @@ enhance_resu/
 ├── requirements_clean.txt           #   精简版依赖
 ├── .gitignore
 │
-└── brats2020_full_report/           #   归档: 完整旧版项目副本 (不参与当前开发)
+└── brats2020_full_report/           #   归档: ET病灶统计CSV + 旧版报告副本
 ```
 
 ---

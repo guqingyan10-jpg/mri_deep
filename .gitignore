@@ -41,5 +41,4 @@ Thumbs.db
 # !tumourCSV.csv
 et_statistics.csv
 brats2020_full_report/
-brats2020_full_report.tar.gz
 *.pdf
