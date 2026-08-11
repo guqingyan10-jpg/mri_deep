@@ -1221,6 +1221,8 @@ def evaluate_all(exps, test_loader, device, output_dir, args):
             traceback.print_exc()
             errors.append((label, str(e)))
 
+    return all_results, all_histories, errors
+
 
 # Keys to copy from existing advanced results
 ADVANCED_METRIC_KEYS = [
@@ -1233,51 +1235,6 @@ ADVANCED_METRIC_KEYS = [
     'Small_case_ET_Dice_mean',
     'inference_time_mean_s', 'inference_time_std_s',
 ]
-
-    # ── Generate aggregate outputs ─────────────────────────────
-    print(f"\n{'='*80}")
-    print("GENERATING AGGREGATE OUTPUTS")
-    print(f"{'='*80}")
-
-    # JSON + CSV + MD
-    generate_comprehensive_report(all_results, output_dir)
-
-    # Confusion matrix plots
-    save_confusion_matrix_plots(all_results, output_dir)
-
-    # Per-class bar charts
-    save_per_class_bar_charts(all_results, output_dir)
-
-    # Training curves
-    if all_histories:
-        save_individual_training_curves(all_histories, output_dir)
-        save_combined_training_curves(all_histories, output_dir)
-
-    # ── Errors ──────────────────────────────────────────────
-    if errors:
-        print(f"\n[WARNING] {len(errors)} skipped/error:")
-        for lab, msg in errors:
-            print(f"  {lab}: {msg}")
-
-    # ── Summary ─────────────────────────────────────────────
-    print(f"\n{'='*80}")
-    print(f"COMPREHENSIVE EVALUATION COMPLETE")
-    print(f"  Models evaluated: {len(all_results)}/{len(exps)}")
-    print(f"  Output directory: {os.path.abspath(output_dir)}")
-    print(f"  Files generated:")
-    print(f"    - comprehensive_results.json")
-    print(f"    - comprehensive_results.csv")
-    print(f"    - paper_table_comprehensive.md")
-    print(f"    - confusion_matrices/")
-    print(f"    - per_class_metrics/")
-    print(f"    - training_curves/")
-    if not args.no_figures:
-        print(f"    - qualitative/")
-    if skipped_advanced > 0:
-        print(f"\n  Note: {skipped_advanced} model(s) used existing advanced metrics only (no checkpoint for recompute)")
-    print(f"{'='*80}")
-
-    return all_results, all_histories, errors
 
 
 def measure_inference_time(model, dataloader, device, warmup=3, max_batches=53):
@@ -1381,7 +1338,46 @@ def main():
     all_results, all_histories, errors = evaluate_all(
         exps, test_loader, device, args.output_dir, args)
 
-    print("\nDone! All results saved to:", os.path.abspath(args.output_dir))
+    # ── Generate aggregate outputs ─────────────────────────────
+    print(f"\n{'='*80}")
+    print("GENERATING AGGREGATE OUTPUTS")
+    print(f"{'='*80}")
+
+    # JSON + CSV + MD
+    generate_comprehensive_report(all_results, args.output_dir)
+
+    # Confusion matrix plots
+    save_confusion_matrix_plots(all_results, args.output_dir)
+
+    # Per-class bar charts
+    save_per_class_bar_charts(all_results, args.output_dir)
+
+    # Training curves
+    if all_histories:
+        save_individual_training_curves(all_histories, args.output_dir)
+        save_combined_training_curves(all_histories, args.output_dir)
+
+    # ── Errors ──────────────────────────────────────────────
+    if errors:
+        print(f"\n[WARNING] {len(errors)} skipped/error:")
+        for lab, msg in errors:
+            print(f"  {lab}: {msg}")
+
+    # ── Summary ─────────────────────────────────────────────
+    print(f"\n{'='*80}")
+    print(f"COMPREHENSIVE EVALUATION COMPLETE")
+    print(f"  Models evaluated: {len(all_results)}/{len(exps)}")
+    print(f"  Output directory: {os.path.abspath(args.output_dir)}")
+    print(f"  Files generated:")
+    print(f"    - comprehensive_results.json")
+    print(f"    - comprehensive_results.csv")
+    print(f"    - paper_table_comprehensive.md")
+    print(f"    - confusion_matrices/")
+    print(f"    - per_class_metrics/")
+    print(f"    - training_curves/")
+    if not args.no_figures:
+        print(f"    - qualitative/")
+    print(f"{'='*80}")
     print("\nNext steps:")
     print("  1. Download comprehensive_results/ from server")
     print("  2. Open paper_table_comprehensive.md for paper tables")
