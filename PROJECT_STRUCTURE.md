@@ -22,8 +22,9 @@ enhance_resu/
 │   ├── __init__.py                  #   导出 13 个 loss class
 │   ├── basics.py                    #   DiceLoss, BCEDiceLoss (基线)
 │   └── enhanced.py                  #   CELoss, BoundaryLoss, DiceCEBoundaryLoss (V1)
-│                                    #   CCLevelDiceLoss, PMDiceLoss (SLA-FB Step 2)
-│                                    #   BCEDiceCCLoss, BCEDicePMLoss, BCEDiceCCPMLoss
+│                                    #   CCLevelDiceLoss, BCEDiceCCLoss, BCECCDiceLoss (CC-Dice 系列)
+│                                    #   PMDiceLoss, BCEDicePMLoss, BCEPMDiceLoss (PM-Dice 系列)
+│                                    #   BCEDiceCCPMLoss (组合), BCEDiceWithBoundaryLoss (HF 双头)
 │
 ├── data/                            # 数据管道
 │   ├── __init__.py
@@ -102,12 +103,18 @@ enhance_resu/
 | `models/sla_module.py` | `SLA3D`, `ChannelAttention3D`, `SpatialAttention3D` | — |
 
 ### 损失函数
-| 文件 | 关键 class | 公式 |
-|---|---|---|
-| `losses/basics.py` | `BCEDiceLoss` | L = BCE + Dice (基线) |
-| `losses/enhanced.py` | `DiceCEBoundaryLoss` | L = Dice + CE + λb·Boundary (V1) |
-| `losses/enhanced.py` | `CCLevelDiceLoss` | per-ET-component Dice, equal weight |
-| `losses/enhanced.py` | `PMDiceLoss` | m = |y-p̂|^γ modulated Dice (Hosseini 2025) |
+| 文件 | 关键 class | 公式 | 训练入口 |
+|---|---|---|---|
+| `losses/basics.py` | `BCEDiceLoss` | BCE + Global Dice（基线） | 基线 / Edge / FGFE / FG-sampling |
+| `losses/enhanced.py` | `DiceCEBoundaryLoss` | Dice + CE + λb·Boundary（V1） | `train_enhanced.py` |
+| `losses/enhanced.py` | `BCEDiceCCLoss` | BCE + Global Dice + λcc·CC-Dice | CC-Dice `train_cc_dice.py` |
+| `losses/enhanced.py` | `BCEDicePMLoss` | BCE + Global Dice + λpm·PM-Dice | PM-Dice `train_loss_ablation.py` |
+| `losses/enhanced.py` | `BCECCDiceLoss` | BCE + λcc·CC-Dice（无 Global Dice） | `train_bce_ccdice.py` |
+| `losses/enhanced.py` | `BCEPMDiceLoss` | BCE + λpm·PM-Dice（无 Global Dice） | `train_bce_pmdice.py` |
+| `losses/enhanced.py` | `BCEDiceCCPMLoss` | BCE + Global + λcc·CC + λpm·PM | Full `train_full_combined.py` |
+| `losses/enhanced.py` | `BCEDiceWithBoundaryLoss` | BCEDice(seg) + λ·BCE(boundary) | HF `train_hf_boundary.py` |
+
+> 内部组件（不单独训练）：`DiceLoss`、`CELoss`、`BoundaryLoss`、`CCLevelDiceLoss`、`PMDiceLoss` 被上述组合复用。
 
 ### 训练设施
 | 文件 | 关键内容 |

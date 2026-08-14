@@ -59,13 +59,28 @@ fused → seg_head(1×1) → seg          fused → boundary_head → boundary
 
 ## 损失函数
 
-| 损失 | 作用 |
-|---|---|
-| `BCEDiceLoss` | BCE + Global Dice（基线） |
-| `DiceCEBoundaryLoss` | + 距离边界损失（V1） |
-| `CCLevelDiceLoss` | ET 连通域级 Dice（病灶级） |
-| `PMDiceLoss` | 像素调制 Dice |
-| `BCEDiceWithBoundaryLoss` | BCEDice + 边界 BCE（HF 双头） |
+基线为 `BCEDiceLoss = BCE + Global Dice`。
+
+**损失维度**（5 组单变量消融）：
+
+| 实验 | class | 公式 | 相对基线 |
+|---|---|---|---|
+| CC-Dice | `BCEDiceCCLoss` | BCE + Global Dice + λ_cc·CC-Dice | 基线 **+ CC-Dice** |
+| PM-Dice (γ=2) | `BCEDicePMLoss` | BCE + Global Dice + λ_pm·PM-Dice | 基线 **+ PM-Dice** |
+| BCE + CC-Dice | `BCECCDiceLoss` | BCE + λ_cc·CC-Dice | ⚠ **无 Global Dice**（CC 替换） |
+| BCE + PM-Dice | `BCEPMDiceLoss` | BCE + λ_pm·PM-Dice | ⚠ **无 Global Dice**（PM 替换） |
+| Full | `BCEDiceCCPMLoss` | BCE + Global + λ_cc·CC + λ_pm·PM | 全组合 |
+
+命名规律（最易混的一对）：**`BCEDice*`** = 保留 Global Dice，在基线上**加**新项；**`BCE*`** = **去掉** Global Dice，用新项**替换**。
+
+**其余维度**：
+
+| 实验 | class | 公式 |
+|---|---|---|
+| V1 边界 | `DiceCEBoundaryLoss` | Dice + CE + λb·Boundary |
+| HF 双头 | `BCEDiceWithBoundaryLoss` | BCEDiceLoss(seg) + λ·BCE(boundary) |
+
+> `DiceLoss` / `CELoss` / `BoundaryLoss` / `CCLevelDiceLoss` / `PMDiceLoss` 是上述组合内部的组件，不单独训练。
 
 ## 快速上手
 
