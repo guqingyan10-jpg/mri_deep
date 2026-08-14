@@ -5,20 +5,21 @@
 ```
 enhance_resu/
 │
-├── models/                          # 模型架构 (nn.Module only, 不含训练逻辑)
-│   ├── __init__.py                  #   导出 21 个符号
+├── models/                          # 模型架构 (只定义网络结构, 不含训练逻辑)
+│   ├── __init__.py                  #   导出 19 个符号
 │   ├── base_blocks.py               #   DoubleConv, Down, Up, Out (共享组件)
 │   ├── unet3d.py                    #   UNet3d 基线
 │   ├── resunet3d.py                 #   ResUNet3d 基线 ★ (n_channels=24, 5.8M params)
 │   ├── attunet3d.py                 #   AttUNet3d (CBAM + AttentionGate)
 │   ├── nnunet3d.py                  #   nnUNet3d (InstanceNorm + LeakyReLU)
 │   ├── resunet_edge.py              #   V2: Sobel/Laplacian/Random Edge Branch
+│   ├── resunet_hf_boundary.py       #   V2: HF Boundary 双头 (固定边缘注入 + boundary_head)
 │   ├── resunet_fgfe.py              #   V2: FGFE decoder (Yao et al., MICCAI 2025)
 │   ├── fgfe_module.py               #   FGFE: LaplacianPyramid3d + cross-attention
 │   └── sla_module.py                #   SLA3D: channel/spatial attention (Step 2 预留)
 │
 ├── losses/                          # 损失函数
-│   ├── __init__.py                  #   导出 10 个 loss class
+│   ├── __init__.py                  #   导出 13 个 loss class
 │   ├── basics.py                    #   DiceLoss, BCEDiceLoss (基线)
 │   └── enhanced.py                  #   CELoss, BoundaryLoss, DiceCEBoundaryLoss (V1)
 │                                    #   CCLevelDiceLoss, PMDiceLoss (SLA-FB Step 2)
@@ -43,13 +44,16 @@ enhance_resu/
 │   │                                #   Lesion-wise Recall, Small-case Dice, 边界叠加
 │   └── visualize_report.py          #   论文配图: 柱状图 + 定性覆盖 + 小病灶放大
 │
-├── scripts/                         # 训练 & 评估脚本 (11 个 .py + 1 个 .sh)
+├── scripts/                         # 训练 & 评估脚本 (15 个 .py + 1 个 .sh)
 │   ├── train_enhanced.py            #   V1: λb=0.1/0.3/0.5 训练入口
 │   ├── train_v2_edge.py             #   V2: Edge Branch (sobel/laplacian, concat/add)
 │   ├── train_fgfe.py                #   V2: FGFE 训练入口
 │   ├── train_hf_boundary.py         #   V2: HF Boundary 训练入口
 │   ├── train_fg_sampling.py         #   SLA-FB: FG-aware patch sampling
 │   ├── train_cc_dice.py             #   SLA-FB: CC-Level Dice Loss
+│   ├── train_bce_ccdice.py          #   SLA-FB: BCE + CC-Dice 训练入口
+│   ├── train_bce_pmdice.py          #   SLA-FB: BCE + PM-Dice 训练入口
+│   ├── train_full_combined.py       #   SLA-FB: BCE + Global + CC + PM 组合
 │   ├── train_loss_ablation.py       #   SLA-FB: PM-Dice / CC+PM / Full Combined
 │   ├── eval_all_experiments.py      #   统一评估框架 (可扩展注册表, 13项高级指标)
 │   ├── eval_comprehensive.py        #   🆕 综合评估 (HFF标准指标+已有高级指标合并)
@@ -92,6 +96,7 @@ enhance_resu/
 |---|---|---|
 | `models/resunet3d.py` | `ResUNet3d` | 5,763,867 |
 | `models/resunet_edge.py` | `ResUNetEdge`, `SobelEdge3d`, `LaplacianEdge3d` | +0.3M |
+| `models/resunet_hf_boundary.py` | `ResUNetHFBoundary` | ~5.8M |
 | `models/resunet_fgfe.py` | `ResUNetFGFE` | +0.5M |
 | `models/fgfe_module.py` | `FGFE`, `LaplacianPyramid3d` | — |
 | `models/sla_module.py` | `SLA3D`, `ChannelAttention3D`, `SpatialAttention3D` | — |
