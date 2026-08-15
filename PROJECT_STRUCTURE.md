@@ -14,6 +14,7 @@ enhance_resu/
 │   ├── nnunet3d.py                  #   nnUNet3d (InstanceNorm + LeakyReLU)
 │   ├── resunet_edge.py              #   V2: Sobel/Laplacian/Random Edge Branch
 │   ├── resunet_hf_boundary.py       #   V2: HF Boundary 双头 (固定边缘注入 + boundary_head)
+│   ├── resunet_hf_concat_boundary.py #  最终组合: Laplacian 多尺度 concat + boundary_head
 │   ├── resunet_fgfe.py              #   V2: FGFE decoder (Yao et al., MICCAI 2025)
 │   ├── fgfe_module.py               #   FGFE: LaplacianPyramid3d + cross-attention
 │   └── sla_module.py                #   SLA3D: channel/spatial attention (Step 2 预留)
@@ -50,6 +51,7 @@ enhance_resu/
 │   ├── train_v2_edge.py             #   V2: Edge Branch (sobel/laplacian, concat/add)
 │   ├── train_fgfe.py                #   V2: FGFE 训练入口
 │   ├── train_hf_boundary.py         #   V2: HF Boundary 训练入口
+│   ├── train_hf_concat_boundary.py  #   最终组合模型训练入口 (w=0.3)
 │   ├── train_fg_sampling.py         #   SLA-FB: FG-aware patch sampling
 │   ├── train_cc_dice.py             #   SLA-FB: CC-Level Dice Loss
 │   ├── train_bce_ccdice.py          #   SLA-FB: BCE + CC-Dice 训练入口
@@ -98,6 +100,7 @@ enhance_resu/
 | `models/resunet3d.py` | `ResUNet3d` | 5,763,867 |
 | `models/resunet_edge.py` | `ResUNetEdge`, `SobelEdge3d`, `LaplacianEdge3d` | +0.3M |
 | `models/resunet_hf_boundary.py` | `ResUNetHFBoundary` | ~5.8M |
+| `models/resunet_hf_concat_boundary.py` | `ResUNetHFConcatBoundary` | Edge concat + boundary head |
 | `models/resunet_fgfe.py` | `ResUNetFGFE` | +0.5M |
 | `models/fgfe_module.py` | `FGFE`, `LaplacianPyramid3d` | — |
 | `models/sla_module.py` | `SLA3D`, `ChannelAttention3D`, `SpatialAttention3D` | — |

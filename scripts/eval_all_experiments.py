@@ -59,6 +59,7 @@ from models.resunet3d import ResUNet3d
 from models.resunet_edge import ResUNetEdge
 from models.resunet_fgfe import ResUNetFGFE
 from models.resunet_hf_boundary import ResUNetHFBoundary
+from models.resunet_hf_concat_boundary import ResUNetHFConcatBoundary
 from data.dataset import BratsDataset, get_dataloader
 from evaluation.advanced_metrics import (
     compute_all_advanced_metrics,
@@ -222,6 +223,14 @@ EXPERIMENTS = [
                          'edge_type': 'laplacian'},
         'label': 'HF Boundary+ (Laplacian, w=0.3)',
         'category': 'V2: Architecture',
+        'key_remap': None,
+    },
+    {
+        'dir': '/root/autodl-tmp/ResUNet_HFConcatBoundary_model',
+        'model_class': ResUNetHFConcatBoundary,
+        'model_kwargs': {'in_channels': 4, 'n_classes': 3, 'n_channels': 24},
+        'label': 'HF Concat Boundary (Laplacian, w=0.3)',
+        'category': 'Final Combination',
         'key_remap': None,
     },
 ]

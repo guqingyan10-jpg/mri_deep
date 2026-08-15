@@ -23,6 +23,7 @@ from models.nnunet3d import nnUNet3d
 from models.resunet_edge import ResUNetEdge, SobelEdge3d, LaplacianEdge3d
 from models.resunet_fgfe import ResUNetFGFE
 from models.resunet_hf_boundary import ResUNetHFBoundary
+from models.resunet_hf_concat_boundary import ResUNetHFConcatBoundary
 from models.fgfe_module import FGFE, LaplacianPyramid3d
 from models.sla_module import SLA3D, ChannelAttention3D, SpatialAttention3D, ResUpSLA
 
@@ -32,5 +33,6 @@ __all__ = [
     'ResUNetEdge', 'SobelEdge3d', 'LaplacianEdge3d',
     'ResUNetFGFE', 'FGFE', 'LaplacianPyramid3d',
     'ResUNetHFBoundary',
+    'ResUNetHFConcatBoundary',
     'SLA3D', 'ChannelAttention3D', 'SpatialAttention3D', 'ResUpSLA',
 ]

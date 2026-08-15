@@ -14,6 +14,7 @@ enhance_resu/
 │   ├── nnunet3d.py             nnUNet3d（InstanceNorm + LeakyReLU）
 │   ├── resunet_edge.py         V2 边缘分支（Sobel/Laplacian，concat/add）
 │   ├── resunet_hf_boundary.py  V2 HF 边界双头
+│   ├── resunet_hf_concat_boundary.py  最终组合：多尺度 Laplacian concat + 边界双头
 │   ├── resunet_fgfe.py         V2 频域增强
 │   ├── fgfe_module.py          FGFE / LaplacianPyramid3d
 │   └── sla_module.py           SLA3D 小病灶注意力（预留）
@@ -42,6 +43,11 @@ fused → seg_head(1×1) → seg          fused → boundary_head → boundary
 ```
 
 配合 `BCEDiceWithBoundaryLoss`（主分割 + λ·边界 BCE）。
+
+**ResUNetHFConcatBoundary** — 最终组合模型：复用 `ResUNetEdge` 的 Laplacian
+高频残差与四级 `EdgePyramid`，在 `dec1`–`dec4` 逐层 concat，并增加与 HF
+Boundary 相同的边界辅助头。训练损失固定为
+`BCEDiceLoss(seg, GT) + 0.3 × BCE(boundary, boundary_GT)`。
 
 **ResUNetFGFE** — 解码器 `ResUp` 换成 `ResUpFGFE`：Laplacian 分解特征为高/低频 → 交叉注意力 → 残差。
 
@@ -89,6 +95,9 @@ pip install -r requirements_clean.txt   # PyTorch 2.1.2 + MONAI + nibabel
 
 # 训练
 python scripts/train_hf_boundary.py --edge_type laplacian --boundary_weight 0.2
+
+# 最终组合模型（Laplacian 多尺度 concat + 0.3 边界辅助监督）
+python scripts/train_hf_concat_boundary.py
 
 # 评估
 python scripts/eval_all_experiments.py

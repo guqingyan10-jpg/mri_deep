@@ -91,6 +91,7 @@ from models.resunet3d import ResUNet3d
 from models.resunet_edge import ResUNetEdge
 from models.resunet_fgfe import ResUNetFGFE
 from models.resunet_hf_boundary import ResUNetHFBoundary
+from models.resunet_hf_concat_boundary import ResUNetHFConcatBoundary
 from data.dataset import BratsDataset, get_dataloader
 from training.metrics import (
     dice_coef_metric_per_classes,
@@ -232,6 +233,18 @@ EXPERIMENTS = [
         'description': 'Same as HF Boundary but with increased boundary loss weight '
                        '(w=0.3). Tests whether stronger boundary supervision in the '
                        'auxiliary branch further improves boundary quality.',
+        'key_remap': None,
+    },
+    {
+        'dir': '/root/autodl-tmp/ResUNet_HFConcatBoundary_model',
+        'model_class': ResUNetHFConcatBoundary,
+        'model_kwargs': {'in_channels': 4, 'n_classes': 3, 'n_channels': 24},
+        'label': 'HF Concat Boundary (Laplacian, w=0.3)',
+        'category': 'Final Combination',
+        'description': 'Final combination model. Extracts Laplacian high-frequency '
+                       'residuals from raw MRI, builds a four-level EdgePyramid, '
+                       'concatenates edge features into every decoder stage, and '
+                       'adds a boundary prediction head supervised with weight 0.3.',
         'key_remap': None,
     },
 
