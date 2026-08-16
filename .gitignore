@@ -42,3 +42,11 @@ Thumbs.db
 et_statistics.csv
 brats2020_full_report/
 *.pdf
+
+# Local research docs & drafts — keep locally, never push to GitHub
+paper_draft.md
+paper_draft.docx
+~$*.docx
+COMPREHENSIVE_REPORT.md
+REPORT_ET_LESION_ANALYSIS.md
+RESEARCH_RECORDS.md
