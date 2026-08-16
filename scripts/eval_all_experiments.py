@@ -387,6 +387,7 @@ def _save_all_outputs(all_metrics, all_histories, baseline):
         csv_rows.append({
             'Model':                   m['model_name'],
             'Category':                m.get('category', ''),
+            'Macro_Dice':              f"{m.get('Macro_Dice_mean', 0):.4f}",
             'Checkpoint_Epoch':        m.get('checkpoint_epoch', ''),
             'ET_Dice':                 f"{m.get('ET_Dice_mean', 0):.4f} ± {m.get('ET_Dice_std', 0):.4f}",
             'ET_Recall':               f"{m.get('ET_Recall_mean', 0):.4f}",
@@ -419,6 +420,20 @@ def _save_all_outputs(all_metrics, all_histories, baseline):
 def _write_markdown_tables(all_metrics, baseline):
     """3 Markdown tables: complete, delta, by-category."""
     lines = ["# ResUNet Enhancement — Experimental Results\n"]
+
+    # Table 0: Core metrics — the four primary indicators
+    core_cols = ['Model', 'Macro Dice', 'ET Dice', 'ET HD95↓', 'Small-case ET Dice']
+    lines.append("## Core Metrics (primary indicators)\n")
+    lines.append("| " + " | ".join(core_cols) + " |")
+    lines.append("|" + "|".join(["---"] * len(core_cols)) + "|")
+    for m in all_metrics:
+        lines.append("| " + " | ".join([
+            m['model_name'],
+            f"{m.get('Macro_Dice_mean', 0):.3f}",
+            f"{m.get('ET_Dice_mean', 0):.3f}",
+            f"{m.get('ET_HD95_mean', 0):.1f}",
+            f"{m.get('Small_case_ET_Dice_mean', 0):.3f}",
+        ]) + " |")
 
     # Table 1: Complete metrics
     cols = ['Model', 'ET Dice', 'ET Recall', 'ET Prec.', 'ET HD95↓', 'ET NSD↑',
@@ -634,6 +649,7 @@ def evaluate_experiments(experiments, dataloader, device,
 # ============================================================
 
 PRIORITY_METRICS = [
+    ('Macro_Dice_mean',           'Macro Dice ↑'),
     ('ET_Dice_mean',              'ET Dice ↑'),
     ('ET_Recall_mean',            'ET Recall ↑'),
     ('ET_Precision_mean',         'ET Precision ↑'),
@@ -650,6 +666,7 @@ PRIORITY_METRICS = [
 ]
 
 COMPARISON_TABLE_KEYS = [
+    'Macro_Dice_mean',
     'ET_Dice_mean', 'ET_Recall_mean', 'ET_Precision_mean',
     'ET_HD95_mean', 'ET_NSD_mean',
     'TC_Dice_mean', 'TC_HD95_mean', 'TC_NSD_mean',

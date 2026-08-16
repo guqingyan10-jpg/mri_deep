@@ -247,6 +247,159 @@ def plot_et_recall_precision_barchart(all_metrics, save_path='figures/et_recall_
 
 
 # ============================================================
+# 1b. Composite score & radar — four primary indicators
+# ============================================================
+
+PRIMARY_INDICATORS = [
+    # (metric_key, axis label, higher_is_better)
+    ('Macro_Dice_mean',         'Macro\nDice',        True),
+    ('ET_Dice_mean',            'ET\nDice',           True),
+    ('Small_case_ET_Dice_mean', 'Small-case\nDice',   True),
+    ('ET_HD95_mean',            'ET HD95\n(reversed)', False),
+]
+
+
+def _normalize_indicators(all_metrics):
+    """
+    Min-max normalize the four primary indicators to [0, 1] across all
+    models. HD95 (lower is better) is reversed so that in every axis a
+    larger value = better. NaN (e.g. empty HD95) is mapped to 0.
+    """
+    norm = {}
+    for key, _label, higher in PRIMARY_INDICATORS:
+        vals = np.array([m.get(key, np.nan) for m in all_metrics], dtype=float)
+        finite = vals[np.isfinite(vals)]
+        if len(finite) == 0:
+            norm[key] = np.zeros(len(all_metrics))
+            continue
+        lo, hi = finite.min(), finite.max()
+        if hi - lo < 1e-12:
+            norm[key] = np.ones(len(all_metrics))
+            continue
+        scaled = (vals - lo) / (hi - lo)
+        if not higher:
+            scaled = 1.0 - scaled
+        norm[key] = np.nan_to_num(scaled, nan=0.0)
+    return norm
+
+
+def plot_composite_rank_barchart(all_metrics, save_path='figures/composite_rank_barchart.png'):
+    """
+    Horizontal bar chart of a composite score = mean of the four normalized
+    primary indicators. Models sorted descending so the overall-best sits on
+    top. This is a *relative ranking aid* only — absolute values live in the
+    tables (paper_table.md / all_experiments_results.csv).
+    """
+    os.makedirs(os.path.dirname(save_path) or '.', exist_ok=True)
+
+    norm = _normalize_indicators(all_metrics)
+    keys = [k for k, _, _ in PRIMARY_INDICATORS]
+    composite = np.mean([norm[k] for k in keys], axis=0)
+
+    models = [m['model_name'] for m in all_metrics]
+    order = np.argsort(composite)[::-1]
+    sorted_models = [models[i] for i in order]
+    sorted_scores = [composite[i] for i in order]
+
+    fig, ax = plt.subplots(figsize=(14, max(5, 0.45 * len(all_metrics))))
+    colors = [_get_color(i, n, '') for i, n in enumerate(sorted_models)]
+    bars = ax.barh(sorted_models, sorted_scores, color=colors,
+                   edgecolor='white', linewidth=0.8)
+    ax.set_xlabel('Composite Score (normalized mean of 4 indicators)', fontsize=12)
+    ax.set_title('Overall Ranking — Macro Dice, ET Dice, ET HD95, Small-case ET Dice',
+                 fontsize=13, fontweight='bold')
+    ax.invert_yaxis()
+
+    for bar, val in zip(bars, sorted_scores):
+        ax.text(bar.get_width() + 0.01, bar.get_y() + bar.get_height() / 2,
+                f'{val:.3f}', va='center', fontsize=9)
+
+    # Emphasize baseline bar
+    for bar, name in zip(bars, sorted_models):
+        if 'Baseline' in name:
+            bar.set_edgecolor('#2c3e50')
+            bar.set_linewidth(2.5)
+
+    plt.tight_layout()
+    plt.savefig(save_path, dpi=200, bbox_inches='tight', facecolor='white')
+    plt.close()
+    print(f"Saved: {save_path}")
+
+
+def plot_four_metric_radar(all_metrics, save_path='figures/four_metric_radar.png'):
+    """
+    Radar (spider) chart of the four primary indicators, one subplot per
+    category. Axes are min-max normalized across all models and ET HD95 is
+    reversed, so a larger polygon = better overall. Baseline is overlaid as
+    a dashed grey reference in every subplot.
+    """
+    os.makedirs(os.path.dirname(save_path) or '.', exist_ok=True)
+
+    norm = _normalize_indicators(all_metrics)
+    keys = [k for k, _, _ in PRIMARY_INDICATORS]
+    n = len(keys)
+    angles = [a / n * 2 * np.pi for a in range(n)]
+    angles += angles[:1]  # close the loop
+
+    # Categories in order of first appearance
+    categories = []
+    for m in all_metrics:
+        c = m.get('category', 'Other')
+        if c not in categories:
+            categories.append(c)
+
+    baseline_idx = None
+    for i, m in enumerate(all_metrics):
+        if 'Baseline' in m['model_name']:
+            baseline_idx = i
+            break
+
+    n_cats = len(categories)
+    ncols = min(3, n_cats)
+    nrows = int(np.ceil(n_cats / ncols))
+    fig, axes = plt.subplots(nrows, ncols, subplot_kw=dict(polar=True),
+                             figsize=(6 * ncols, 6 * nrows))
+    axes = np.atleast_1d(axes).ravel()
+
+    for ax, cat in zip(axes, categories):
+        ax.set_title(cat, fontsize=12, fontweight='bold', pad=22)
+        ax.set_xticks(angles[:-1])
+        ax.set_xticklabels([lab for _, lab, _ in PRIMARY_INDICATORS], fontsize=8)
+        ax.set_ylim(0, 1.05)
+
+        # Baseline reference (grey dashed)
+        if baseline_idx is not None:
+            vals = [norm[k][baseline_idx] for k in keys]
+            vals += vals[:1]
+            ax.plot(angles, vals, color='#7f8c8d', linewidth=2.0,
+                    linestyle='--', label='Baseline', alpha=0.85)
+
+        # Models in this category
+        for i, m in enumerate(all_metrics):
+            if m.get('category', 'Other') != cat:
+                continue
+            vals = [norm[k][i] for k in keys]
+            vals += vals[:1]
+            color = _get_color(i, m['model_name'], cat)
+            ax.plot(angles, vals, color=color, linewidth=1.8,
+                    label=m['model_name'], alpha=0.9)
+            ax.fill(angles, vals, color=color, alpha=0.08)
+
+        ax.legend(loc='upper right', bbox_to_anchor=(1.32, 1.15), fontsize=7)
+
+    # Hide unused subplots
+    for ax in axes[len(categories):]:
+        ax.set_visible(False)
+
+    fig.suptitle('Four Primary Indicators — Normalized Radar (larger polygon = better)',
+                 fontsize=14, fontweight='bold')
+    plt.tight_layout()
+    plt.savefig(save_path, dpi=200, bbox_inches='tight', facecolor='white')
+    plt.close()
+    print(f"Saved: {save_path}")
+
+
+# ============================================================
 # 2. Qualitative Visualizations — Case-level overlays
 # ============================================================
 
@@ -697,6 +850,10 @@ def generate_all_figures(all_metrics, all_histories, dataloader,
                                   os.path.join(output_dir, 'small_case_dice_barchart.png'))
     plot_et_recall_precision_barchart(all_metrics,
                                       os.path.join(output_dir, 'et_recall_precision.png'))
+    plot_composite_rank_barchart(all_metrics,
+                                 os.path.join(output_dir, 'composite_rank_barchart.png'))
+    plot_four_metric_radar(all_metrics,
+                           os.path.join(output_dir, 'four_metric_radar.png'))
 
     # ── Qualitative case overlays ────────────────────────────
     print("\n--- Generating qualitative overlays ---")

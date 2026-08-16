@@ -690,6 +690,13 @@ def compute_all_advanced_metrics(model, dataloader, threshold=0.33,
         metrics[f'{cls}_NSD_mean'] = np.mean(nsd_vals) if nsd_vals else np.nan
         metrics[f'{cls}_NSD_std']  = np.std(nsd_vals) if nsd_vals else np.nan
 
+    # Macro Dice — mean of the three sub-region Dice scores (WT/TC/ET)
+    metrics['Macro_Dice_mean'] = np.mean([
+        metrics['WT_Dice_mean'],
+        metrics['TC_Dice_mean'],
+        metrics['ET_Dice_mean'],
+    ])
+
     # Lesion-wise summary
     valid_lr = [lr for lr in lesion_results if lr['gt_lesions'] > 0]
     recalls_lr = [lr['lesion_recall'] for lr in valid_lr if not np.isnan(lr['lesion_recall'])]

@@ -1,0 +1,267 @@
+"""
+=============================================================================
+Key Model Comparison — 4 selected models
+=============================================================================
+Evaluates only the four models relevant to the current comparison:
+
+  1. Baseline (BCEDice)                     — ResUNet3d
+  2. Edge (Laplacian, concat)               — ResUNetEdge, multi-scale edge
+  3. HF Boundary+ (Laplacian, w=0.3)        — ResUNetHFBoundary, single-scale add
+  4. HF Concat Boundary (Laplacian, w=0.3)  — ResUNetHFConcatBoundary, final combo
+
+Focuses on the four primary indicators (Macro Dice / ET Dice / ET HD95 /
+Small-case ET Dice) and emits:
+  - terminal + markdown core-metric comparison table
+  - key_comparison_results.json
+  - key_composite_rank.png  (composite-score ranking bar chart)
+  - key_radar.png           (single radar, all four models overlaid)
+
+Reuses the registry and evaluation loop from eval_all_experiments.py so the
+metrics and checkpoint handling stay identical to the full pipeline.
+
+Usage:
+    python scripts/eval_key_comparison.py              # full eval on test set
+    python scripts/eval_key_comparison.py --no-timing  # skip inference timing
+
+Author: ResUNet Enhancement Project
+=============================================================================
+"""
+
+import os, sys, json, argparse, importlib.util
+
+import numpy as np
+
+PROJ_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, PROJ_ROOT)
+
+# --- Reuse eval_all_experiments.py as a module (scripts/ is not a package) ---
+_EA_PATH = os.path.join(PROJ_ROOT, 'scripts', 'eval_all_experiments.py')
+_spec = importlib.util.spec_from_file_location('eval_all', _EA_PATH)
+eval_all = importlib.util.module_from_spec(_spec)
+_spec.loader.exec_module(eval_all)
+
+import torch
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+
+from data.dataset import BratsDataset, get_dataloader
+from evaluation.visualize_report import (
+    PRIMARY_INDICATORS,
+    _normalize_indicators,
+    plot_composite_rank_barchart,
+)
+
+# --- The four models to evaluate (must match labels in eval_all.EXPERIMENTS) ---
+KEY_LABELS = [
+    'Baseline (BCEDice)',
+    'Edge (Laplacian, concat)',
+    'HF Boundary+ (Laplacian, w=0.3)',
+    'HF Concat Boundary (Laplacian, w=0.3)',
+]
+
+# Fixed colors, aligned with KEY_LABELS order.
+KEY_COLORS = ['#2c3e50', '#2ecc71', '#3498db', '#e74c3c']
+
+# Primary indicators: (metric_key, display, direction)  direction: 'high'|'low'
+PRIMARY = [
+    ('Macro_Dice_mean',         'Macro Dice',      'high'),
+    ('ET_Dice_mean',            'ET Dice',         'high'),
+    ('Small_case_ET_Dice_mean', 'Small-case Dice', 'high'),
+    ('ET_HD95_mean',            'ET HD95',         'low'),
+]
+
+
+def _fmt(v, key):
+    """Format a metric value; HD95 gets 2 decimals, Dice 3."""
+    if v is None or (isinstance(v, float) and np.isnan(v)):
+        return 'N/A'
+    return f'{v:.2f}' if 'HD95' in key else f'{v:.3f}'
+
+
+def _best_value(vals, direction):
+    clean = [v for v in vals if v is not None and not np.isnan(v)]
+    if not clean:
+        return None
+    return max(clean) if direction == 'high' else min(clean)
+
+
+def print_core_table(all_metrics):
+    """Terminal comparison table over the four primary indicators (best bolded)."""
+    best = [_best_value([m.get(k, float('nan')) for m in all_metrics], d)
+            for k, _, d in PRIMARY]
+
+    header = f"{'Model':<40}" + ''.join(f"{disp:>16}" for _, disp, _ in PRIMARY)
+    print('\n' + header)
+    print('-' * len(header))
+    for m in all_metrics:
+        cells = [f"{m['model_name']:<40}"]
+        for j, (key, _, _) in enumerate(PRIMARY):
+            v = m.get(key, float('nan'))
+            s = _fmt(v, key)
+            if best[j] is not None and not np.isnan(v) and v == best[j]:
+                cells.append(f"\033[1m{s:>16}\033[0m")
+            else:
+                cells.append(f"{s:>16}")
+        print(''.join(cells))
+    print('Bold = best per column. HD95 lower is better; others higher.\n')
+
+
+def write_key_table(all_metrics, baseline):
+    """Markdown core-indicator table + delta-vs-baseline table."""
+    lines = ['# Key Model Comparison — Core Indicators\n']
+
+    lines.append('| Model | Macro Dice | ET Dice | ET HD95↓ | Small-case Dice |')
+    lines.append('|---|---|---|---|---|')
+    for m in all_metrics:
+        lines.append(
+            f"| {m['model_name']} | "
+            f"{_fmt(m.get('Macro_Dice_mean', float('nan')), 'Dice')} | "
+            f"{_fmt(m.get('ET_Dice_mean', float('nan')), 'Dice')} | "
+            f"{_fmt(m.get('ET_HD95_mean', float('nan')), 'HD95')} | "
+            f"{_fmt(m.get('Small_case_ET_Dice_mean', float('nan')), 'Dice')} |")
+
+    if baseline is not None:
+        lines.append('\n## Delta vs Baseline\n')
+        lines.append('| Model | Δ Macro Dice | Δ ET Dice | Δ ET HD95 | Δ Small-case Dice |')
+        lines.append('|---|---|---|---|---|')
+        for m in all_metrics:
+            if m is baseline:
+                lines.append(f"| {m['model_name']} | (baseline) | — | — | — |")
+                continue
+            lines.append(
+                f"| {m['model_name']} | "
+                f"{m.get('Macro_Dice_mean', 0) - baseline.get('Macro_Dice_mean', 0):+.4f} | "
+                f"{m.get('ET_Dice_mean', 0) - baseline.get('ET_Dice_mean', 0):+.4f} | "
+                f"{m.get('ET_HD95_mean', 0) - baseline.get('ET_HD95_mean', 0):+.2f} | "
+                f"{m.get('Small_case_ET_Dice_mean', 0) - baseline.get('Small_case_ET_Dice_mean', 0):+.4f} |")
+
+    with open('key_comparison_table.md', 'w', encoding='utf-8') as f:
+        f.write('\n'.join(lines))
+    print('Saved: key_comparison_table.md')
+
+
+def plot_key_radar(all_metrics, save_path='figures/key_radar.png'):
+    """
+    Single radar chart overlaying all four models (no category grouping).
+    Axes are min-max normalized across these models; ET HD95 is reversed,
+    so a larger polygon = better overall.
+    """
+    os.makedirs(os.path.dirname(save_path) or '.', exist_ok=True)
+
+    norm = _normalize_indicators(all_metrics)
+    keys = [k for k, _, _ in PRIMARY_INDICATORS]
+    n = len(keys)
+    angles = [a / n * 2 * np.pi for a in range(n)]
+    angles += angles[:1]  # close the loop
+
+    fig, ax = plt.subplots(figsize=(7.5, 7.5), subplot_kw=dict(polar=True))
+    ax.set_xticks(angles[:-1])
+    ax.set_xticklabels([lab for _, lab, _ in PRIMARY_INDICATORS], fontsize=10)
+    ax.set_ylim(0, 1.05)
+
+    for i, m in enumerate(all_metrics):
+        vals = [norm[k][i] for k in keys]
+        vals += vals[:1]
+        color = KEY_COLORS[i % len(KEY_COLORS)]
+        ax.plot(angles, vals, color=color, linewidth=2.2,
+                label=m['model_name'], alpha=0.95)
+        ax.fill(angles, vals, color=color, alpha=0.10)
+
+    ax.legend(loc='upper right', bbox_to_anchor=(1.32, 1.12), fontsize=8)
+    ax.set_title('Four Primary Indicators — Normalized (larger = better)',
+                 fontsize=13, fontweight='bold', pad=24)
+
+    plt.tight_layout()
+    plt.savefig(save_path, dpi=200, bbox_inches='tight', facecolor='white')
+    plt.close()
+    print(f"Saved: {save_path}")
+
+
+def main():
+    parser = argparse.ArgumentParser(description='Key model comparison (4 models)')
+    parser.add_argument('--csv', type=str, default='tumourCSV.csv',
+                        help='Path to data CSV')
+    parser.add_argument('--threshold', type=float, default=0.33,
+                        help='Binarization threshold')
+    parser.add_argument('--no-timing', action='store_true',
+                        help='Skip inference timing measurement')
+    parser.add_argument('--figures-dir', type=str, default='figures',
+                        help='Output directory for figures (default: figures/)')
+    args = parser.parse_args()
+
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+
+    # Select the four experiments from the shared registry, keeping KEY_LABELS order
+    by_label = {e['label']: e for e in eval_all.EXPERIMENTS}
+    missing = [l for l in KEY_LABELS if l not in by_label]
+    if missing:
+        print(f'[ERROR] These labels are missing from the registry:\n  {missing}')
+        return
+    exps = [by_label[l] for l in KEY_LABELS]
+
+    print('=' * 80)
+    print('Key Model Comparison (4 models)')
+    print(f'Device: {device} | Threshold: {args.threshold}')
+    for l in KEY_LABELS:
+        print(f'  - {l}')
+    print('=' * 80)
+
+    print('\nLoading test dataloader...')
+    test_loader = get_dataloader(BratsDataset, args.csv, phase='test')
+    print(f'Test set: {len(test_loader.dataset)} cases')
+
+    all_metrics, all_histories, errors = eval_all.evaluate_experiments(
+        exps, test_loader, device,
+        threshold=args.threshold,
+        measure_timing=not args.no_timing,
+    )
+
+    if not all_metrics:
+        print('\nNo models evaluated successfully.')
+        for lbl, msg in errors:
+            print(f'  {lbl}: {msg}')
+        return
+
+    baseline = next((m for m in all_metrics if 'Baseline' in m['model_name']), None)
+
+    # Core table (terminal + markdown)
+    print_core_table(all_metrics)
+    write_key_table(all_metrics, baseline)
+
+    # JSON dump
+    json_ready = []
+    for m in all_metrics:
+        clean = {}
+        for k, v in m.items():
+            if k.startswith('_'):
+                continue
+            if isinstance(v, (np.floating,)):
+                v = float(v)
+            elif isinstance(v, (np.integer,)):
+                v = int(v)
+            clean[k] = v
+        json_ready.append(clean)
+    with open('key_comparison_results.json', 'w') as f:
+        json.dump(json_ready, f, indent=2, default=str)
+    print('Saved: key_comparison_results.json')
+
+    # Figures — composite ranking + single radar
+    os.makedirs(args.figures_dir, exist_ok=True)
+    plot_composite_rank_barchart(
+        all_metrics,
+        save_path=os.path.join(args.figures_dir, 'key_composite_rank.png'))
+    plot_key_radar(
+        all_metrics,
+        save_path=os.path.join(args.figures_dir, 'key_radar.png'))
+
+    if errors:
+        print(f'\n[WARNING] {len(errors)} skipped/error:')
+        for lbl, msg in errors:
+            print(f'  {lbl}: {msg}')
+
+    print('\nDONE')
+
+
+if __name__ == '__main__':
+    main()
