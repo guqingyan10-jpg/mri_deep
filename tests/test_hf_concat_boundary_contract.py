@@ -41,7 +41,7 @@ def test_training_entrypoint_keeps_baseline_fairness_contract():
     source = (ROOT / "scripts/train_hf_concat_boundary.py").read_text(encoding="utf-8")
     required_fragments = [
         "BCEDiceWithBoundaryLoss",
-        "boundary_weight=0.3",
+        "boundary_weight=args.boundary_weight",
         "lr=args.lr",
         "accumulation_steps=4",
         "early_stopping_patience=25",
