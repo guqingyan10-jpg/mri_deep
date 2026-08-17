@@ -36,6 +36,7 @@ Date:   2026-08-01
 import numpy as np
 import torch
 from scipy import ndimage
+from scipy.optimize import linear_sum_assignment
 from scipy.spatial.distance import directed_hausdorff
 import matplotlib.pyplot as plt
 from tqdm import tqdm
@@ -228,9 +229,9 @@ def lesion_wise_detection(pred_et_mask, gt_et_mask, min_size=10, overlap_thresh=
     Algorithm:
       1. Find connected components in GT ET mask (→ list of GT lesions)
       2. Find connected components in Pred ET mask (→ list of Pred lesions)
-      3. For each GT lesion, check if any Pred lesion overlaps it
-      4. Lesion-wise Recall = #GT lesions detected / total #GT lesions
-      5. Lesion-wise Precision = #GT lesions detected / total #Pred lesions
+      3. Build the pairwise GT coverage matrix
+      4. Use Hungarian assignment so each GT/Pred lesion is matched at most once
+      5. Derive lesion-wise Precision, Recall, and F1 from TP/FP/FN
 
     Args:
         pred_et_mask: (D, H, W) binary prediction for ET
@@ -239,15 +240,9 @@ def lesion_wise_detection(pred_et_mask, gt_et_mask, min_size=10, overlap_thresh=
         overlap_thresh: minimum overlap ratio for detection (0 = any overlap)
 
     Returns:
-        dict with: gt_lesions, pred_lesions, detected, lesion_recall, lesion_precision
+        dict with lesion counts, TP/FP/FN, precision, recall, and F1
     """
-    # --- GT lesions ---
-    if gt_et_mask.sum() == 0:
-        return {'gt_lesions': 0, 'pred_lesions': 0, 'detected': 0,
-                'lesion_recall': np.nan, 'lesion_precision': np.nan,
-                'gt_sizes': [], 'pred_sizes': []}
-
-    gt_labeled, gt_num = ndimage.label(gt_et_mask)
+    gt_labeled, gt_num = ndimage.label(np.asarray(gt_et_mask) > 0)
 
     # Filter small GT components
     gt_valid = []
@@ -255,15 +250,9 @@ def lesion_wise_detection(pred_et_mask, gt_et_mask, min_size=10, overlap_thresh=
         size = (gt_labeled == comp_id).sum()
         if size >= min_size:
             gt_valid.append(comp_id)
-    gt_valid = set(gt_valid)
+    gt_valid = sorted(gt_valid)
 
-    # --- Pred lesions ---
-    if pred_et_mask.sum() == 0:
-        return {'gt_lesions': len(gt_valid), 'pred_lesions': 0, 'detected': 0,
-                'lesion_recall': 0.0, 'lesion_precision': 1.0 if len(gt_valid) == 0 else 0.0,
-                'gt_sizes': [], 'pred_sizes': []}
-
-    pred_labeled, pred_num = ndimage.label(pred_et_mask)
+    pred_labeled, pred_num = ndimage.label(np.asarray(pred_et_mask) > 0)
 
     # Filter small Pred components
     pred_valid_map = {}
@@ -272,22 +261,36 @@ def lesion_wise_detection(pred_et_mask, gt_et_mask, min_size=10, overlap_thresh=
         if size >= min_size:
             pred_valid_map[comp_id] = size
 
-    # --- Match: for each GT lesion, check if any Pred lesion overlaps ---
-    detected = 0
-    for gt_id in gt_valid:
-        gt_comp_mask = (gt_labeled == gt_id)
-        is_detected = False
-        for pred_id in pred_valid_map:
+    # --- One-to-one matching with Hungarian assignment ---
+    pred_valid = list(pred_valid_map)
+    overlap_ratios = np.zeros((len(gt_valid), len(pred_valid)), dtype=np.float64)
+    for gt_idx, gt_id in enumerate(gt_valid):
+        gt_comp_mask = gt_labeled == gt_id
+        gt_size = gt_comp_mask.sum()
+        for pred_idx, pred_id in enumerate(pred_valid):
             overlap = (gt_comp_mask & (pred_labeled == pred_id)).sum()
-            gt_size = gt_comp_mask.sum()
-            if overlap > overlap_thresh * gt_size:
-                is_detected = True
-                break
-        if is_detected:
-            detected += 1
+            overlap_ratios[gt_idx, pred_idx] = overlap / gt_size
 
-    recall = detected / len(gt_valid) if len(gt_valid) > 0 else np.nan
-    precision = detected / len(pred_valid_map) if len(pred_valid_map) > 0 else np.nan
+    matched_pairs = []
+    if overlap_ratios.size > 0:
+        gt_indices, pred_indices = linear_sum_assignment(
+            overlap_ratios, maximize=True)
+        matched_pairs = [
+            (int(gt_idx), int(pred_idx))
+            for gt_idx, pred_idx in zip(gt_indices, pred_indices)
+            if overlap_ratios[gt_idx, pred_idx] > overlap_thresh
+        ]
+
+    tp = len(matched_pairs)
+    fp = len(pred_valid) - tp
+    fn = len(gt_valid) - tp
+    recall = tp / (tp + fn) if tp + fn > 0 else np.nan
+    if tp + fp > 0:
+        precision = tp / (tp + fp)
+    else:
+        precision = 0.0 if fn > 0 else np.nan
+    f1_denom = 2 * tp + fp + fn
+    f1 = 2 * tp / f1_denom if f1_denom > 0 else np.nan
 
     gt_sizes = [int((gt_labeled == g).sum()) for g in gt_valid]
     pred_sizes = [int((pred_labeled == p).sum()) for p in pred_valid_map]
@@ -295,17 +298,67 @@ def lesion_wise_detection(pred_et_mask, gt_et_mask, min_size=10, overlap_thresh=
     return {
         'gt_lesions':      len(gt_valid),
         'pred_lesions':    len(pred_valid_map),
-        'detected':        detected,
+        'detected':        tp,
+        'tp_lesions':      tp,
+        'fp_lesions':      fp,
+        'fn_lesions':      fn,
         'lesion_recall':   recall,
         'lesion_precision': precision,
+        'lesion_f1':       f1,
         'gt_sizes':        gt_sizes,
         'pred_sizes':      pred_sizes,
     }
 
 
+def summarize_lesion_results(all_results):
+    """Aggregate per-case lesion matches into macro and overall metrics."""
+    precisions = [
+        r['lesion_precision'] for r in all_results
+        if not np.isnan(r['lesion_precision'])
+    ]
+    recalls = [
+        r['lesion_recall'] for r in all_results
+        if not np.isnan(r['lesion_recall'])
+    ]
+    f1_scores = [
+        r['lesion_f1'] for r in all_results
+        if not np.isnan(r['lesion_f1'])
+    ]
+
+    total_tp = sum(r['tp_lesions'] for r in all_results)
+    total_fp = sum(r['fp_lesions'] for r in all_results)
+    total_fn = sum(r['fn_lesions'] for r in all_results)
+
+    precision_denom = total_tp + total_fp
+    recall_denom = total_tp + total_fn
+    f1_denom = 2 * total_tp + total_fp + total_fn
+
+    return {
+        'n_cases_with_et':          sum(r['gt_lesions'] > 0 for r in all_results),
+        'total_gt_lesions':         sum(r['gt_lesions'] for r in all_results),
+        'total_pred_lesions':       sum(r['pred_lesions'] for r in all_results),
+        'total_detected':           total_tp,
+        'total_tp_lesions':         total_tp,
+        'total_fp_lesions':         total_fp,
+        'total_fn_lesions':         total_fn,
+        'mean_lesion_recall':       np.mean(recalls) if recalls else np.nan,
+        'std_lesion_recall':        np.std(recalls) if recalls else np.nan,
+        'mean_lesion_precision':    np.mean(precisions) if precisions else np.nan,
+        'std_lesion_precision':     np.std(precisions) if precisions else np.nan,
+        'mean_lesion_f1':           np.mean(f1_scores) if f1_scores else np.nan,
+        'std_lesion_f1':            np.std(f1_scores) if f1_scores else np.nan,
+        'overall_lesion_precision': total_tp / precision_denom if precision_denom > 0 else np.nan,
+        'overall_lesion_recall':    total_tp / recall_denom if recall_denom > 0 else np.nan,
+        'overall_lesion_f1':        2 * total_tp / f1_denom if f1_denom > 0 else np.nan,
+        'per_case_recalls':         recalls,
+        'per_case_precisions':      precisions,
+        'per_case_f1_scores':       f1_scores,
+    }
+
+
 def compute_lesion_wise_all(model, dataloader, threshold=0.33, min_size=10):
     """
-    Compute lesion-wise recall and precision for all cases.
+    Compute lesion-wise recall, precision, and F1 for all cases.
 
     Returns:
         results: list of per-case dicts
@@ -339,38 +392,7 @@ def compute_lesion_wise_all(model, dataloader, threshold=0.33, min_size=10):
                 result['case_id'] = ids[i] if isinstance(ids, list) else ids
                 all_results.append(result)
 
-    # Aggregate
-    valid = [r for r in all_results if r['gt_lesions'] > 0]
-    recalls = [r['lesion_recall'] for r in valid if not np.isnan(r['lesion_recall'])]
-    precisions = [r['lesion_precision'] for r in valid if not np.isnan(r['lesion_precision'])]
-
-    summary = {
-        'n_cases_with_et':         len(valid),
-        'total_gt_lesions':        sum(r['gt_lesions'] for r in all_results),
-        'total_pred_lesions':      sum(r['pred_lesions'] for r in all_results),
-        'total_detected':          sum(r['detected'] for r in all_results),
-        'mean_lesion_recall':      np.mean(recalls) if recalls else np.nan,
-        'std_lesion_recall':       np.std(recalls) if recalls else np.nan,
-        'mean_lesion_precision':   np.mean(precisions) if precisions else np.nan,
-        'std_lesion_precision':    np.std(precisions) if precisions else np.nan,
-        'per_case_recalls':        recalls,
-        'per_case_precisions':     precisions,
-    }
-
-    # Stratify by lesion size
-    if len(valid) > 0:
-        all_gt_sizes = []
-        all_detected_flags = []
-        for r in valid:
-            for sz in r['gt_sizes']:
-                all_gt_sizes.append(sz)
-                all_detected_flags.append(1)  # we need per-lesion detection status
-        # Recompute per-lesion from all_results
-        all_lesion_records = []
-        # We need to redo the per-lesion matching... let's do a simpler approach:
-        # For each valid case, mark each GT lesion as detected/not
-        # Actually, the current data structure doesn't record per-lesion detection.
-        # We'll stratify by case-level instead.
+    summary = summarize_lesion_results(all_results)
 
     return all_results, summary
 
@@ -697,18 +719,23 @@ def compute_all_advanced_metrics(model, dataloader, threshold=0.33,
         metrics['ET_Dice_mean'],
     ])
 
-    # Lesion-wise summary
-    valid_lr = [lr for lr in lesion_results if lr['gt_lesions'] > 0]
-    recalls_lr = [lr['lesion_recall'] for lr in valid_lr if not np.isnan(lr['lesion_recall'])]
-    precs_lr = [lr['lesion_precision'] for lr in valid_lr if not np.isnan(lr['lesion_precision'])]
-
-    metrics['Lesion_Recall_mean']  = np.mean(recalls_lr) if recalls_lr else np.nan
-    metrics['Lesion_Recall_std']   = np.std(recalls_lr) if recalls_lr else np.nan
-    metrics['Lesion_Precision_mean'] = np.mean(precs_lr) if precs_lr else np.nan
-    metrics['Total_GT_lesions']    = sum(lr['gt_lesions'] for lr in lesion_results)
-    metrics['Total_detected']      = sum(lr['detected'] for lr in lesion_results)
-    metrics['Overall_lesion_recall'] = metrics['Total_detected'] / metrics['Total_GT_lesions'] \
-        if metrics['Total_GT_lesions'] > 0 else np.nan
+    # Lesion-wise summary from one-to-one TP/FP/FN matching
+    lesion_summary = summarize_lesion_results(lesion_results)
+    metrics['Lesion_Recall_mean'] = lesion_summary['mean_lesion_recall']
+    metrics['Lesion_Recall_std'] = lesion_summary['std_lesion_recall']
+    metrics['Lesion_Precision_mean'] = lesion_summary['mean_lesion_precision']
+    metrics['Lesion_Precision_std'] = lesion_summary['std_lesion_precision']
+    metrics['Lesion_F1_mean'] = lesion_summary['mean_lesion_f1']
+    metrics['Lesion_F1_std'] = lesion_summary['std_lesion_f1']
+    metrics['Total_GT_lesions'] = lesion_summary['total_gt_lesions']
+    metrics['Total_Pred_lesions'] = lesion_summary['total_pred_lesions']
+    metrics['Total_detected'] = lesion_summary['total_detected']
+    metrics['Total_TP_lesions'] = lesion_summary['total_tp_lesions']
+    metrics['Total_FP_lesions'] = lesion_summary['total_fp_lesions']
+    metrics['Total_FN_lesions'] = lesion_summary['total_fn_lesions']
+    metrics['Overall_lesion_precision'] = lesion_summary['overall_lesion_precision']
+    metrics['Overall_lesion_recall'] = lesion_summary['overall_lesion_recall']
+    metrics['Overall_lesion_f1'] = lesion_summary['overall_lesion_f1']
 
     # Small-case Dice
     valid_et = [(d, v) for d, v in zip(all_dice['ET'], et_vols) if v > 0]
@@ -748,7 +775,8 @@ def print_comparison_table(all_metrics, metric_keys=None):
             'ET_Dice_mean', 'ET_Recall_mean', 'ET_Precision_mean', 'ET_HD95_mean',
             'TC_Dice_mean', 'TC_HD95_mean',
             'WT_Dice_mean',
-            'Lesion_Recall_mean', 'Lesion_Precision_mean', 'Overall_lesion_recall',
+            'Lesion_Recall_mean', 'Lesion_Precision_mean', 'Lesion_F1_mean',
+            'Overall_lesion_precision', 'Overall_lesion_recall', 'Overall_lesion_f1',
             'Small_case_ET_Dice_mean',
         ]
 

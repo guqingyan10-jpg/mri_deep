@@ -9,7 +9,7 @@ Metrics (per WT / TC / ET):
   Dice, Recall, Precision, HD95, NSD (Normalized Surface Dice, τ=1mm)
 
 Diagnostic metrics:
-  Lesion-wise Recall & Precision (ET connected-component level)
+  Lesion-wise Recall, Precision & F1 (ET connected-component level)
   Small-case ET Dice (bottom 25% ET volume subset)
 
 Infrastructure:
@@ -416,7 +416,13 @@ def _save_all_outputs(all_metrics, all_histories, baseline):
             'WT_Dice':                 f"{m.get('WT_Dice_mean', 0):.4f} ± {m.get('WT_Dice_std', 0):.4f}",
             'Lesion_Recall':           f"{m.get('Lesion_Recall_mean', 0):.4f}",
             'Lesion_Precision':        f"{m.get('Lesion_Precision_mean', 0):.4f}",
+            'Lesion_F1':               f"{m.get('Lesion_F1_mean', 0):.4f}",
+            'Lesion_TP':               m.get('Total_TP_lesions', 0),
+            'Lesion_FP':               m.get('Total_FP_lesions', 0),
+            'Lesion_FN':               m.get('Total_FN_lesions', 0),
+            'Overall_Lesion_Precision': f"{m.get('Overall_lesion_precision', 0):.4f}",
             'Overall_Lesion_Recall':   f"{m.get('Overall_lesion_recall', 0):.4f}",
+            'Overall_Lesion_F1':       f"{m.get('Overall_lesion_f1', 0):.4f}",
             'Small_case_ET_Dice':      f"{m.get('Small_case_ET_Dice_mean', 0):.4f}",
             'n_params':                m.get('n_params', 0),
             'Inference_time_s':        f"{m.get('inference_time_mean_s', 0):.3f}",
@@ -454,7 +460,8 @@ def _write_markdown_tables(all_metrics, baseline):
     # Table 1: Complete metrics
     cols = ['Model', 'ET Dice', 'ET Recall', 'ET Prec.', 'ET HD95↓', 'ET NSD↑',
             'TC Dice', 'TC HD95↓', 'WT Dice',
-            'Lesion Rec.', 'Lesion Prec.', 'Small ET Dice', '#Params', 'Infer.(s)']
+            'Lesion Rec.', 'Lesion Prec.', 'Lesion F1',
+            'Small ET Dice', '#Params', 'Infer.(s)']
     lines.append("## Table 1: Complete Evaluation Metrics\n")
     lines.append("| " + " | ".join(cols) + " |")
     lines.append("|" + "|".join(["---"] * len(cols)) + "|")
@@ -471,6 +478,7 @@ def _write_markdown_tables(all_metrics, baseline):
             f"{m.get('WT_Dice_mean', 0):.3f}",
             f"{m.get('Lesion_Recall_mean', 0):.3f}",
             f"{m.get('Lesion_Precision_mean', 0):.3f}",
+            f"{m.get('Lesion_F1_mean', 0):.3f}",
             f"{m.get('Small_case_ET_Dice_mean', 0):.3f}",
             f"{m.get('n_params', 0):,}",
             f"{m.get('inference_time_mean_s', 0):.2f}",
@@ -676,6 +684,7 @@ PRIORITY_METRICS = [
     ('WT_Dice_mean',              'WT Dice ↑'),
     ('Lesion_Recall_mean',        'Lesion-wise Recall ↑'),
     ('Lesion_Precision_mean',     'Lesion-wise Precision ↑'),
+    ('Lesion_F1_mean',            'Lesion-wise F1 ↑'),
     ('Small_case_ET_Dice_mean',   'Small-case ET Dice ↑'),
     ('n_params',                  '#Params'),
     ('inference_time_mean_s',     'Inference (s/case)'),
@@ -687,8 +696,8 @@ COMPARISON_TABLE_KEYS = [
     'ET_HD95_mean', 'ET_NSD_mean',
     'TC_Dice_mean', 'TC_HD95_mean', 'TC_NSD_mean',
     'WT_Dice_mean',
-    'Lesion_Recall_mean', 'Lesion_Precision_mean',
-    'Overall_lesion_recall',
+    'Lesion_Recall_mean', 'Lesion_Precision_mean', 'Lesion_F1_mean',
+    'Overall_lesion_precision', 'Overall_lesion_recall', 'Overall_lesion_f1',
     'Small_case_ET_Dice_mean',
 ]
 

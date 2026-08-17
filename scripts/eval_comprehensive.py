@@ -957,8 +957,9 @@ def generate_comprehensive_report(all_results, output_dir):
         # Advanced metrics (Part 3)
         for key in ['ET_HD95_mean', 'ET_NSD_mean', 'TC_HD95_mean', 'TC_NSD_mean',
                      'ET_Recall_mean', 'ET_Precision_mean',
-                     'Lesion_Recall_mean', 'Lesion_Precision_mean',
-                     'Overall_lesion_recall', 'Small_case_ET_Dice_mean']:
+                     'Lesion_Recall_mean', 'Lesion_Precision_mean', 'Lesion_F1_mean',
+                     'Overall_lesion_precision', 'Overall_lesion_recall',
+                     'Overall_lesion_f1', 'Small_case_ET_Dice_mean']:
             val = r.get(key, 0)
             row[key] = f"{val:.4f}" if val else ''
 
@@ -1028,8 +1029,8 @@ def _write_comprehensive_markdown(all_results, output_dir):
     # ── Table 3: Advanced Metrics ────────────────────────────
     lines.append("\n\n## Table 3: Advanced Boundary & Lesion Metrics\n")
     lines.append("| Model | ET HD95↓ | ET NSD↑ | TC HD95↓ | TC NSD↑ | "
-                 "ET Recall | ET Prec. | Lesion Rec. | Lesion Prec. | Small ET Dice |")
-    lines.append("|---|---|---|---|---|---|---|---|---|---|")
+                 "ET Recall | ET Prec. | Lesion Rec. | Lesion Prec. | Lesion F1 | Small ET Dice |")
+    lines.append("|---|---|---|---|---|---|---|---|---|---|---|")
     for r in all_results:
         lines.append("| " + " | ".join([
             r.get('model_name', '?'),
@@ -1041,6 +1042,7 @@ def _write_comprehensive_markdown(all_results, output_dir):
             f"{r.get('ET_Precision_mean', 0):.4f}",
             f"{r.get('Lesion_Recall_mean', 0):.4f}",
             f"{r.get('Lesion_Precision_mean', 0):.4f}",
+            f"{r.get('Lesion_F1_mean', 0):.4f}",
             f"{r.get('Small_case_ET_Dice_mean', 0):.4f}",
         ]) + " |")
 
@@ -1265,8 +1267,10 @@ ADVANCED_METRIC_KEYS = [
     'ET_Recall_mean', 'ET_Precision_mean',
     'ET_HD95_mean', 'ET_NSD_mean',
     'TC_HD95_mean', 'TC_NSD_mean',
-    'Lesion_Recall_mean', 'Lesion_Precision_mean',
-    'Overall_lesion_recall',
+    'Lesion_Recall_mean', 'Lesion_Precision_mean', 'Lesion_F1_mean',
+    'Total_GT_lesions', 'Total_Pred_lesions',
+    'Total_TP_lesions', 'Total_FP_lesions', 'Total_FN_lesions',
+    'Overall_lesion_precision', 'Overall_lesion_recall', 'Overall_lesion_f1',
     'Small_case_ET_Dice_mean',
     'inference_time_mean_s', 'inference_time_std_s',
 ]
