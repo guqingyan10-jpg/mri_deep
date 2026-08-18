@@ -248,6 +248,27 @@ EXPERIMENTS = [
         'key_remap': None,
     },
     {
+        'dir': '/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.2_model',
+        'model_class': ResUNetHFConcatBoundary,
+        'model_kwargs': {'in_channels': 4, 'n_classes': 3, 'n_channels': 24},
+        'label': 'HF Concat Boundary (Laplacian, w=0.2)',
+        'category': 'Final Combination',
+        'description': 'Final combination model with intermediate boundary loss '
+                       'weight (w=0.2). Sweeps the boundary-supervision strength '
+                       'between the original 0.3 and the lighter 0.1.',
+        'key_remap': None,
+    },
+    {
+        'dir': '/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.15_model',
+        'model_class': ResUNetHFConcatBoundary,
+        'model_kwargs': {'in_channels': 4, 'n_classes': 3, 'n_channels': 24},
+        'label': 'HF Concat Boundary (Laplacian, w=0.15)',
+        'category': 'Final Combination',
+        'description': 'Final combination model with boundary loss weight w=0.15. '
+                       'Adds a finer point to the sweep between 0.2 and 0.1.',
+        'key_remap': None,
+    },
+    {
         'dir': '/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_model',
         'model_class': ResUNetHFConcatBoundary,
         'model_kwargs': {'in_channels': 4, 'n_classes': 3, 'n_channels': 24},
@@ -259,14 +280,14 @@ EXPERIMENTS = [
         'key_remap': None,
     },
     {
-        'dir': '/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.2_model',
+        'dir': '/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.05_model',
         'model_class': ResUNetHFConcatBoundary,
         'model_kwargs': {'in_channels': 4, 'n_classes': 3, 'n_channels': 24},
-        'label': 'HF Concat Boundary (Laplacian, w=0.2)',
+        'label': 'HF Concat Boundary (Laplacian, w=0.05)',
         'category': 'Final Combination',
-        'description': 'Final combination model with intermediate boundary loss '
-                       'weight (w=0.2). Sweeps the boundary-supervision strength '
-                       'between the original 0.3 and the lighter 0.1.',
+        'description': 'Final combination model with the lightest boundary loss '
+                       'weight (w=0.05). Tests whether a very weak boundary '
+                       'supervision still improves small-lesion edges.',
         'key_remap': None,
     },
 
