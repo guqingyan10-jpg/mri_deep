@@ -17,8 +17,8 @@ Fairness:
 
 Usage:
     python scripts/train_hf_concat_boundary.py                      # w=0.3 (default)
+    python scripts/train_hf_concat_boundary.py --boundary_weight 0.2
     python scripts/train_hf_concat_boundary.py --boundary_weight 0.1
-    python scripts/train_hf_concat_boundary.py --boundary_weight 0.05
 """
 
 import argparse
