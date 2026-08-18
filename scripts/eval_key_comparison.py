@@ -24,6 +24,11 @@ metrics and checkpoint handling stay identical to the full pipeline.
 Usage:
     python scripts/eval_key_comparison.py              # full eval on test set
     python scripts/eval_key_comparison.py --no-timing  # skip inference timing
+    python scripts/eval_key_comparison.py --no-cache   # force full re-evaluation
+
+Results are cached per checkpoint (key_comparison_cache.json): re-running only
+re-evaluates models whose checkpoint changed and reuses the rest. Change the
+threshold/test CSV or want a timing refresh? Pass --no-cache.
 
 Author: ResUNet Enhancement Project
 =============================================================================
@@ -74,6 +79,42 @@ PRIMARY = [
     ('Small_case_ET_Dice_mean', 'Small-case Dice', 'high'),
     ('ET_HD95_mean',            'ET HD95',         'low'),
 ]
+
+# Cached metrics keyed by checkpoint path, so unchanged models are reused
+# across runs instead of re-running inference on the whole test set.
+CACHE_FILE = 'key_comparison_cache.json'
+
+
+def _json_safe(m):
+    """Return a JSON-safe copy of a metrics dict (numpy scalars -> native)."""
+    clean = {}
+    for k, v in m.items():
+        if k.startswith('_'):
+            continue
+        if isinstance(v, (np.floating,)):
+            v = float(v)
+        elif isinstance(v, (np.integer,)):
+            v = int(v)
+        clean[k] = v
+    return clean
+
+
+def _load_cache(path=CACHE_FILE):
+    """Load {checkpoint_path: metrics} cache, tolerating a missing/corrupt file."""
+    if not os.path.exists(path):
+        return {}
+    try:
+        with open(path, encoding='utf-8') as f:
+            return json.load(f)
+    except Exception:
+        print(f"[WARN] Could not read cache {path}; re-evaluating from scratch.")
+        return {}
+
+
+def _save_cache(cache, path=CACHE_FILE):
+    with open(path, 'w', encoding='utf-8') as f:
+        json.dump({ckpt: _json_safe(m) for ckpt, m in cache.items()},
+                  f, indent=2, default=str)
 
 
 def _fmt(v, key):
@@ -190,6 +231,8 @@ def main():
                         help='Binarization threshold')
     parser.add_argument('--no-timing', action='store_true',
                         help='Skip inference timing measurement')
+    parser.add_argument('--no-cache', action='store_true',
+                        help='Ignore cached results and re-evaluate all models')
     parser.add_argument('--figures-dir', type=str, default='figures',
                         help='Output directory for figures (default: figures/)')
     args = parser.parse_args()
@@ -215,11 +258,43 @@ def main():
     test_loader = get_dataloader(BratsDataset, args.csv, phase='test')
     print(f'Test set: {len(test_loader.dataset)} cases')
 
-    all_metrics, all_histories, errors = eval_all.evaluate_experiments(
-        exps, test_loader, device,
+    # ── Reuse cached metrics for checkpoints already evaluated ──────────
+    cache = {} if args.no_cache else _load_cache()
+    to_compute = []
+    cached_by_label = {}
+    for spec in exps:
+        ckpt, _epoch = eval_all.find_checkpoint(spec['dir'])
+        if ckpt is not None and ckpt in cache:
+            cached_by_label[spec['label']] = cache[ckpt]
+        else:
+            to_compute.append(spec)
+
+    if to_compute:
+        print(f'\nReusing cached: {len(cached_by_label)}/{len(exps)} models. '
+              f'Evaluating {len(to_compute)} newly.')
+    else:
+        print(f'\nAll {len(exps)} models cached — no inference needed.')
+
+    new_metrics, all_histories, errors = eval_all.evaluate_experiments(
+        to_compute, test_loader, device,
         threshold=args.threshold,
         measure_timing=not args.no_timing,
     )
+
+    # Update cache with freshly computed metrics.
+    new_by_label = {m['model_name']: m for m in new_metrics}
+    for m in new_metrics:
+        cache[m['checkpoint_path']] = m
+    if not args.no_cache:
+        _save_cache(cache)
+
+    # Merge cached + freshly computed, preserving KEY_LABELS order.
+    all_metrics = []
+    for l in KEY_LABELS:
+        if l in cached_by_label:
+            all_metrics.append(cached_by_label[l])
+        elif l in new_by_label:
+            all_metrics.append(new_by_label[l])
 
     if not all_metrics:
         print('\nNo models evaluated successfully.')
@@ -234,19 +309,8 @@ def main():
     write_key_table(all_metrics, baseline)
 
     # JSON dump
-    json_ready = []
-    for m in all_metrics:
-        clean = {}
-        for k, v in m.items():
-            if k.startswith('_'):
-                continue
-            if isinstance(v, (np.floating,)):
-                v = float(v)
-            elif isinstance(v, (np.integer,)):
-                v = int(v)
-            clean[k] = v
-        json_ready.append(clean)
-    with open('key_comparison_results.json', 'w') as f:
+    json_ready = [_json_safe(m) for m in all_metrics]
+    with open('key_comparison_results.json', 'w', encoding='utf-8') as f:
         json.dump(json_ready, f, indent=2, default=str)
     print('Saved: key_comparison_results.json')
 

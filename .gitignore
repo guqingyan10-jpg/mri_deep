@@ -50,3 +50,6 @@ paper_draft.docx
 COMPREHENSIVE_REPORT.md
 REPORT_ET_LESION_ANALYSIS.md
 RESEARCH_RECORDS.md
+
+# Evaluation cache (recomputed on demand)
+key_comparison_cache.json
