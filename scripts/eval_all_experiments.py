@@ -249,6 +249,14 @@ EXPERIMENTS = [
         'category': 'Final Combination',
         'key_remap': None,
     },
+    {
+        'dir': '/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.2_model',
+        'model_class': ResUNetHFConcatBoundary,
+        'model_kwargs': {'in_channels': 4, 'n_classes': 3, 'n_channels': 24},
+        'label': 'HF Concat Boundary (Laplacian, w=0.2)',
+        'category': 'Final Combination',
+        'key_remap': None,
+    },
 ]
 
 

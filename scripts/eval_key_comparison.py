@@ -1,20 +1,23 @@
 """
 =============================================================================
-Key Model Comparison — 4 selected models
+Key Model Comparison — 7 selected models
 =============================================================================
-Evaluates only the four models relevant to the current comparison:
+Evaluates only the seven models relevant to the current comparison:
 
   1. Baseline (BCEDice)                     — ResUNet3d
   2. Edge (Laplacian, concat)               — ResUNetEdge, multi-scale edge
   3. HF Boundary+ (Laplacian, w=0.3)        — ResUNetHFBoundary, single-scale add
   4. HF Concat Boundary (Laplacian, w=0.3)  — ResUNetHFConcatBoundary, final combo
+  5. HF Concat Boundary (Laplacian, w=0.2)  — ResUNetHFConcatBoundary, final combo
+  6. HF Concat Boundary (Laplacian, w=0.1)  — ResUNetHFConcatBoundary, final combo
+  7. HF Concat Boundary (Laplacian, w=0.05) — ResUNetHFConcatBoundary, final combo
 
 Focuses on the four primary indicators (Macro Dice / ET Dice / ET HD95 /
 Small-case ET Dice) and emits:
   - terminal + markdown core-metric comparison table
   - key_comparison_results.json
   - key_composite_rank.png  (composite-score ranking bar chart)
-  - key_radar.png           (single radar, all four models overlaid)
+  - key_radar.png           (single radar, all seven models overlaid)
 
 Reuses the registry and evaluation loop from eval_all_experiments.py so the
 metrics and checkpoint handling stay identical to the full pipeline.
@@ -52,16 +55,19 @@ from evaluation.visualize_report import (
     plot_composite_rank_barchart,
 )
 
-# --- The four models to evaluate (must match labels in eval_all.EXPERIMENTS) ---
+# --- The models to evaluate (must match labels in eval_all.EXPERIMENTS) ---
 KEY_LABELS = [
     'Baseline (BCEDice)',
     'Edge (Laplacian, concat)',
     'HF Boundary+ (Laplacian, w=0.3)',
     'HF Concat Boundary (Laplacian, w=0.3)',
+    'HF Concat Boundary (Laplacian, w=0.2)',
+    'HF Concat Boundary (Laplacian, w=0.1)',
+    'HF Concat Boundary (Laplacian, w=0.05)',
 ]
 
 # Fixed colors, aligned with KEY_LABELS order.
-KEY_COLORS = ['#2c3e50', '#2ecc71', '#3498db', '#e74c3c']
+KEY_COLORS = ['#2c3e50', '#2ecc71', '#3498db', '#e74c3c', '#1abc9c', '#e67e22', '#9b59b6']
 
 # Primary indicators: (metric_key, display, direction)  direction: 'high'|'low'
 PRIMARY = [
@@ -143,7 +149,7 @@ def write_key_table(all_metrics, baseline):
 
 def plot_key_radar(all_metrics, save_path='figures/key_radar.png'):
     """
-    Single radar chart overlaying all four models (no category grouping).
+    Single radar chart overlaying all seven models (no category grouping).
     Axes are min-max normalized across these models; ET HD95 is reversed,
     so a larger polygon = better overall.
     """
@@ -179,7 +185,7 @@ def plot_key_radar(all_metrics, save_path='figures/key_radar.png'):
 
 
 def main():
-    parser = argparse.ArgumentParser(description='Key model comparison (4 models)')
+    parser = argparse.ArgumentParser(description='Key model comparison (7 models)')
     parser.add_argument('--csv', type=str, default='tumourCSV.csv',
                         help='Path to data CSV')
     parser.add_argument('--threshold', type=float, default=0.33,
@@ -201,7 +207,7 @@ def main():
     exps = [by_label[l] for l in KEY_LABELS]
 
     print('=' * 80)
-    print('Key Model Comparison (4 models)')
+    print('Key Model Comparison (7 models)')
     print(f'Device: {device} | Threshold: {args.threshold}')
     for l in KEY_LABELS:
         print(f'  - {l}')

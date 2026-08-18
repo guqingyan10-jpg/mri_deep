@@ -269,6 +269,17 @@ EXPERIMENTS = [
                        'preserves segmentation accuracy while still refining edges.',
         'key_remap': None,
     },
+    {
+        'dir': '/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.2_model',
+        'model_class': ResUNetHFConcatBoundary,
+        'model_kwargs': {'in_channels': 4, 'n_classes': 3, 'n_channels': 24},
+        'label': 'HF Concat Boundary (Laplacian, w=0.2)',
+        'category': 'Final Combination',
+        'description': 'Final combination model with intermediate boundary loss '
+                       'weight (w=0.2). Sweeps the boundary-supervision strength '
+                       'between the original 0.3 and the lighter 0.1/0.05.',
+        'key_remap': None,
+    },
 
     # ── SLA-FB: Data ────────────────────────────────────────
     {
