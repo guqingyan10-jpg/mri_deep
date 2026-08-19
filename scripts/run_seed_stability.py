@@ -6,6 +6,7 @@ boundary-weight variants.  Training runs sequentially to avoid GPU contention.
 """
 
 import argparse
+import json
 import subprocess
 import sys
 from dataclasses import dataclass
@@ -88,7 +89,22 @@ def build_jobs(
     return jobs
 
 
-def find_baseline_best(checkpoint_dir: Path) -> Path:
+def find_completed_baseline(checkpoint_dir: Path) -> Path:
+    marker = checkpoint_dir / "training_complete.json"
+    if not marker.is_file():
+        raise FileNotFoundError(
+            f"Baseline has no {marker.name}: {checkpoint_dir}. "
+            "Derived models will not be started."
+        )
+    try:
+        metadata = json.loads(marker.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        raise RuntimeError(f"Invalid baseline completion marker: {marker}") from exc
+    if metadata.get("status") != "completed":
+        raise RuntimeError(
+            f"Baseline completion marker is not completed: {marker}"
+        )
+
     checkpoints = list(checkpoint_dir.glob("best_model_*.pth"))
     if not checkpoints:
         raise FileNotFoundError(
@@ -133,7 +149,7 @@ def main() -> None:
 
         subprocess.run(command, cwd=REPO_ROOT, check=True)
         if job.name == "baseline":
-            baseline_paths[job.seed] = find_baseline_best(job.checkpoint_dir)
+            baseline_paths[job.seed] = find_completed_baseline(job.checkpoint_dir)
             print(f"Using paired baseline checkpoint: {baseline_paths[job.seed]}")
 
 

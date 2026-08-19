@@ -7,8 +7,10 @@ training state.
 """
 
 import argparse
+import json
 import os
 import sys
+from datetime import datetime, timezone
 
 import torch
 
@@ -35,6 +37,10 @@ seed_everything(args.seed)
 device = "cuda" if torch.cuda.is_available() else "cpu"
 CHECKPOINT_DIR = args.checkpoint_dir
 os.makedirs(CHECKPOINT_DIR, exist_ok=True)
+completion_marker = os.path.join(CHECKPOINT_DIR, "training_complete.json")
+# A prior marker must not unlock derived models if this run is interrupted.
+if os.path.exists(completion_marker):
+    os.remove(completion_marker)
 
 print("=" * 72)
 print("Baseline ResUNet: BCEDiceLoss")
@@ -74,4 +80,28 @@ print("\n" + "=" * 72)
 print("STARTING BASELINE TRAINING")
 print("=" * 72 + "\n")
 trainer.run(check_path=CHECKPOINT_DIR)
+
+best_checkpoints = [
+    name for name in os.listdir(CHECKPOINT_DIR)
+    if name.startswith("best_model_") and name.endswith(".pth")
+]
+if not best_checkpoints:
+    raise RuntimeError(
+        "Baseline training returned without producing best_model_*.pth; "
+        "derived models will not be started."
+    )
+best_checkpoint = max(
+    best_checkpoints,
+    key=lambda name: int(name.rsplit("_", 1)[-1].split(".")[0]),
+)
+completion = {
+    "status": "completed",
+    "seed": args.seed,
+    "epochs": args.epochs,
+    "best_checkpoint": os.path.join(CHECKPOINT_DIR, best_checkpoint),
+    "completed_at_utc": datetime.now(timezone.utc).isoformat(),
+}
+with open(completion_marker, "w", encoding="utf-8") as handle:
+    json.dump(completion, handle, indent=2)
+print(f"Baseline completion marker written: {CHECKPOINT_DIR}/training_complete.json")
 print(f"\nDone. Baseline saved to: {CHECKPOINT_DIR}")

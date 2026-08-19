@@ -1,5 +1,6 @@
 import ast
 import importlib.util
+import json
 from pathlib import Path
 
 
@@ -45,6 +46,8 @@ def test_baseline_entrypoint_has_explicit_seed_and_checkpoint_directory():
     assert '"--seed"' in source or "'--seed'" in source
     assert '"--checkpoint_dir"' in source or "'--checkpoint_dir'" in source
     assert "check_exist_last(CHECKPOINT_DIR)" in source
+    assert "training_complete.json" in source
+    assert "os.remove(completion_marker)" in source
 
 
 def test_edge_and_hf_entrypoints_accept_explicit_seed_and_baseline_checkpoint():
@@ -65,3 +68,31 @@ def test_edge_and_hf_entrypoints_accept_explicit_seed_and_baseline_checkpoint():
         assert "--checkpoint_dir" in argument_values
         assert "--baseline_checkpoint" in argument_values
         assert "best_model_" in source
+
+
+def test_runner_refuses_baseline_without_completion_marker(tmp_path):
+    runner = _load_runner()
+    baseline_dir = tmp_path / "baseline"
+    baseline_dir.mkdir()
+    (baseline_dir / "best_model_10.pth").write_bytes(b"checkpoint")
+
+    try:
+        runner.find_completed_baseline(baseline_dir)
+    except FileNotFoundError as exc:
+        assert "training_complete.json" in str(exc)
+    else:
+        raise AssertionError("an unmarked baseline must not unlock derived models")
+
+
+def test_runner_accepts_marked_baseline_with_best_checkpoint(tmp_path):
+    runner = _load_runner()
+    baseline_dir = tmp_path / "baseline"
+    baseline_dir.mkdir()
+    best = baseline_dir / "best_model_10.pth"
+    best.write_bytes(b"checkpoint")
+    (baseline_dir / "training_complete.json").write_text(
+        json.dumps({"status": "completed", "best_checkpoint": str(best)}),
+        encoding="utf-8",
+    )
+
+    assert runner.find_completed_baseline(baseline_dir) == best
