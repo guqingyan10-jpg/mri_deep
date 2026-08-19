@@ -65,12 +65,19 @@ parser.add_argument('--edge_type', type=str, default='sobel',
                          'random: fairness control (noise instead of edges)')
 parser.add_argument('--epochs', type=int, default=200)
 parser.add_argument('--lr', type=float, default=5e-4)
+parser.add_argument('--seed', type=int, default=config.seed,
+                    help='Random seed for this independent run')
+parser.add_argument('--checkpoint_dir', type=str, default=None,
+                    help='Directory dedicated to this experiment run')
+parser.add_argument('--baseline_checkpoint', type=str, default=None,
+                    help='Exact baseline best_model checkpoint for warm-start')
 parser.add_argument('--from_scratch', action='store_true')
 args = parser.parse_args()
 
-seed_everything(config.seed)
+seed_everything(args.seed)
 
-CHECKPOINT_DIR = f'/root/autodl-tmp/ResUNet_Edge_{args.fusion}_{args.edge_type}_model'
+DEFAULT_CHECKPOINT_DIR = f'/root/autodl-tmp/ResUNet_Edge_{args.fusion}_{args.edge_type}_model'
+CHECKPOINT_DIR = args.checkpoint_dir or DEFAULT_CHECKPOINT_DIR
 os.makedirs(CHECKPOINT_DIR, exist_ok=True)
 
 print("=" * 70)
@@ -100,7 +107,7 @@ print(f"  Optimizer:        Adam (same as baseline)                             
 print(f"  Scheduler:        ReduceLROnPlateau patience=2 (same as baseline)             [OK]")
 print(f"  Batch size:       1, accumulation=4 (same as baseline)                        [OK]")
 print(f"  n_channels:       24 (same as baseline)                                       [OK]")
-print(f"  Seed:             55 (same as baseline)                                       [OK]")
+print(f"  Seed:             {args.seed}                                                   [OK]")
 print(f"  Loss:             BCEDiceLoss (same as baseline)                              [OK]")
 print(f"  Early stopping:   patience=25, min_delta=1e-4 (same as baseline)             [OK]")
 print(f"  Checkpoint:       best val_loss (same criterion as baseline)                 [OK]")
@@ -160,7 +167,16 @@ trainer = Trainer(
 # ============================================================
 
 if not args.from_scratch:
-    pretrained = check_exist(config.ResUNet_checkpoint_dir)
+    pretrained = args.baseline_checkpoint or check_exist(config.ResUNet_checkpoint_dir)
+    if args.baseline_checkpoint and not os.path.isfile(args.baseline_checkpoint):
+        raise FileNotFoundError(
+            f"Explicit baseline checkpoint does not exist: {args.baseline_checkpoint}"
+        )
+    if args.baseline_checkpoint and not os.path.basename(pretrained).startswith('best_model_'):
+        raise ValueError(
+            "Fair warm-start requires a baseline best_model_*.pth checkpoint, got: "
+            f"{pretrained}"
+        )
     if pretrained:
         print(f"\nWarm-start from ResUNet baseline: {pretrained}")
         # Only load matching keys (encoder + decoder weights)

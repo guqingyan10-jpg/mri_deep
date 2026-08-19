@@ -55,16 +55,23 @@ parser.add_argument("--boundary_weight", type=float, default=0.3,
                     help="Weight for boundary auxiliary BCE loss (default 0.3)")
 parser.add_argument("--epochs", type=int, default=200)
 parser.add_argument("--lr", type=float, default=5e-4)
+parser.add_argument("--seed", type=int, default=config.seed,
+                    help="Random seed for this independent run")
+parser.add_argument("--checkpoint_dir", type=str, default=None,
+                    help="Directory dedicated to this experiment run")
+parser.add_argument("--baseline_checkpoint", type=str, default=None,
+                    help="Exact baseline best_model checkpoint for warm-start")
 parser.add_argument("--from_scratch", action="store_true")
 args = parser.parse_args()
 
-seed_everything(config.seed)
+seed_everything(args.seed)
 device = "cuda" if torch.cuda.is_available() else "cpu"
 
 if args.boundary_weight == 0.3:
-    CHECKPOINT_DIR = "/root/autodl-tmp/ResUNet_HFConcatBoundary_model"
+    DEFAULT_CHECKPOINT_DIR = "/root/autodl-tmp/ResUNet_HFConcatBoundary_model"
 else:
-    CHECKPOINT_DIR = f"/root/autodl-tmp/ResUNet_HFConcatBoundary_w{args.boundary_weight}_model"
+    DEFAULT_CHECKPOINT_DIR = f"/root/autodl-tmp/ResUNet_HFConcatBoundary_w{args.boundary_weight}_model"
+CHECKPOINT_DIR = args.checkpoint_dir or DEFAULT_CHECKPOINT_DIR
 os.makedirs(CHECKPOINT_DIR, exist_ok=True)
 
 print("=" * 72)
@@ -85,7 +92,7 @@ print("  Optimizer:        Adam                                    [SAME]")
 print("  Scheduler:        ReduceLROnPlateau patience=2           [SAME]")
 print("  Batch/accumulate: 1 / 4                                   [SAME]")
 print("  Base channels:    24                                      [SAME]")
-print("  Seed:             55                                      [SAME]")
+print(f"  Seed:             {args.seed}                                      [SAME]")
 print("  Early stopping:   patience=25, min_delta=1e-4            [SAME]")
 print("  Main loss:        BCEDiceLoss                             [SAME]")
 print(f"  Added term:       {args.boundary_weight} * BCE(boundary_pred, boundary_GT)  [NEW]")
@@ -120,7 +127,12 @@ trainer = HFConcatBoundaryTrainer(
 )
 
 if not args.from_scratch:
-    pretrained = check_exist(config.ResUNet_checkpoint_dir)
+    pretrained = args.baseline_checkpoint or check_exist(config.ResUNet_checkpoint_dir)
+    if args.baseline_checkpoint and not os.path.isfile(args.baseline_checkpoint):
+        raise FileNotFoundError(
+            "Explicit baseline checkpoint does not exist: "
+            f"{args.baseline_checkpoint}"
+        )
     if pretrained and not os.path.basename(pretrained).startswith("best_model_"):
         raise FileNotFoundError(
             "Fair warm-start requires baseline best_model_*.pth, but only found: "
