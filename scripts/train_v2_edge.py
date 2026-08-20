@@ -55,7 +55,7 @@ from training.config import config, seed_everything, check_exist, check_exist_la
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--fusion', type=str, required=True,
-                    choices=['concat', 'add'],
+                    choices=['concat', 'gated_concat', 'add'],
                     help='Edge fusion mode')
 parser.add_argument('--edge_type', type=str, default='sobel',
                     choices=['sobel', 'laplacian', 'random'],

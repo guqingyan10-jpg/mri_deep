@@ -19,6 +19,7 @@ Usage:
     python scripts/train_hf_concat_boundary.py                      # w=0.3 (default)
     python scripts/train_hf_concat_boundary.py --boundary_weight 0.2
     python scripts/train_hf_concat_boundary.py --boundary_weight 0.1
+    python scripts/train_hf_concat_boundary.py --fusion gated_concat --boundary_weight 0.1
 """
 
 import argparse
@@ -51,6 +52,9 @@ class HFConcatBoundaryTrainer(Trainer):
 parser = argparse.ArgumentParser(
     description="Train Laplacian multi-scale concat ResUNet with boundary supervision",
 )
+parser.add_argument("--fusion", choices=("concat", "gated_concat"),
+                    default="concat",
+                    help="Laplacian feature fusion before each decoder block")
 parser.add_argument("--boundary_weight", type=float, default=0.3,
                     help="Weight for boundary auxiliary BCE loss (default 0.3)")
 parser.add_argument("--epochs", type=int, default=200)
@@ -67,18 +71,23 @@ args = parser.parse_args()
 seed_everything(args.seed)
 device = "cuda" if torch.cuda.is_available() else "cpu"
 
-if args.boundary_weight == 0.3:
+if args.fusion == "concat" and args.boundary_weight == 0.3:
     DEFAULT_CHECKPOINT_DIR = "/root/autodl-tmp/ResUNet_HFConcatBoundary_model"
+elif args.fusion == "gated_concat":
+    DEFAULT_CHECKPOINT_DIR = (
+        "/root/autodl-tmp/"
+        f"ResUNet_HFGatedConcatBoundary_w{args.boundary_weight}_model"
+    )
 else:
     DEFAULT_CHECKPOINT_DIR = f"/root/autodl-tmp/ResUNet_HFConcatBoundary_w{args.boundary_weight}_model"
 CHECKPOINT_DIR = args.checkpoint_dir or DEFAULT_CHECKPOINT_DIR
 os.makedirs(CHECKPOINT_DIR, exist_ok=True)
 
 print("=" * 72)
-print("Final Combination: Laplacian HF + Multi-scale Concat + Boundary Head")
+print("Final Combination: Laplacian HF + Multi-scale Fusion + Boundary Head")
 print("=" * 72)
 print("  Edge input:       Laplacian high-frequency residual I - blur(I)")
-print("  Fusion:           EdgePyramid concat at dec1, dec2, dec3, dec4")
+print(f"  Fusion:           {args.fusion} at dec1, dec2, dec3, dec4")
 print(f"  Loss:             BCEDiceLoss + {args.boundary_weight} * boundary BCE")
 print("  Warm-start:       baseline ResUNet best_model checkpoint")
 print(f"  Checkpoint:       {CHECKPOINT_DIR}")
@@ -102,6 +111,7 @@ model = ResUNetHFConcatBoundary(
     in_channels=4,
     n_classes=3,
     n_channels=24,
+    fusion=args.fusion,
 ).to(device)
 criterion = BCEDiceWithBoundaryLoss(boundary_weight=args.boundary_weight)
 

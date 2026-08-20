@@ -16,14 +16,15 @@ from models.resunet_edge import ResUNetEdge
 
 
 class ResUNetHFConcatBoundary(ResUNetEdge):
-    """Laplacian multi-scale concat ResUNet with dual prediction heads."""
+    """Laplacian multi-scale (optionally gated) ResUNet with dual heads."""
 
-    def __init__(self, in_channels=4, n_classes=3, n_channels=24):
+    def __init__(self, in_channels=4, n_classes=3, n_channels=24,
+                 fusion="concat"):
         super().__init__(
             in_channels=in_channels,
             n_classes=n_classes,
             n_channels=n_channels,
-            fusion="concat",
+            fusion=fusion,
             edge_type="laplacian",
         )
 
