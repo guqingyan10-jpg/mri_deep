@@ -104,3 +104,37 @@ python scripts/eval_all_experiments.py
 ```
 
 > `training/config.py` 中数据 / checkpoint 路径硬编码为 AutoDL `/root/autodl-tmp/...`，换环境需自行修改。
+
+## Seed123 门控配对实验
+
+门控实验只改变四级 Laplacian 特征进入 decoder concat 前的融合：
+
+```text
+edge feature -> (1 + tanh(gate)) * edge feature -> concat
+```
+
+第一组保持原始 `BCEDiceLoss` 且不增加 Boundary Head；第二组保留现有
+HF Concat Boundary 的双头结构和 `boundary_weight=0.1`。两组都从
+`/root/autodl-tmp/stability/seed123/baseline/best_model_*.pth` warm-start，
+并保持 `n_channels=24`、学习率 `5e-4`、最多 200 epochs、梯度累积 4、
+早停 patience 25 和原数据划分不变。
+
+```bash
+# 先检查将要执行的两条命令
+python scripts/run_gated_seed_screen.py --seed 123 --dry_run
+
+# 顺序训练 Edge gated 和 HF gated Boundary w=0.1
+python scripts/run_gated_seed_screen.py --seed 123
+
+# 训练完成后，用四个核心指标评估 seed123 的现有与门控模型
+python scripts/eval_key_comparison.py --seed 123 --no-timing --no-cache
+```
+
+新增 checkpoint 目录：
+
+```text
+/root/autodl-tmp/stability/seed123/edge_laplacian_gated_concat
+/root/autodl-tmp/stability/seed123/hf_gated_concat_boundary_w0.1
+```
+
+核心指标固定为 Macro Dice、ET Dice、ET HD95 和 Small-case ET Dice。

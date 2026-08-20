@@ -27,7 +27,7 @@ Usage:
     python scripts/eval_key_comparison.py              # full eval on test set
     python scripts/eval_key_comparison.py --no-timing  # skip inference timing
     python scripts/eval_key_comparison.py --no-cache   # force full re-evaluation
-    python scripts/eval_key_comparison.py --seed 123   # four paired seed models
+    python scripts/eval_key_comparison.py --seed 123   # seed-matched comparison models
 
 Results are cached per checkpoint (key_comparison_cache.json): re-running only
 re-evaluates models whose checkpoint changed and reuses the rest. Change the
@@ -92,7 +92,7 @@ CACHE_FILE = 'key_comparison_cache.json'
 
 
 def build_seed_experiments(seed, stability_root):
-    """Build the four paired stability experiments for one random seed."""
+    """Build existing and gated stability experiments for one random seed."""
     seed_root = os.path.join(stability_root, f'seed{seed}')
     return [
         {
@@ -116,10 +116,32 @@ def build_seed_experiments(seed, stability_root):
             'key_remap': 'edge',
         },
         {
+            'dir': os.path.join(seed_root, 'edge_laplacian_gated_concat'),
+            'model_class': eval_all.ResUNetEdge,
+            'model_kwargs': {
+                'in_channels': 4, 'n_classes': 3, 'n_channels': 24,
+                'fusion': 'gated_concat', 'edge_type': 'laplacian',
+            },
+            'label': f'Seed{seed} Edge (Laplacian, gated concat)',
+            'category': 'Seed Stability',
+            'key_remap': 'edge',
+        },
+        {
             'dir': os.path.join(seed_root, 'hf_concat_boundary_w0.1'),
             'model_class': eval_all.ResUNetHFConcatBoundary,
             'model_kwargs': {'in_channels': 4, 'n_classes': 3, 'n_channels': 24},
             'label': f'Seed{seed} HF Concat Boundary (w=0.1)',
+            'category': 'Seed Stability',
+            'key_remap': None,
+        },
+        {
+            'dir': os.path.join(seed_root, 'hf_gated_concat_boundary_w0.1'),
+            'model_class': eval_all.ResUNetHFConcatBoundary,
+            'model_kwargs': {
+                'in_channels': 4, 'n_classes': 3, 'n_channels': 24,
+                'fusion': 'gated_concat',
+            },
+            'label': f'Seed{seed} HF Gated Concat Boundary (w=0.1)',
             'category': 'Seed Stability',
             'key_remap': None,
         },
@@ -275,7 +297,7 @@ def plot_key_radar(all_metrics, save_path='figures/key_radar.png'):
 def main():
     parser = argparse.ArgumentParser(description='Key model comparison (8 models)')
     parser.add_argument('--seed', type=int, default=None,
-                        help='Evaluate the four paired stability models for this seed')
+                        help='Evaluate seed-matched stability models using four core metrics')
     parser.add_argument('--stability-root', type=str,
                         default='/root/autodl-tmp/stability',
                         help='Root directory containing seed<id> stability checkpoints')
@@ -305,7 +327,7 @@ def main():
         exps = [by_label[l] for l in KEY_LABELS]
 
     print('=' * 80)
-    title = (f'Key Model Comparison (seed {args.seed}, 4 models)'
+    title = (f'Key Model Comparison (seed {args.seed}, {len(exps)} models)'
              if args.seed is not None else 'Key Model Comparison (8 models)')
     print(title)
     print(f'Device: {device} | Threshold: {args.threshold}')
