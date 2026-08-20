@@ -14,8 +14,9 @@ Adds an explicit edge feature branch to ResUNet3d:
      - Downsample edge volume via strided conv (or avgpool)
      - Match decoder feature resolutions at each stage
 
-  3. Fusion into Decoder (2 options):
+  3. Fusion into Decoder (3 options):
      - Concat: torch.cat([decoder_feat, edge_feat], dim=1) → DoubleConv
+     - Gated concat: adaptively scale edge features before concatenation
      - Add:    decoder_feat + edge_feat (after 1x1x1 conv alignment)
 
   4. Sobel vs Laplacian:
@@ -58,7 +59,7 @@ Usage:
 
     model = ResUNetEdge(
         in_channels=4, n_classes=3, n_channels=24,
-        fusion='concat',   # 'concat' or 'add'
+        fusion='concat',   # 'concat', 'gated_concat', or 'add'
         edge_type='sobel', # 'sobel', 'laplacian', or 'random'
     )
 
@@ -76,6 +77,7 @@ from models.resunet3d import ResBlock, ResDown, ResUp, FirstLayer, Out
 
 class FusionMode(Enum):
     CONCAT = "concat"
+    GATED_CONCAT = "gated_concat"
     ADD = "add"
 
 
@@ -303,8 +305,9 @@ class ResUpEdge(nn.Module):
     ResUp + Edge Feature Fusion.
 
     Args:
-        fusion: 'concat' or 'add'
+        fusion: 'concat', 'gated_concat', or 'add'
           - concat: cat([upsampled, skip, edge]) → ResBlock
+          - gated_concat: scale edge with a residual gate, then concat
           - add:    ResBlock(cat([upsampled, skip])) + edge (residual)
     """
 
@@ -321,12 +324,22 @@ class ResUpEdge(nn.Module):
             self.up = nn.ConvTranspose3d(in_channels // 2, in_channels // 2,
                                          kernel_size=2, stride=2)
 
-        if fusion == 'concat':
+        if fusion in ('concat', 'gated_concat'):
             # concat: [upsampled | skip | edge] → ResBlock
             # in_channels already includes skip (in_ch = deeper + skip_ch)
             # add edge_channels
             total_in = in_channels + edge_channels
             self.conv = ResBlock(total_in, out_channels)
+            if fusion == 'gated_concat':
+                # Creating a Conv3d normally advances the global RNG and would
+                # change later shared-layer initialization versus concat.
+                rng_state = torch.get_rng_state()
+                self.edge_gate = nn.Conv3d(
+                    total_in, edge_channels, kernel_size=1, bias=True,
+                )
+                torch.set_rng_state(rng_state)
+                nn.init.zeros_(self.edge_gate.weight)
+                nn.init.zeros_(self.edge_gate.bias)
         elif fusion == 'add':
             # Residual add: ResBlock([upsampled | skip]) + edge
             self.conv = ResBlock(in_channels, out_channels)
@@ -358,8 +371,12 @@ class ResUpEdge(nn.Module):
                 edge_feat = F.interpolate(edge_feat, size=x2.shape[2:],
                                           mode='trilinear', align_corners=True)
 
-        if self.fusion == 'concat':
+        if self.fusion in ('concat', 'gated_concat'):
             if edge_feat is not None:
+                if self.fusion == 'gated_concat':
+                    gate_input = torch.cat([x2, x1, edge_feat], dim=1)
+                    edge_scale = 1.0 + torch.tanh(self.edge_gate(gate_input))
+                    edge_feat = edge_feat * edge_scale
                 x = torch.cat([x2, x1, edge_feat], dim=1)
             else:
                 x = torch.cat([x2, x1], dim=1)
@@ -397,8 +414,11 @@ class ResUNetEdge(nn.Module):
                  fusion='concat', edge_type='sobel'):
         super().__init__()
 
-        if fusion not in ('concat', 'add'):
-            raise ValueError(f"fusion must be 'concat' or 'add', got {fusion}")
+        if fusion not in ('concat', 'gated_concat', 'add'):
+            raise ValueError(
+                "fusion must be 'concat', 'gated_concat', or 'add', "
+                f"got {fusion}"
+            )
         if edge_type not in ('sobel', 'laplacian', 'random'):
             raise ValueError(f"edge_type must be 'sobel', 'laplacian', or 'random', got {edge_type}")
 
