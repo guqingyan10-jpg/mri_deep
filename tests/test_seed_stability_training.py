@@ -15,6 +15,14 @@ def _load_runner():
     return module
 
 
+def _load_gated_runner():
+    path = ROOT / "scripts" / "run_gated_seed_screen.py"
+    spec = importlib.util.spec_from_file_location("run_gated_seed_screen", path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
 def test_stability_runner_builds_seed_isolated_warm_start_jobs():
     runner_path = ROOT / "scripts" / "run_seed_stability.py"
     assert runner_path.exists(), "stability runner is missing"
@@ -37,6 +45,39 @@ def test_stability_runner_builds_seed_isolated_warm_start_jobs():
     for job in jobs[1:]:
         assert "--baseline_checkpoint" in job.command(baseline_path)
         assert baseline_path in job.command(baseline_path)
+
+
+def test_gated_runner_builds_two_paired_jobs_from_one_baseline():
+    runner_path = ROOT / "scripts" / "run_gated_seed_screen.py"
+    assert runner_path.exists(), "gated seed runner is missing"
+    runner = _load_gated_runner()
+
+    output_root = ROOT / "stability-output"
+    jobs = runner.build_jobs(
+        seed=123,
+        output_root=output_root,
+        epochs=200,
+        lr=5e-4,
+    )
+    baseline = str(output_root / "seed123" / "baseline" / "best_model_19.pth")
+
+    assert [job.name for job in jobs] == [
+        "edge_laplacian_gated_concat",
+        "hf_gated_concat_boundary_w0.1",
+    ]
+    assert all(job.seed == 123 for job in jobs)
+    assert all(job.checkpoint_dir.parent == output_root / "seed123" for job in jobs)
+
+    commands = [job.command(baseline) for job in jobs]
+    for command in commands:
+        assert command[command.index("--seed") + 1] == "123"
+        assert command[command.index("--epochs") + 1] == "200"
+        assert command[command.index("--lr") + 1] == "0.0005"
+        assert command[command.index("--baseline_checkpoint") + 1] == baseline
+        assert "gated_concat" in command
+
+    assert "--boundary_weight" not in commands[0]
+    assert commands[1][commands[1].index("--boundary_weight") + 1] == "0.1"
 
 
 def test_baseline_entrypoint_has_explicit_seed_and_checkpoint_directory():
