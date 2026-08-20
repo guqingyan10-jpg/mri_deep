@@ -27,6 +27,7 @@ Usage:
     python scripts/eval_key_comparison.py              # full eval on test set
     python scripts/eval_key_comparison.py --no-timing  # skip inference timing
     python scripts/eval_key_comparison.py --no-cache   # force full re-evaluation
+    python scripts/eval_key_comparison.py --seed 123   # four paired seed models
 
 Results are cached per checkpoint (key_comparison_cache.json): re-running only
 re-evaluates models whose checkpoint changed and reuses the rest. Change the
@@ -88,6 +89,49 @@ PRIMARY = [
 # Cached metrics keyed by checkpoint path, so unchanged models are reused
 # across runs instead of re-running inference on the whole test set.
 CACHE_FILE = 'key_comparison_cache.json'
+
+
+def build_seed_experiments(seed, stability_root):
+    """Build the four paired stability experiments for one random seed."""
+    seed_root = os.path.join(stability_root, f'seed{seed}')
+    return [
+        {
+            'dir': os.path.join(seed_root, 'baseline'),
+            'model_class': eval_all.ResUNet3d,
+            'model_kwargs': {'in_channels': 4, 'n_classes': 3, 'n_channels': 24},
+            'label': f'Seed{seed} Baseline (BCEDice)',
+            'category': 'Seed Stability',
+            'is_baseline': True,
+            'key_remap': None,
+        },
+        {
+            'dir': os.path.join(seed_root, 'edge_laplacian_concat'),
+            'model_class': eval_all.ResUNetEdge,
+            'model_kwargs': {
+                'in_channels': 4, 'n_classes': 3, 'n_channels': 24,
+                'fusion': 'concat', 'edge_type': 'laplacian',
+            },
+            'label': f'Seed{seed} Edge (Laplacian, concat)',
+            'category': 'Seed Stability',
+            'key_remap': 'edge',
+        },
+        {
+            'dir': os.path.join(seed_root, 'hf_concat_boundary_w0.1'),
+            'model_class': eval_all.ResUNetHFConcatBoundary,
+            'model_kwargs': {'in_channels': 4, 'n_classes': 3, 'n_channels': 24},
+            'label': f'Seed{seed} HF Concat Boundary (w=0.1)',
+            'category': 'Seed Stability',
+            'key_remap': None,
+        },
+        {
+            'dir': os.path.join(seed_root, 'hf_concat_boundary_w0.05'),
+            'model_class': eval_all.ResUNetHFConcatBoundary,
+            'model_kwargs': {'in_channels': 4, 'n_classes': 3, 'n_channels': 24},
+            'label': f'Seed{seed} HF Concat Boundary (w=0.05)',
+            'category': 'Seed Stability',
+            'key_remap': None,
+        },
+    ]
 
 
 def _json_safe(m):
@@ -230,6 +274,11 @@ def plot_key_radar(all_metrics, save_path='figures/key_radar.png'):
 
 def main():
     parser = argparse.ArgumentParser(description='Key model comparison (8 models)')
+    parser.add_argument('--seed', type=int, default=None,
+                        help='Evaluate the four paired stability models for this seed')
+    parser.add_argument('--stability-root', type=str,
+                        default='/root/autodl-tmp/stability',
+                        help='Root directory containing seed<id> stability checkpoints')
     parser.add_argument('--csv', type=str, default='tumourCSV.csv',
                         help='Path to data CSV')
     parser.add_argument('--threshold', type=float, default=0.33,
@@ -244,19 +293,24 @@ def main():
 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-    # Select the key experiments from the shared registry, keeping KEY_LABELS order
-    by_label = {e['label']: e for e in eval_all.EXPERIMENTS}
-    missing = [l for l in KEY_LABELS if l not in by_label]
-    if missing:
-        print(f'[ERROR] These labels are missing from the registry:\n  {missing}')
-        return
-    exps = [by_label[l] for l in KEY_LABELS]
+    if args.seed is not None:
+        exps = build_seed_experiments(args.seed, args.stability_root)
+    else:
+        # Select the key experiments from the shared registry, keeping KEY_LABELS order.
+        by_label = {e['label']: e for e in eval_all.EXPERIMENTS}
+        missing = [l for l in KEY_LABELS if l not in by_label]
+        if missing:
+            print(f'[ERROR] These labels are missing from the registry:\n  {missing}')
+            return
+        exps = [by_label[l] for l in KEY_LABELS]
 
     print('=' * 80)
-    print('Key Model Comparison (8 models)')
+    title = (f'Key Model Comparison (seed {args.seed}, 4 models)'
+             if args.seed is not None else 'Key Model Comparison (8 models)')
+    print(title)
     print(f'Device: {device} | Threshold: {args.threshold}')
-    for l in KEY_LABELS:
-        print(f'  - {l}')
+    for spec in exps:
+        print(f"  - {spec['label']}")
     print('=' * 80)
 
     print('\nLoading test dataloader...')
@@ -293,9 +347,9 @@ def main():
     if not args.no_cache:
         _save_cache(cache)
 
-    # Merge cached + freshly computed, preserving KEY_LABELS order.
+    # Merge cached + freshly computed, preserving requested experiment order.
     all_metrics = []
-    for l in KEY_LABELS:
+    for l in [spec['label'] for spec in exps]:
         if l in cached_by_label:
             all_metrics.append(cached_by_label[l])
         elif l in new_by_label:
