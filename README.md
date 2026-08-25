@@ -174,3 +174,21 @@ python scripts/eval_key_comparison.py --seed 123 --no-timing --no-cache
 /root/autodl-tmp/stability/seed42/hf_concat_boundary_w0.1_multiscale
 /root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale
 ```
+
+### Multi-scale context V2（identity-start，先试 seed 42）
+
+V2 保留四个多尺度分支，但使用 `x + alpha * context`，其中 `alpha`
+初始为 0；因此从 baseline warm-start 后，训练第一步仍与原模型一致。
+V2 使用独立目录，不覆盖 V1：
+
+```bash
+python scripts/run_multiscale_v2_seed_screen.py --seeds 42 --dry_run
+python scripts/run_multiscale_v2_seed_screen.py --seeds 42
+python scripts/eval_key_comparison.py --seed 42 --no-timing --no-cache
+```
+
+输出目录：
+
+```text
+/root/autodl-tmp/stability/seed42/hf_concat_boundary_w0.1_multiscale_v2
+```

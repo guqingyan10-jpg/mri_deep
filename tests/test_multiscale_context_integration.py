@@ -34,6 +34,15 @@ def _load_runner():
     return module
 
 
+def _load_runner_v2():
+    path = ROOT / "scripts" / "run_multiscale_v2_seed_screen.py"
+    spec = importlib.util.spec_from_file_location("run_multiscale_v2_seed_screen", path)
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[spec.name] = module
+    spec.loader.exec_module(module)
+    return module
+
+
 class MultiScaleContextIntegrationTests(unittest.TestCase):
     def test_context_module_has_expected_four_branch_contract(self):
         source = _source("models/resunet_edge.py")
@@ -100,6 +109,36 @@ class MultiScaleContextIntegrationTests(unittest.TestCase):
         source = _source("scripts/eval_key_comparison.py")
         self.assertIn("hf_concat_boundary_w0.1_multiscale", source)
         self.assertIn("'multiscale_context': True", source)
+
+    def test_v2_uses_zero_initialized_residual_scale(self):
+        source = _source("models/resunet_edge.py")
+        self.assertIn("identity_start=False", source)
+        self.assertIn("self.alpha = nn.Parameter(torch.zeros(1))", source)
+        self.assertIn("x + self.alpha * context", source)
+
+    def test_v2_training_entrypoint_and_runner_are_seed_42_specific(self):
+        train_source = _source("scripts/train_hf_concat_boundary.py")
+        runner_source = _source("scripts/run_multiscale_v2_seed_screen.py")
+        self.assertIn('"--multiscale_context_v2"', train_source)
+        self.assertIn("multiscale_context_v2=args.multiscale_context_v2", train_source)
+        self.assertIn("hf_concat_boundary_w0.1_multiscale_v2", runner_source)
+        self.assertIn('default=[42]', runner_source)
+
+        runner = _load_runner_v2()
+        jobs = runner.build_jobs([42], ROOT / "stability-output", 200, 5e-4)
+        command = jobs[0].command(
+            str(ROOT / "stability-output/seed42/baseline/best_model_9.pth")
+        )
+        self.assertIn("--multiscale_context_v2", command)
+        self.assertEqual(
+            str(jobs[0].checkpoint_dir),
+            str(ROOT / "stability-output/seed42/hf_concat_boundary_w0.1_multiscale_v2"),
+        )
+
+    def test_seed_evaluation_registers_v2_model(self):
+        source = _source("scripts/eval_key_comparison.py")
+        self.assertIn("hf_concat_boundary_w0.1_multiscale_v2", source)
+        self.assertIn("'multiscale_context_v2': True", source)
 
     @unittest.skipIf(torch is None, "PyTorch is only available in the AutoDL environment")
     def test_enabled_model_preserves_shape_and_shared_initialization(self):

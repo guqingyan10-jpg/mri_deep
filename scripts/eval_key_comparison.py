@@ -148,6 +148,19 @@ def build_seed_experiments(seed, stability_root):
             'key_remap': None,
         },
         {
+            'dir': os.path.join(
+                seed_root, 'hf_concat_boundary_w0.1_multiscale_v2'
+            ),
+            'model_class': eval_all.ResUNetHFConcatBoundary,
+            'model_kwargs': {
+                'in_channels': 4, 'n_classes': 3, 'n_channels': 24,
+                'multiscale_context_v2': True,
+            },
+            'label': f'Seed{seed} HF Concat Boundary + Multi-scale V2 (w=0.1)',
+            'category': 'Seed Stability',
+            'key_remap': None,
+        },
+        {
             'dir': os.path.join(seed_root, 'hf_gated_concat_boundary_w0.1'),
             'model_class': eval_all.ResUNetHFConcatBoundary,
             'model_kwargs': {

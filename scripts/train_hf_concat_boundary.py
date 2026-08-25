@@ -59,6 +59,8 @@ parser.add_argument("--boundary_weight", type=float, default=0.3,
                     help="Weight for boundary auxiliary BCE loss (default 0.3)")
 parser.add_argument("--multiscale_context", action="store_true",
                     help="Enable the residual dilated context block at the bottleneck")
+parser.add_argument("--multiscale_context_v2", action="store_true",
+                    help="Enable identity-start multi-scale context (V2)")
 parser.add_argument("--epochs", type=int, default=200)
 parser.add_argument("--lr", type=float, default=5e-4)
 parser.add_argument("--seed", type=int, default=config.seed,
@@ -73,7 +75,12 @@ args = parser.parse_args()
 seed_everything(args.seed)
 device = "cuda" if torch.cuda.is_available() else "cpu"
 
-if args.multiscale_context:
+if args.multiscale_context_v2:
+    DEFAULT_CHECKPOINT_DIR = (
+        "/root/autodl-tmp/"
+        f"ResUNet_HFConcatBoundary_w{args.boundary_weight}_multiscale_v2_model"
+    )
+elif args.multiscale_context:
     DEFAULT_CHECKPOINT_DIR = (
         "/root/autodl-tmp/"
         f"ResUNet_HFConcatBoundary_w{args.boundary_weight}_multiscale_model"
@@ -96,6 +103,7 @@ print("=" * 72)
 print("  Edge input:       Laplacian high-frequency residual I - blur(I)")
 print(f"  Fusion:           {args.fusion} at dec1, dec2, dec3, dec4")
 print(f"  Bottleneck MSC:   {args.multiscale_context}")
+print(f"  Bottleneck MSC V2: {args.multiscale_context_v2}")
 print(f"  Loss:             BCEDiceLoss + {args.boundary_weight} * boundary BCE")
 print("  Warm-start:       baseline ResUNet best_model checkpoint")
 print(f"  Checkpoint:       {CHECKPOINT_DIR}")
@@ -121,6 +129,7 @@ model = ResUNetHFConcatBoundary(
     n_channels=24,
     fusion=args.fusion,
     multiscale_context=args.multiscale_context,
+    multiscale_context_v2=args.multiscale_context_v2,
 ).to(device)
 criterion = BCEDiceWithBoundaryLoss(boundary_weight=args.boundary_weight)
 
