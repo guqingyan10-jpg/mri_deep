@@ -65,6 +65,7 @@ def test_seed_experiment_builder_defines_existing_and_gated_directories():
         "baseline",
         "edge_laplacian_concat",
         "hf_concat_boundary_w0.1",
+        "hf_concat_boundary_w0.1_multiscale",
         "hf_concat_boundary_w0.05",
         "edge_laplacian_gated_concat",
         "hf_gated_concat_boundary_w0.1",
@@ -76,7 +77,7 @@ def test_seed_experiment_builder_configures_two_gated_models():
     build_seed_experiments = _load_seed_builder()
     experiments = build_seed_experiments(123, "/root/autodl-tmp/stability")
 
-    assert len(experiments) == 6
+    assert len(experiments) == 7
     gated = [
         spec for spec in experiments
         if spec["model_kwargs"].get("fusion") == "gated_concat"
@@ -85,6 +86,13 @@ def test_seed_experiment_builder_configures_two_gated_models():
     assert gated[0]["model_class"].__name__ == "ResUNetEdge"
     assert gated[0]["model_kwargs"]["edge_type"] == "laplacian"
     assert gated[1]["model_class"].__name__ == "ResUNetHFConcatBoundary"
+
+    multiscale = [
+        spec for spec in experiments
+        if spec["model_kwargs"].get("multiscale_context") is True
+    ]
+    assert len(multiscale) == 1
+    assert multiscale[0]["model_class"].__name__ == "ResUNetHFConcatBoundary"
 
 
 def test_primary_indicator_contract_remains_exactly_four_metrics():

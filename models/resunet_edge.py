@@ -391,6 +391,52 @@ class ResUpEdge(nn.Module):
 
 
 # ============================================================
+# Lightweight multi-scale context at the bottleneck
+# ============================================================
+
+class MultiScaleContext3d(nn.Module):
+    """Aggregate local and dilated 3D context through a residual block."""
+
+    def __init__(self, channels):
+        super().__init__()
+        branch_channels = max(4, channels // 4)
+        self.branches = nn.ModuleList([
+            nn.Sequential(
+                nn.Conv3d(channels, branch_channels, kernel_size=3,
+                          padding=1, dilation=1),
+                nn.GroupNorm(4, branch_channels),
+                nn.ReLU(inplace=True),
+            ),
+            nn.Sequential(
+                nn.Conv3d(channels, branch_channels, kernel_size=3,
+                          padding=2, dilation=2),
+                nn.GroupNorm(4, branch_channels),
+                nn.ReLU(inplace=True),
+            ),
+            nn.Sequential(
+                nn.Conv3d(channels, branch_channels, kernel_size=3,
+                          padding=3, dilation=3),
+                nn.GroupNorm(4, branch_channels),
+                nn.ReLU(inplace=True),
+            ),
+            nn.Sequential(
+                nn.Conv3d(channels, branch_channels, kernel_size=1),
+                nn.GroupNorm(4, branch_channels),
+                nn.ReLU(inplace=True),
+            ),
+        ])
+        self.project = nn.Sequential(
+            nn.Conv3d(4 * branch_channels, channels, kernel_size=1),
+            nn.GroupNorm(8, channels),
+        )
+        self.activation = nn.ReLU(inplace=True)
+
+    def forward(self, x):
+        multi_scale = torch.cat([branch(x) for branch in self.branches], dim=1)
+        return self.activation(x + self.project(multi_scale))
+
+
+# ============================================================
 # Full ResUNet + Edge Branch
 # ============================================================
 
@@ -411,7 +457,8 @@ class ResUNetEdge(nn.Module):
     """
 
     def __init__(self, in_channels=4, n_classes=3, n_channels=24,
-                 fusion='concat', edge_type='sobel'):
+                 fusion='concat', edge_type='sobel',
+                 multiscale_context=False):
         super().__init__()
 
         if fusion not in ('concat', 'gated_concat', 'add'):
@@ -424,6 +471,7 @@ class ResUNetEdge(nn.Module):
 
         self.fusion = fusion
         self.edge_type = edge_type
+        self.multiscale_context_enabled = multiscale_context
         self.in_channels = in_channels
         self.n_channels = n_channels
 
@@ -463,6 +511,10 @@ class ResUNetEdge(nn.Module):
         self.dec4 = ResUpEdge(2 * n_channels, n_channels,
                               edge_ch_list['dec4'], fusion=fusion)
         self.out = Out(n_channels, n_classes)
+        if multiscale_context:
+            # The extra branch must not perturb shared-layer initialization.
+            with torch.random.fork_rng(devices=[]):
+                self.multiscale_context = MultiScaleContext3d(8 * n_channels)
 
     def forward(self, x):
         """
@@ -487,6 +539,8 @@ class ResUNetEdge(nn.Module):
         x3 = self.enc2(x2)                    # (B, 96,  32³)
         x4 = self.enc3(x3)                    # (B, 192, 16³)
         x5 = self.enc4(x4)                    # (B, 192,  8³)
+        if self.multiscale_context_enabled:
+            x5 = self.multiscale_context(x5)
 
         # ---- Decoder (with edge injection) ----
         mask = self.dec1(x5, x4, edge_dict['dec1'])   # → (B, 96, 16³)

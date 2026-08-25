@@ -138,3 +138,39 @@ python scripts/eval_key_comparison.py --seed 123 --no-timing --no-cache
 ```
 
 核心指标固定为 Macro Dice、ET Dice、ET HD95 和 Small-case ET Dice。
+
+## Multi-scale context 配对实验（seed 42 / 123）
+
+该实验仅在现有 `Laplacian EdgePyramid + concat + Boundary w=0.1`
+模型的编码器瓶颈增加 `MultiScaleContext3d`。数据划分、完整 `128³`
+输入、基础通道数 24、学习率 `5e-4`、最多 200 epochs、梯度累积 4、
+早停 patience 25，以及每个 seed 的 baseline warm-start 均保持不变。
+
+上传代码到 AutoDL 后先运行轻量 smoke test：
+
+```bash
+python -m unittest \
+  tests.test_multiscale_context_integration.MultiScaleContextIntegrationTests.test_enabled_model_preserves_shape_and_shared_initialization \
+  -v
+```
+
+确认两个 seed 的 baseline 已完成后，检查并执行训练命令：
+
+```bash
+python scripts/run_multiscale_seed_screen.py --seeds 42 123 --dry_run
+python scripts/run_multiscale_seed_screen.py --seeds 42 123
+```
+
+训练完成后分别与同 seed 的现有对照模型评估：
+
+```bash
+python scripts/eval_key_comparison.py --seed 42 --no-timing --no-cache
+python scripts/eval_key_comparison.py --seed 123 --no-timing --no-cache
+```
+
+新增 checkpoint 目录：
+
+```text
+/root/autodl-tmp/stability/seed42/hf_concat_boundary_w0.1_multiscale
+/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale
+```

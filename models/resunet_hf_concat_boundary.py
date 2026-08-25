@@ -19,13 +19,14 @@ class ResUNetHFConcatBoundary(ResUNetEdge):
     """Laplacian multi-scale (optionally gated) ResUNet with dual heads."""
 
     def __init__(self, in_channels=4, n_classes=3, n_channels=24,
-                 fusion="concat"):
+                 fusion="concat", multiscale_context=False):
         super().__init__(
             in_channels=in_channels,
             n_classes=n_classes,
             n_channels=n_channels,
             fusion=fusion,
             edge_type="laplacian",
+            multiscale_context=multiscale_context,
         )
 
         self.n_classes = n_classes
@@ -46,6 +47,8 @@ class ResUNetHFConcatBoundary(ResUNetEdge):
         x3 = self.enc2(x2)
         x4 = self.enc3(x3)
         x5 = self.enc4(x4)
+        if self.multiscale_context_enabled:
+            x5 = self.multiscale_context(x5)
 
         decoded = self.dec1(x5, x4, edge_dict["dec1"])
         decoded = self.dec2(decoded, x3, edge_dict["dec2"])
