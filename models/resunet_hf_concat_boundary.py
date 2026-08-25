@@ -20,7 +20,7 @@ class ResUNetHFConcatBoundary(ResUNetEdge):
 
     def __init__(self, in_channels=4, n_classes=3, n_channels=24,
                  fusion="concat", multiscale_context=False,
-                 multiscale_context_v2=False):
+                 multiscale_context_v2=False, multiscale_context_v3=False):
         super().__init__(
             in_channels=in_channels,
             n_classes=n_classes,
@@ -29,6 +29,7 @@ class ResUNetHFConcatBoundary(ResUNetEdge):
             edge_type="laplacian",
             multiscale_context=multiscale_context,
             multiscale_context_v2=multiscale_context_v2,
+            multiscale_context_v3=multiscale_context_v3,
         )
 
         self.n_classes = n_classes

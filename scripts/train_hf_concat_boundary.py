@@ -61,6 +61,8 @@ parser.add_argument("--multiscale_context", action="store_true",
                     help="Enable the residual dilated context block at the bottleneck")
 parser.add_argument("--multiscale_context_v2", action="store_true",
                     help="Enable identity-start multi-scale context (V2)")
+parser.add_argument("--multiscale_context_v3", action="store_true",
+                    help="Enable identity-start multi-scale context with per-branch gates (V3)")
 parser.add_argument("--epochs", type=int, default=200)
 parser.add_argument("--lr", type=float, default=5e-4)
 parser.add_argument("--seed", type=int, default=config.seed,
@@ -75,7 +77,12 @@ args = parser.parse_args()
 seed_everything(args.seed)
 device = "cuda" if torch.cuda.is_available() else "cpu"
 
-if args.multiscale_context_v2:
+if args.multiscale_context_v3:
+    DEFAULT_CHECKPOINT_DIR = (
+        "/root/autodl-tmp/"
+        f"ResUNet_HFConcatBoundary_w{args.boundary_weight}_multiscale_v3_model"
+    )
+elif args.multiscale_context_v2:
     DEFAULT_CHECKPOINT_DIR = (
         "/root/autodl-tmp/"
         f"ResUNet_HFConcatBoundary_w{args.boundary_weight}_multiscale_v2_model"
@@ -104,6 +111,7 @@ print("  Edge input:       Laplacian high-frequency residual I - blur(I)")
 print(f"  Fusion:           {args.fusion} at dec1, dec2, dec3, dec4")
 print(f"  Bottleneck MSC:   {args.multiscale_context}")
 print(f"  Bottleneck MSC V2: {args.multiscale_context_v2}")
+print(f"  Bottleneck MSC V3: {args.multiscale_context_v3}")
 print(f"  Loss:             BCEDiceLoss + {args.boundary_weight} * boundary BCE")
 print("  Warm-start:       baseline ResUNet best_model checkpoint")
 print(f"  Checkpoint:       {CHECKPOINT_DIR}")
@@ -130,6 +138,7 @@ model = ResUNetHFConcatBoundary(
     fusion=args.fusion,
     multiscale_context=args.multiscale_context,
     multiscale_context_v2=args.multiscale_context_v2,
+    multiscale_context_v3=args.multiscale_context_v3,
 ).to(device)
 criterion = BCEDiceWithBoundaryLoss(boundary_weight=args.boundary_weight)
 
@@ -201,6 +210,24 @@ print("\n" + "=" * 72)
 print("STARTING TRAINING")
 print("=" * 72 + "\n")
 trainer.run(check_path=CHECKPOINT_DIR)
+
+multiscale_module = getattr(model, "multiscale_context", None)
+gates = getattr(multiscale_module, "alpha", None)
+if gates is not None:
+    gate_values = gates.detach().cpu().reshape(-1).tolist()
+    if len(gate_values) == 1:
+        gate_lines = [f"alpha={gate_values[0]:.10g}"]
+    else:
+        gate_names = ("dilation1", "dilation2", "dilation3", "kernel1x1")
+        gate_lines = [
+            f"{name}={value:.10g}"
+            for name, value in zip(gate_names, gate_values)
+        ]
+    with open(os.path.join(CHECKPOINT_DIR, "multiscale_gates.txt"), "w",
+              encoding="utf-8") as gate_file:
+        gate_file.write("\n".join(gate_lines) + "\n")
+    print("Saved multi-scale gate values: "
+          f"{os.path.join(CHECKPOINT_DIR, 'multiscale_gates.txt')}")
 
 print(f"\nDone. Model saved to: {CHECKPOINT_DIR}")
 print("Evaluate with:")

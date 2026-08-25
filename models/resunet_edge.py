@@ -430,16 +430,27 @@ class MultiScaleContext3d(nn.Module):
             nn.Conv3d(4 * branch_channels, channels, kernel_size=1),
             nn.GroupNorm(8, channels),
         )
-        if identity_start:
+        if identity_start is True:
             self.alpha = nn.Parameter(torch.zeros(1))
+        elif identity_start == 'per_branch':
+            self.alpha = nn.Parameter(torch.zeros(4))
         else:
             self.activation = nn.ReLU(inplace=True)
 
     def forward(self, x):
-        multi_scale = torch.cat([branch(x) for branch in self.branches], dim=1)
+        branch_outputs = [branch(x) for branch in self.branches]
+        if self.identity_start == 'per_branch':
+            alpha = self.alpha.view(1, -1, 1, 1, 1)
+            branch_outputs = [
+                output * alpha[:, index:index + 1]
+                for index, output in enumerate(branch_outputs)
+            ]
+        multi_scale = torch.cat(branch_outputs, dim=1)
         context = self.project(multi_scale)
-        if self.identity_start:
+        if self.identity_start is True:
             return x + self.alpha * context
+        if self.identity_start == 'per_branch':
+            return x + context
         return self.activation(x + context)
 
 
@@ -465,7 +476,8 @@ class ResUNetEdge(nn.Module):
 
     def __init__(self, in_channels=4, n_classes=3, n_channels=24,
                  fusion='concat', edge_type='sobel',
-                 multiscale_context=False, multiscale_context_v2=False):
+                 multiscale_context=False, multiscale_context_v2=False,
+                 multiscale_context_v3=False):
         super().__init__()
 
         if fusion not in ('concat', 'gated_concat', 'add'):
@@ -478,12 +490,21 @@ class ResUNetEdge(nn.Module):
 
         self.fusion = fusion
         self.edge_type = edge_type
-        if multiscale_context and multiscale_context_v2:
-            raise ValueError("Choose either multiscale_context or multiscale_context_v2")
+        enabled_variants = sum((
+            bool(multiscale_context),
+            bool(multiscale_context_v2),
+            bool(multiscale_context_v3),
+        ))
+        if enabled_variants > 1:
+            raise ValueError(
+                "Choose only one of multiscale_context, "
+                "multiscale_context_v2, or multiscale_context_v3"
+            )
         self.multiscale_context_enabled = (
-            multiscale_context or multiscale_context_v2
+            multiscale_context or multiscale_context_v2 or multiscale_context_v3
         )
         self.multiscale_context_v2_enabled = multiscale_context_v2
+        self.multiscale_context_v3_enabled = multiscale_context_v3
         self.in_channels = in_channels
         self.n_channels = n_channels
 
@@ -533,6 +554,13 @@ class ResUNetEdge(nn.Module):
                 self.multiscale_context = MultiScaleContext3d(
                     8 * n_channels,
                     identity_start=True,
+                )
+        elif multiscale_context_v3:
+            # V3 starts as an exact identity with one zero gate per branch.
+            with torch.random.fork_rng(devices=[]):
+                self.multiscale_context = MultiScaleContext3d(
+                    8 * n_channels,
+                    identity_start='per_branch',
                 )
 
     def forward(self, x):
