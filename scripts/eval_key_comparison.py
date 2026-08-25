@@ -84,6 +84,7 @@ PRIMARY = [
     ('ET_Dice_mean',            'ET Dice',         'high'),
     ('Small_case_ET_Dice_mean', 'Small-case Dice', 'high'),
     ('ET_HD95_mean',            'ET HD95',         'low'),
+    ('Lesion_F1_mean',          'Lesion F1',       'high'),
 ]
 
 # Cached metrics keyed by checkpoint path, so unchanged models are reused
@@ -229,7 +230,7 @@ def _best_value(vals, direction):
 
 
 def print_core_table(all_metrics):
-    """Terminal comparison table over the four primary indicators (best bolded)."""
+    """Terminal comparison table over core and lesion indicators."""
     best = [_best_value([m.get(k, float('nan')) for m in all_metrics], d)
             for k, _, d in PRIMARY]
 
@@ -253,30 +254,32 @@ def write_key_table(all_metrics, baseline):
     """Markdown core-indicator table + delta-vs-baseline table."""
     lines = ['# Key Model Comparison — Core Indicators\n']
 
-    lines.append('| Model | Macro Dice | ET Dice | ET HD95↓ | Small-case Dice |')
-    lines.append('|---|---|---|---|---|')
+    lines.append('| Model | Macro Dice | ET Dice | ET HD95↓ | Small-case Dice | Lesion F1 |')
+    lines.append('|---|---|---|---|---|---|')
     for m in all_metrics:
         lines.append(
             f"| {m['model_name']} | "
             f"{_fmt(m.get('Macro_Dice_mean', float('nan')), 'Dice')} | "
             f"{_fmt(m.get('ET_Dice_mean', float('nan')), 'Dice')} | "
             f"{_fmt(m.get('ET_HD95_mean', float('nan')), 'HD95')} | "
-            f"{_fmt(m.get('Small_case_ET_Dice_mean', float('nan')), 'Dice')} |")
+            f"{_fmt(m.get('Small_case_ET_Dice_mean', float('nan')), 'Dice')} | "
+            f"{_fmt(m.get('Lesion_F1_mean', float('nan')), 'Dice')} |")
 
     if baseline is not None:
         lines.append('\n## Delta vs Baseline\n')
-        lines.append('| Model | Δ Macro Dice | Δ ET Dice | Δ ET HD95 | Δ Small-case Dice |')
-        lines.append('|---|---|---|---|---|')
+        lines.append('| Model | Δ Macro Dice | Δ ET Dice | Δ ET HD95 | Δ Small-case Dice | Δ Lesion F1 |')
+        lines.append('|---|---|---|---|---|---|')
         for m in all_metrics:
             if m is baseline:
-                lines.append(f"| {m['model_name']} | (baseline) | — | — | — |")
+                lines.append(f"| {m['model_name']} | (baseline) | — | — | — | — |")
                 continue
             lines.append(
                 f"| {m['model_name']} | "
                 f"{m.get('Macro_Dice_mean', 0) - baseline.get('Macro_Dice_mean', 0):+.4f} | "
                 f"{m.get('ET_Dice_mean', 0) - baseline.get('ET_Dice_mean', 0):+.4f} | "
                 f"{m.get('ET_HD95_mean', 0) - baseline.get('ET_HD95_mean', 0):+.2f} | "
-                f"{m.get('Small_case_ET_Dice_mean', 0) - baseline.get('Small_case_ET_Dice_mean', 0):+.4f} |")
+                f"{m.get('Small_case_ET_Dice_mean', 0) - baseline.get('Small_case_ET_Dice_mean', 0):+.4f} | "
+                f"{m.get('Lesion_F1_mean', 0) - baseline.get('Lesion_F1_mean', 0):+.4f} |")
 
     with open('key_comparison_table.md', 'w', encoding='utf-8') as f:
         f.write('\n'.join(lines))
