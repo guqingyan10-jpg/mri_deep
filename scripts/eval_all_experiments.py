@@ -265,6 +265,17 @@ EXPERIMENTS = [
         'category': 'Final Combination',
         'key_remap': None,
     },
+
+    # ── Multi-scale Context V2 (main model, seed55) ─────────
+    {
+        'dir': '/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_multiscale_v2_model',
+        'model_class': ResUNetHFConcatBoundary,
+        'model_kwargs': {'in_channels': 4, 'n_classes': 3, 'n_channels': 24,
+                         'multiscale_context_v2': True},
+        'label': 'HF Concat Boundary + Multi-scale V2 (w=0.1, seed55)',
+        'category': 'Final Combination',
+        'key_remap': None,
+    },
 ]
 
 
