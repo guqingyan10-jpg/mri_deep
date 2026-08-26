@@ -78,6 +78,16 @@ KEY_LABELS = [
 KEY_COLORS = ['#2c3e50', '#2ecc71', '#3498db', '#e74c3c', '#1abc9c',
               '#9b59b6', '#e67e22', '#e84393']
 
+# Main-model comparison (seed55): the five variants the primary experiment
+# actually trains. Labels must match eval_all.EXPERIMENTS exactly.
+MAIN_LABELS = [
+    'Baseline (BCEDice)',
+    'Edge (Laplacian, concat)',
+    'HF Concat Boundary (Laplacian, w=0.1)',
+    'HF Concat Boundary + Multi-scale V2 (w=0.1, seed55)',
+    'HF Gated Concat Boundary (w=0.1)',
+]
+
 # Primary indicators: (metric_key, display, direction)  direction: 'high'|'low'
 PRIMARY = [
     ('Macro_Dice_mean',         'Macro Dice',      'high'),
@@ -338,6 +348,8 @@ def plot_key_radar(all_metrics, save_path='figures/key_radar.png'):
 
 def main():
     parser = argparse.ArgumentParser(description='Key model comparison (8 models)')
+    parser.add_argument('--main', action='store_true',
+                        help='Compare the five main-model variants (seed55) instead of the 8 KEY_LABELS')
     parser.add_argument('--seed', type=int, default=None,
                         help='Evaluate seed-matched stability models using four core metrics')
     parser.add_argument('--stability-root', type=str,
@@ -360,17 +372,18 @@ def main():
     if args.seed is not None:
         exps = build_seed_experiments(args.seed, args.stability_root)
     else:
-        # Select the key experiments from the shared registry, keeping KEY_LABELS order.
+        # Select experiments from the shared registry, keeping the requested order.
+        labels = MAIN_LABELS if args.main else KEY_LABELS
         by_label = {e['label']: e for e in eval_all.EXPERIMENTS}
-        missing = [l for l in KEY_LABELS if l not in by_label]
+        missing = [l for l in labels if l not in by_label]
         if missing:
             print(f'[ERROR] These labels are missing from the registry:\n  {missing}')
             return
-        exps = [by_label[l] for l in KEY_LABELS]
+        exps = [by_label[l] for l in labels]
 
     print('=' * 80)
     title = (f'Key Model Comparison (seed {args.seed}, {len(exps)} models)'
-             if args.seed is not None else 'Key Model Comparison (8 models)')
+             if args.seed is not None else f'Key Model Comparison ({len(exps)} models)')
     print(title)
     print(f'Device: {device} | Threshold: {args.threshold}')
     for spec in exps:
