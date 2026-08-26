@@ -85,7 +85,7 @@ MAIN_LABELS = [
     'Edge (Laplacian, concat)',
     'HF Concat Boundary (Laplacian, w=0.1)',
     'HF Concat Boundary + Multi-scale V2 (w=0.1, seed55)',
-    'HF Gated Concat Boundary (w=0.1)',
+    'HF Concat Boundary (Laplacian, w=0.05)',
 ]
 
 # Primary indicators: (metric_key, display, direction)  direction: 'high'|'low'

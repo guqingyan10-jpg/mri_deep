@@ -276,15 +276,6 @@ EXPERIMENTS = [
         'category': 'Final Combination',
         'key_remap': None,
     },
-    {
-        'dir': '/root/autodl-tmp/ResUNet_HFGatedConcatBoundary_w0.1_model',
-        'model_class': ResUNetHFConcatBoundary,
-        'model_kwargs': {'in_channels': 4, 'n_classes': 3, 'n_channels': 24,
-                         'fusion': 'gated_concat'},
-        'label': 'HF Gated Concat Boundary (w=0.1)',
-        'category': 'Final Combination',
-        'key_remap': None,
-    },
 ]
 
 
