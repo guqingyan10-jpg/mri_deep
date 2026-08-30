@@ -14,6 +14,15 @@ def test_et_statistics_exposes_connectivity_and_distribution_outputs():
     assert "lesion_id" in SOURCE
 
 
+def test_et_statistics_supports_region_specific_connected_components():
+    assert "--region" in SOURCE
+    assert "choices=('ET', 'TC', 'WT')" in SOURCE or 'choices=("ET", "TC", "WT")' in SOURCE
+    assert "REGION_LABELS" in SOURCE
+    assert "default='WT'" in SOURCE or 'default="WT"' in SOURCE
+    assert "region_mask" in SOURCE
+    assert "region_prefix" in SOURCE
+
+
 def test_lesion_detail_output_does_not_include_grade_or_case_min_max_fields():
     detail_block = SOURCE.split("# --- Record each component individually ---", 1)[1]
     detail_block = detail_block.split("except Exception", 1)[0]
