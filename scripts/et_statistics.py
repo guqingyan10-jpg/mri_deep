@@ -14,6 +14,8 @@ Computes for each of the 369 training cases:
 Outputs:
   - et_statistics.csv       — one row per case
   - et_components_detail.csv — one row per individual ET lesion component
+  - et_lesion_size_distribution.csv — exact lesion-size counts
+  - et_lesion_size_distribution.png — lesion-size/count curve
 
 Usage:
     python scripts/et_statistics.py
@@ -26,6 +28,7 @@ Date:   2026-08-01
 =============================================================================
 """
 
+import argparse
 import os
 import gc
 import numpy as np
@@ -40,14 +43,37 @@ warnings.filterwarnings('ignore')
 # Configuration
 # ============================================================
 
-CSV_PATH = 'tumourCSV.csv'
-OUTPUT_PATH = 'et_statistics.csv'
-OUTPUT_DETAIL_PATH = 'et_components_detail.csv'
-MIN_COMPONENT_SIZE = 10  # minimum voxels to count as a real lesion component
+parser = argparse.ArgumentParser(
+    description='Compute per-case and per-lesion ET size statistics.'
+)
+parser.add_argument('--csv-path', default='tumourCSV.csv')
+parser.add_argument('--data-dir', default=None,
+                    help='Root directory containing one folder per case.')
+parser.add_argument('--output-path', default='et_statistics.csv')
+parser.add_argument('--detail-output-path', default='et_components_detail.csv')
+parser.add_argument('--distribution-output-path',
+                    default='et_lesion_size_distribution.csv')
+parser.add_argument('--plot-path', default='et_lesion_size_distribution.png')
+parser.add_argument('--connectivity', type=int, choices=(6, 26), default=26,
+                    help='3D connected-component definition (default: 26).')
+parser.add_argument('--min-component-size', type=int, default=10,
+                    help='Ignore components smaller than this many voxels.')
+args = parser.parse_args()
+
+CSV_PATH = args.csv_path
+OUTPUT_PATH = args.output_path
+OUTPUT_DETAIL_PATH = args.detail_output_path
+DISTRIBUTION_OUTPUT_PATH = args.distribution_output_path
+PLOT_PATH = args.plot_path
+MIN_COMPONENT_SIZE = args.min_component_size
+CONNECTIVITY = args.connectivity
+CONNECTIVITY_STRUCTURE = ndimage.generate_binary_structure(
+    3, 1 if CONNECTIVITY == 6 else 3
+)
 
 # Data directory — ADAPT TO YOUR ENVIRONMENT:
 #   Local Windows:
-DATA_DIR = r'D:\lunwen\base\enhance_resu\MICCAI_BraTS2020_TrainingData\BraTS2020_TrainingData\MICCAI_BraTS2020_TrainingData'
+DATA_DIR = args.data_dir or r'D:\lunwen\base\enhance_resu\MICCAI_BraTS2020_TrainingData\BraTS2020_TrainingData\MICCAI_BraTS2020_TrainingData'
 #   Server (autodl-tmp):
 # DATA_DIR = r'/root/autodl-tmp/brats_project/MICCAI_BraTS2020_TrainingData/BraTS2020_TrainingData/MICCAI_BraTS2020_TrainingData'
 
@@ -55,6 +81,8 @@ GC_INTERVAL = 10
 
 print("=" * 70)
 print("BraTS2020 Per-Case ET & Connected Component Statistics")
+print(f"Connectivity: {CONNECTIVITY}-neighborhood")
+print(f"Minimum component size: {MIN_COMPONENT_SIZE} voxels")
 print("=" * 70)
 
 # ============================================================
@@ -83,6 +111,8 @@ for idx, row in tqdm(df.iterrows(), total=len(df), desc="Processing cases"):
     try:
         # --- Load mask with explicit cleanup ---
         img = nib.load(seg_path, mmap=False)
+        voxel_spacing = tuple(float(v) for v in img.header.get_zooms()[:3])
+        voxel_volume_mm3 = float(np.prod(voxel_spacing))
         mask_data = np.asarray(img.dataobj, dtype=np.int16)
         del img
 
@@ -106,11 +136,9 @@ for idx, row in tqdm(df.iterrows(), total=len(df), desc="Processing cases"):
         component_sizes = []
         largest_comp = 0
         if et_voxels > 0:
-            # 3D connected-component labeling (26-connectivity by default)
-            labeled, num_labels = ndimage.label(et_mask)
-            # ndimage.label uses 26-connectivity in 3D:
-            # each voxel checks all 26 neighbors (faces + edges + corners)
-            # This correctly groups voxels that touch at any point.
+            labeled, num_labels = ndimage.label(
+                et_mask, structure=CONNECTIVITY_STRUCTURE
+            )
 
             for comp_id in range(1, num_labels + 1):
                 size = int((labeled == comp_id).sum())
@@ -123,7 +151,6 @@ for idx, row in tqdm(df.iterrows(), total=len(df), desc="Processing cases"):
         num_components = len(component_sizes)
         is_multifocal = (num_components >= 2)
         largest_comp = max(component_sizes) if component_sizes else 0
-        smallest_comp = min(component_sizes) if component_sizes else 0
 
         # Ratio: largest component / total ET (measures lesion fragmentation)
         if et_voxels > 0 and largest_comp > 0:
@@ -137,7 +164,6 @@ for idx, row in tqdm(df.iterrows(), total=len(df), desc="Processing cases"):
 
         results.append({
             'Brats20ID':           case_id,
-            'Grade':               row.get('Grade', ''),
             'ET_voxels':           et_voxels,
             'WT_voxels':           wt_voxels,
             'TC_voxels':           tc_voxels,
@@ -145,8 +171,6 @@ for idx, row in tqdm(df.iterrows(), total=len(df), desc="Processing cases"):
             'ET_TC_ratio':         round(et_tc_ratio, 6),
             'ET_components':       num_components,
             'is_multifocal':       is_multifocal,
-            'ET_largest_comp':     largest_comp,
-            'ET_smallest_comp':    smallest_comp,
             'ET_largest_ratio':    largest_ratio,
             'ET_secondary_ratio':  secondary_ratio,
             'ET_comp_sizes':       str(component_sizes),
@@ -155,12 +179,10 @@ for idx, row in tqdm(df.iterrows(), total=len(df), desc="Processing cases"):
         # --- Record each component individually ---
         for i, sz in enumerate(component_sizes):
             all_components.append({
-                'Brats20ID':     case_id,
-                'Grade':         row.get('Grade', ''),
-                'component_idx': i + 1,
-                'component_size': sz,
-                'case_total_ET': et_voxels,
-                'comp_ET_ratio': round(sz / et_voxels, 4) if et_voxels > 0 else 0.0,
+                'Brats20ID':         case_id,
+                'lesion_id':         i + 1,
+                'lesion_voxels':     sz,
+                'lesion_volume_mm3': round(sz * voxel_volume_mm3, 3),
             })
 
     except Exception as e:
@@ -194,6 +216,47 @@ comp_df = pd.DataFrame(all_components)
 if len(comp_df) > 0:
     comp_df.to_csv(OUTPUT_DETAIL_PATH, index=False)
     print(f"Saved {len(comp_df)} individual components to: {OUTPUT_DETAIL_PATH}")
+
+    # Exact count-by-size table and a log-scaled curve make threshold selection
+    # readable despite the highly skewed lesion-size distribution.
+    distribution_df = (
+        comp_df.groupby('lesion_voxels').size()
+        .rename('lesion_count')
+        .reset_index()
+        .sort_values('lesion_voxels')
+    )
+    distribution_df['cumulative_count'] = distribution_df['lesion_count'].cumsum()
+    distribution_df['cumulative_fraction'] = (
+        distribution_df['cumulative_count'] / len(comp_df)
+    )
+    distribution_df.to_csv(DISTRIBUTION_OUTPUT_PATH, index=False)
+    print(f"Saved lesion-size distribution to: {DISTRIBUTION_OUTPUT_PATH}")
+
+    try:
+        import matplotlib
+        matplotlib.use('Agg')
+        import matplotlib.pyplot as plt
+
+        fig, ax = plt.subplots(figsize=(10, 6), dpi=180)
+        ax.plot(
+            distribution_df['lesion_voxels'],
+            distribution_df['lesion_count'],
+            color='#1f77b4', linewidth=1.2, marker='.', markersize=3,
+        )
+        ax.set_xscale('log')
+        ax.set_xlabel('ET lesion size (voxels, log scale)')
+        ax.set_ylabel('Number of lesions')
+        ax.set_title(
+            f'ET lesion-size distribution ({CONNECTIVITY}-connectivity, '
+            f'minimum {MIN_COMPONENT_SIZE} voxels)'
+        )
+        ax.grid(True, which='both', alpha=0.25)
+        fig.tight_layout()
+        fig.savefig(PLOT_PATH, bbox_inches='tight')
+        plt.close(fig)
+        print(f"Saved lesion-size curve to: {PLOT_PATH}")
+    except ImportError:
+        print('[WARNING] matplotlib is unavailable; skipped PNG curve.')
 
 if len(stats_df) == 0:
     print("No results to summarize. Exiting.")
@@ -264,17 +327,15 @@ print(f"  TOTAL ET lesions across all cases:      {total_lesions}")
 # B.3 — Component size statistics (individual lesions)
 if len(comp_df) > 0:
     print(f"\n--- B.3: Individual Lesion Size Statistics (n={len(comp_df)}) ---")
-    cs = comp_df['component_size']
+    cs = comp_df['lesion_voxels']
     q25, q50, q75 = cs.quantile([0.25, 0.5, 0.75])
     print(f"  {'Lesion Size':<40} {'Value':>10}")
     print(f"  {'-'*50}")
     print(f"  {'Mean component size:':<40} {cs.mean():>10.1f} voxels")
     print(f"  {'Std component size:':<40} {cs.std():>10.1f} voxels")
-    print(f"  {'Min component size:':<40} {cs.min():>10.0f} voxels")
     print(f"  {'25th percentile:':<40} {q25:>10.1f} voxels")
     print(f"  {'Median component size:':<40} {q50:>10.1f} voxels")
     print(f"  {'75th percentile:':<40} {q75:>10.1f} voxels")
-    print(f"  {'Max component size:':<40} {cs.max():>10.0f} voxels")
     print(f"  {'Total ET volume (all lesions):':<40} {cs.sum():>10.0f} voxels")
 
     # Component size histogram bins
@@ -305,33 +366,7 @@ if len(comp_df) > 0:
     print(f"  Ratio < 0.500 (fragmented / scattered):  {(ratios < 0.5).sum()} cases")
 
 # ============================================================
-# SECTION C: BY TUMOR GRADE
-# ============================================================
-
-if 'Grade' in stats_df.columns:
-    print(f"\n{'='*70}")
-    print("SECTION C: BREAKDOWN BY TUMOR GRADE")
-    print("=" * 70)
-
-    for grade in ['HGG', 'LGG']:
-        sub = stats_df[stats_df['Grade'] == grade]
-        if len(sub) == 0:
-            continue
-        cmp_sub = comp_df[comp_df['Grade'] == grade] if len(comp_df) > 0 else pd.DataFrame()
-
-        print(f"\n  ╔══ {grade} (n={len(sub)}) {'═'*50}")
-        print(f"  ║  ET voxels:          {sub['ET_voxels'].mean():>8.0f} ± {sub['ET_voxels'].std():>8.0f}")
-        print(f"  ║  ET/WT ratio:        {sub['ET_WT_ratio'].mean():>8.4f} ± {sub['ET_WT_ratio'].std():>8.4f}")
-        print(f"  ║  Zero ET cases:      { (sub['ET_voxels']==0).sum():>4} / {len(sub)}  ({(sub['ET_voxels']==0).sum()/len(sub)*100:.1f}%)")
-        print(f"  ║  Multi-focal cases:  {sub['is_multifocal'].sum():>4} / {len(sub)}  ({sub['is_multifocal'].sum()/len(sub)*100:.1f}%)")
-        print(f"  ║  Mean #components:   {sub['ET_components'].mean():>8.2f} ± {sub['ET_components'].std():>8.2f}")
-        print(f"  ║  Max #components:    {sub['ET_components'].max():>8}")
-        if len(cmp_sub) > 0:
-            print(f"  ║  Total lesions:      {len(cmp_sub):>8}")
-        print(f"  ╚{'═'*62}")
-
-# ============================================================
-# SECTION D: ZERO ET & EXTREME CASES
+# SECTION C: ZERO ET & EXTREME CASES
 # ============================================================
 
 print(f"\n{'='*70}")
@@ -342,7 +377,7 @@ zero_et = stats_df[stats_df['ET_voxels'] == 0]
 if len(zero_et) > 0:
     print(f"\n--- D.1: Cases with ZERO ET Voxels (n={len(zero_et)}) ---")
     for _, r in zero_et.iterrows():
-        print(f"  {r['Brats20ID']}  (Grade: {r['Grade']}, WT={r['WT_voxels']}, TC={r['TC_voxels']})")
+        print(f"  {r['Brats20ID']}  (WT={r['WT_voxels']}, TC={r['TC_voxels']})")
 
 print(f"\n--- D.2: Top 15 Cases by ET Volume ---")
 for rank, (_, r) in enumerate(stats_df.head(15).iterrows(), 1):
@@ -355,19 +390,13 @@ print(f"\n--- D.3: Top 15 Cases by Number of ET Lesions ---")
 top_by_comp = stats_df.sort_values('ET_components', ascending=False).head(15)
 for rank, (_, r) in enumerate(top_by_comp.iterrows(), 1):
     print(f"  #{rank:<3} {r['Brats20ID']}: Lesions={r['ET_components']}, ET={r['ET_voxels']:>6}, "
-          f"Largest={r['ET_largest_comp']}, "
           f"Sizes={r['ET_comp_sizes']}")
-
-print(f"\n--- D.4: Largest Single ET Lesions (Top 10) ---")
-top_lesions = comp_df.sort_values('component_size', ascending=False).head(10)
-for rank, (_, c) in enumerate(top_lesions.iterrows(), 1):
-    print(f"  #{rank:<3} {c['Brats20ID']} lesion #{int(c['component_idx'])}: "
-          f"Size={int(c['component_size']):>6} voxels "
-          f"({c['comp_ET_ratio']*100:.1f}% of case's total ET)")
 
 print("\n" + "=" * 70)
 print("Done. Output files:")
 print(f"  {OUTPUT_PATH}         — per-case statistics ({len(stats_df)} rows)")
 if len(comp_df) > 0:
     print(f"  {OUTPUT_DETAIL_PATH} — per-lesion detail ({len(comp_df)} rows)")
+    print(f"  {DISTRIBUTION_OUTPUT_PATH} — count by lesion size")
+    print(f"  {PLOT_PATH} — lesion-size curve")
 print("=" * 70)
