@@ -39,3 +39,16 @@ def test_wt_evaluation_registry_contains_requested_five_models():
 
     assert registry[1]["model_kwargs"]["edge_type"] == "laplacian"
     assert registry[3]["model_kwargs"]["multiscale_context_v2"] is True
+
+
+def test_wt_comparison_plot_has_a_color_for_each_registered_model():
+    tree = ast.parse(SCRIPT.read_text(encoding="utf-8"))
+    colors_assignment = next(
+        node
+        for node in ast.walk(tree)
+        if isinstance(node, ast.Assign)
+        and any(isinstance(target, ast.Name) and target.id == "colors"
+                for target in node.targets)
+    )
+    colors = ast.literal_eval(colors_assignment.value)
+    assert len(colors) >= len(_registry_literal())

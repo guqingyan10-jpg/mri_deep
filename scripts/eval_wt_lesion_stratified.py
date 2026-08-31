@@ -229,7 +229,13 @@ def plot_summary(summary_df: pd.DataFrame, output: Path):
     ]
     x = np.arange(len(strata))
     width = 0.18
-    colors = ["#2C7FB8", "#41AB5D", "#D95F0E", "#756BB1"]
+    colors = [
+        "#2C7FB8",  # Baseline
+        "#41AB5D",  # Edge (Laplacian, concat)
+        "#D95F0E",  # HF Concat Boundary w=0.1
+        "#756BB1",  # HF Concat Boundary + Multi-scale V2
+        "#E7298A",  # HF Concat Boundary w=0.05
+    ]
     for ax, (metric, title, ylabel) in zip(axes, metrics):
         for mi, model in enumerate(models):
             values = []
