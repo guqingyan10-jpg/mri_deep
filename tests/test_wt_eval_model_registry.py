@@ -21,11 +21,11 @@ def test_wt_evaluation_registry_contains_requested_five_models():
     registry = _registry_literal()
     labels = [spec["label"] for spec in registry]
     assert labels == [
-        "Baseline (BCEDice)",
-        "Edge (Laplacian, concat)",
-        "HF Concat Boundary(w=0.1)",
-        "HF Concat Boundary +Multi-scale V2 (w=0.1)",
-        "HF Concat Boundary(w=0.05)",
+        "ResUNet (BCE–Dice)",
+        "ResUNet + LHFC",
+        "ResUNet + LHFC + ABS (λ_b = 0.1)",
+        "AFBMS-ResUNet",
+        "ResUNet + LHFC + ABS (λ_b = 0.05)",
     ]
 
     checkpoint_dirs = [spec["checkpoint_dir"] for spec in registry]

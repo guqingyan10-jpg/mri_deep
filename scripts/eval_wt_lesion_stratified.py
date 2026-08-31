@@ -46,7 +46,7 @@ from evaluation.wt_lesion_stratified import (
 MODEL_SPECS = (
     {
         "name": "baseline",
-        "label": "Baseline (BCEDice)",
+        "label": "ResUNet (BCE–Dice)",
         "model_type": "resunet",
         "checkpoint_dir": "/root/autodl-tmp/ResUNet_model",
         "model_kwargs": {"in_channels": 4, "n_classes": 3, "n_channels": 24},
@@ -54,7 +54,7 @@ MODEL_SPECS = (
     },
     {
         "name": "edge_laplacian",
-        "label": "Edge (Laplacian, concat)",
+        "label": "ResUNet + LHFC",
         "model_type": "edge",
         "checkpoint_dir": "/root/autodl-tmp/ResUNet_Edge_concat_laplacian_model",
         "model_kwargs": {
@@ -68,7 +68,7 @@ MODEL_SPECS = (
     },
     {
         "name": "hf_w01",
-        "label": "HF Concat Boundary(w=0.1)",
+        "label": "ResUNet + LHFC + ABS (λ_b = 0.1)",
         "model_type": "hf",
         "checkpoint_dir": "/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_model",
         "model_kwargs": {"in_channels": 4, "n_classes": 3, "n_channels": 24},
@@ -76,7 +76,7 @@ MODEL_SPECS = (
     },
     {
         "name": "hf_w01_multiscale_v2",
-        "label": "HF Concat Boundary +Multi-scale V2 (w=0.1)",
+        "label": "AFBMS-ResUNet",
         "model_type": "hf",
         "checkpoint_dir": "/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_multiscale_v2_model",
         "model_kwargs": {
@@ -89,7 +89,7 @@ MODEL_SPECS = (
     },
     {
         "name": "hf_w005",
-        "label": "HF Concat Boundary(w=0.05)",
+        "label": "ResUNet + LHFC + ABS (λ_b = 0.05)",
         "model_type": "hf",
         "checkpoint_dir": "/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.05_model",
         "model_kwargs": {"in_channels": 4, "n_classes": 3, "n_channels": 24},
