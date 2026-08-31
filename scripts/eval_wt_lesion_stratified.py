@@ -1,4 +1,4 @@
-"""Compare the four baseline models on WT lesion-size strata.
+"""Compare five requested models on WT lesion-size strata.
 
 Metrics are lesion-level (not case-level): one-to-one matched lesion recall,
 miss rate, matched lesion Dice, and GT-anchored lesion Dice.  WT is channel 0
@@ -28,10 +28,9 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(PROJECT_ROOT))
 
 from data.dataset import BratsDataset, get_dataloader
-from models.attunet3d import AttUNet3d
-from models.nnunet3d import nnUNet3d
+from models.resunet_edge import ResUNetEdge
+from models.resunet_hf_concat_boundary import ResUNetHFConcatBoundary
 from models.resunet3d import ResUNet3d
-from models.unet3d import UNet3d
 from evaluation.wt_lesion_stratified import (
     STRATA,
     classify_wt_size,
@@ -40,13 +39,69 @@ from evaluation.wt_lesion_stratified import (
 )
 
 
-DEFAULT_MODELS = (
-    ("UNet", UNet3d, "/root/autodl-tmp/UNet_model"),
-    ("ResUNet", ResUNet3d, "/root/autodl-tmp/ResUNet_model"),
-    ("AttUNet", AttUNet3d, "/root/autodl-tmp/AttUNet_model"),
-    ("nnUNet", nnUNet3d, "/root/autodl-tmp/nnUNet_model"),
+# Keep this registry independent from scripts/eval_all_experiments.py: this
+# script is a separate WT lesion-level analysis of the five requested runs.
+# The values are deliberately literal so the registry can be audited without
+# importing PyTorch (see tests/test_wt_eval_model_registry.py).
+MODEL_SPECS = (
+    {
+        "name": "baseline",
+        "label": "Baseline (BCEDice)",
+        "model_type": "resunet",
+        "checkpoint_dir": "/root/autodl-tmp/ResUNet_model",
+        "model_kwargs": {"in_channels": 4, "n_classes": 3, "n_channels": 24},
+        "key_remap": None,
+    },
+    {
+        "name": "edge_laplacian",
+        "label": "Edge (Laplacian, concat)",
+        "model_type": "edge",
+        "checkpoint_dir": "/root/autodl-tmp/ResUNet_Edge_concat_laplacian_model",
+        "model_kwargs": {
+            "in_channels": 4,
+            "n_classes": 3,
+            "n_channels": 24,
+            "fusion": "concat",
+            "edge_type": "laplacian",
+        },
+        "key_remap": "edge",
+    },
+    {
+        "name": "hf_w01",
+        "label": "HF Concat Boundary(w=0.1)",
+        "model_type": "hf",
+        "checkpoint_dir": "/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_model",
+        "model_kwargs": {"in_channels": 4, "n_classes": 3, "n_channels": 24},
+        "key_remap": None,
+    },
+    {
+        "name": "hf_w01_multiscale_v2",
+        "label": "HF Concat Boundary +Multi-scale V2 (w=0.1)",
+        "model_type": "hf",
+        "checkpoint_dir": "/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_multiscale_v2_model",
+        "model_kwargs": {
+            "in_channels": 4,
+            "n_classes": 3,
+            "n_channels": 24,
+            "multiscale_context_v2": True,
+        },
+        "key_remap": None,
+    },
+    {
+        "name": "hf_w005",
+        "label": "HF Concat Boundary(w=0.05)",
+        "model_type": "hf",
+        "checkpoint_dir": "/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.05_model",
+        "model_kwargs": {"in_channels": 4, "n_classes": 3, "n_channels": 24},
+        "key_remap": None,
+    },
 )
-MODEL_KWARGS = {"in_channels": 4, "n_classes": 3, "n_channels": 24}
+
+MODEL_CLASSES = {
+    "resunet": ResUNet3d,
+    "edge": ResUNetEdge,
+    "hf": ResUNetHFConcatBoundary,
+}
 STRUCTURE_26 = ndimage.generate_binary_structure(3, 3)
 
 
@@ -69,8 +124,9 @@ def find_checkpoint(directory: str) -> str | None:
     return str(sorted(candidates, key=epoch_number)[-1])
 
 
-def load_model(model_class, checkpoint: str, device):
-    model = model_class(**MODEL_KWARGS).to(device)
+def load_model(spec, checkpoint: str, device):
+    model_class = MODEL_CLASSES[spec["model_type"]]
+    model = model_class(**spec["model_kwargs"]).to(device)
     state = torch.load(checkpoint, map_location=device)
     if isinstance(state, dict) and "state_dict" in state:
         state = state["state_dict"]
@@ -80,6 +136,10 @@ def load_model(model_class, checkpoint: str, device):
     for key, value in state.items():
         key = key[7:] if key.startswith("module.") else key
         key = key.replace("out.conv.0.", "out.conv.")
+        if spec.get("key_remap") == "edge" and key.startswith("sobel."):
+            # Early Edge checkpoints named this fixed extractor ``sobel``
+            # even when the run used the Laplacian implementation.
+            key = key.replace("sobel.", "edge_extractor.", 1)
         cleaned[key] = value
     missing, unexpected = model.load_state_dict(cleaned, strict=False)
     if missing or unexpected:
@@ -199,20 +259,26 @@ def main():
     parser.add_argument("--threshold", type=float, default=0.33)
     parser.add_argument("--min-component-size", type=int, default=10)
     parser.add_argument("--device", default=None, help="e.g. cuda or cpu")
-    parser.add_argument("--unet-checkpoint", default=None)
-    parser.add_argument("--resunet-checkpoint", default=None)
-    parser.add_argument("--attunet-checkpoint", default=None)
-    parser.add_argument("--nnunet-checkpoint", default=None)
+    parser.add_argument("--baseline-checkpoint", default=None)
+    parser.add_argument("--edge-laplacian-checkpoint", default=None)
+    parser.add_argument("--hf-w01-checkpoint", dest="hf_w01_checkpoint", default=None)
+    parser.add_argument(
+        "--hf-w01-multiscale-v2-checkpoint",
+        dest="hf_w01_multiscale_v2_checkpoint",
+        default=None,
+    )
+    parser.add_argument("--hf-w005-checkpoint", dest="hf_w005_checkpoint", default=None)
     args = parser.parse_args()
 
     output_dir = Path(args.output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
     device = torch.device(args.device or ("cuda" if torch.cuda.is_available() else "cpu"))
     checkpoint_overrides = {
-        "UNet": args.unet_checkpoint,
-        "ResUNet": args.resunet_checkpoint,
-        "AttUNet": args.attunet_checkpoint,
-        "nnUNet": args.nnunet_checkpoint,
+        "baseline": args.baseline_checkpoint,
+        "edge_laplacian": args.edge_laplacian_checkpoint,
+        "hf_w01": args.hf_w01_checkpoint,
+        "hf_w01_multiscale_v2": args.hf_w01_multiscale_v2_checkpoint,
+        "hf_w005": args.hf_w005_checkpoint,
     }
 
     dataloader = get_dataloader(BratsDataset, args.csv, phase="test", batch_size=1)
@@ -223,13 +289,19 @@ def main():
     all_rows = []
     all_details = []
     all_json = {}
-    for model_name, model_class, model_dir in DEFAULT_MODELS:
-        checkpoint = checkpoint_overrides[model_name] or find_checkpoint(model_dir)
+    for spec in MODEL_SPECS:
+        model_name = spec["label"]
+        checkpoint = checkpoint_overrides[spec["name"]] or find_checkpoint(
+            spec["checkpoint_dir"]
+        )
         if not checkpoint:
-            print(f"[SKIP] {model_name}: checkpoint not found ({model_dir})")
+            print(
+                f"[SKIP] {model_name}: checkpoint not found "
+                f"({spec['checkpoint_dir']})"
+            )
             continue
         print(f"\nEvaluating {model_name}: {checkpoint}")
-        model = load_model(model_class, checkpoint, device)
+        model = load_model(spec, checkpoint, device)
         case_results, detail_rows = evaluate_model(
             model, dataloader, device, args.threshold, args.min_component_size
         )
