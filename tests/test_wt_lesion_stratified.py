@@ -80,3 +80,42 @@ def test_prediction_without_gt_counts_as_false_positive():
     strata = derive_size_strata([10, 20, 30])
     summary = summarize_stratified_cases([result], strata=strata)
     assert summary["all"]["fp"] == 1
+
+
+def test_summary_is_pooled_by_lesion_not_averaged_by_case():
+    strata = {
+        "small": (1, 10),
+        "medium": (11, 20),
+        "large": (21, None),
+    }
+    nine_detected = {
+        "gt_components": [{"size": 1}] * 9,
+        "pred_components": [{}] * 9,
+        "matches": [
+            {"gt_index": index, "dice": 0.8} for index in range(9)
+        ],
+        "gt_lesions": 9,
+        "pred_lesions": 9,
+        "fp": 0,
+    }
+    one_missed = {
+        "gt_components": [{"size": 1}],
+        "pred_components": [],
+        "matches": [],
+        "gt_lesions": 1,
+        "pred_lesions": 0,
+        "fp": 0,
+    }
+
+    summary = summarize_stratified_cases(
+        [nine_detected, one_missed], strata=strata
+    )["small"]
+
+    # A case-wise mean would be (1 + 0) / 2 = 0.5.  Lesion-level pooling is
+    # 9 detected lesions / 10 total GT lesions = 0.9.
+    assert summary["gt_lesions"] == 10
+    assert summary["detected"] == 9
+    assert summary["missed"] == 1
+    assert summary["lesion_recall"] == 0.9
+    assert summary["miss_rate"] == 0.1
+    assert summary["matched_lesion_dice"] == 0.8

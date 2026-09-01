@@ -19,6 +19,7 @@ import numpy as np
 import pandas as pd
 import torch
 import matplotlib
+from torch.utils.data import ConcatDataset, DataLoader
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
@@ -104,6 +105,42 @@ MODEL_CLASSES = {
     "hf": ResUNetHFConcatBoundary,
 }
 STRUCTURE_26 = ndimage.generate_binary_structure(3, 3)
+
+
+def evaluation_dataloader(csv_path, phase):
+    """Build a deterministic evaluation loader and its case manifest.
+
+    ``valid_test`` is an exploratory pooled analysis: it concatenates the
+    project's already-fixed validation and test datasets without resampling.
+    The two original split labels are retained in the manifest so the pooled
+    cohort can be audited.  Training cases are never included here.
+    """
+    split_names = ("valid", "test") if phase == "valid_test" else (phase,)
+    split_loaders = [
+        get_dataloader(BratsDataset, csv_path, phase=name, batch_size=1)
+        for name in split_names
+    ]
+    manifest_rows = []
+    for name, loader in zip(split_names, split_loaders):
+        manifest_rows.extend(
+            {"split": name, "case_id": case_id}
+            for case_id in loader.dataset.df["Brats20ID"].tolist()
+        )
+    case_ids = [row["case_id"] for row in manifest_rows]
+    if len(case_ids) != len(set(case_ids)):
+        raise ValueError("evaluation splits contain duplicate case IDs")
+
+    if len(split_loaders) == 1:
+        return split_loaders[0], pd.DataFrame(manifest_rows)
+    combined_dataset = ConcatDataset([loader.dataset for loader in split_loaders])
+    combined_loader = DataLoader(
+        combined_dataset,
+        batch_size=1,
+        num_workers=0,
+        pin_memory=True,
+        shuffle=False,
+    )
+    return combined_loader, pd.DataFrame(manifest_rows)
 
 
 def find_checkpoint(directory: str) -> str | None:
@@ -282,7 +319,15 @@ def main(default_region="WT"):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--csv", default="tumourCSV.csv")
     parser.add_argument("--region", choices=("WT", "ET"), default=default_region)
-    parser.add_argument("--phase", choices=("valid", "test"), default="test")
+    parser.add_argument(
+        "--phase",
+        choices=("valid", "test", "valid_test"),
+        default="test",
+        help=(
+            "Evaluation cohort. valid_test pools the fixed validation and test "
+            "cases for exploratory analysis; it does not refit lesion strata."
+        ),
+    )
     parser.add_argument("--output-dir", default=None)
     parser.add_argument("--threshold", type=float, default=0.33)
     parser.add_argument("--min-component-size", type=int, default=10)
@@ -305,7 +350,14 @@ def main(default_region="WT"):
 
     region = args.region
     channel = {"WT": 0, "ET": 2}[region]
-    output_dir = Path(args.output_dir or f"{region.lower()}_lesion_stratified_results")
+    if args.output_dir:
+        output_dir = Path(args.output_dir)
+    elif args.phase == "valid_test":
+        output_dir = Path(
+            f"{region.lower()}_lesion_stratified_valid_test_results"
+        )
+    else:
+        output_dir = Path(f"{region.lower()}_lesion_stratified_results")
     output_dir.mkdir(parents=True, exist_ok=True)
     device = torch.device(args.device or ("cuda" if torch.cuda.is_available() else "cpu"))
     checkpoint_overrides = {
@@ -363,13 +415,20 @@ def main(default_region="WT"):
                 for name, (lower, upper) in strata.items()
             },
         }
-    dataloader = get_dataloader(
-        BratsDataset, args.csv, phase=args.phase, batch_size=1
-    )
+    dataloader, case_manifest = evaluation_dataloader(args.csv, args.phase)
     print(f"Device: {device}; {args.phase} cases: {len(dataloader.dataset)}")
+    print(
+        "Evaluation split counts:",
+        ", ".join(
+            f"{name}={count}"
+            for name, count in case_manifest["split"].value_counts(sort=False).items()
+        ),
+    )
     print(f"Region: {region} (channel {channel}); connectivity: 26; minimum component size:", args.min_component_size)
     print("Training-defined strata:", ", ".join(f"{name}={lo}-{hi or 'inf'}" for name, (lo, hi) in strata.items()))
     strata_metadata["apply_split"] = args.phase
+    strata_metadata["evaluation_splits"] = case_manifest["split"].drop_duplicates().tolist()
+    strata_metadata["evaluation_cases"] = len(case_manifest)
     strata_metadata["train_fraction"] = 0.7
     with open(output_dir / f"{region.lower()}_lesion_strata.json", "w", encoding="utf-8") as handle:
         json.dump(_safe_json(strata_metadata), handle, indent=2)
@@ -438,6 +497,9 @@ def main(default_region="WT"):
     summary_df = pd.DataFrame(all_rows)
     detail_df = pd.DataFrame(all_details)
     prefix = region.lower()
+    case_manifest.to_csv(
+        output_dir / f"{prefix}_evaluated_cases.csv", index=False
+    )
     summary_df.to_csv(output_dir / f"{prefix}_lesion_stratified_summary.csv", index=False)
     detail_df.to_csv(output_dir / f"{prefix}_lesion_stratified_detail.csv", index=False)
     with open(output_dir / f"{prefix}_lesion_stratified_summary.json", "w", encoding="utf-8") as handle:

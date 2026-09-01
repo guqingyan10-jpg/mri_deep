@@ -65,12 +65,21 @@ def test_et_entry_point_reuses_shared_five_model_evaluation():
 def test_evaluation_fits_strata_on_train_and_applies_to_selected_phase():
     source = SCRIPT.read_text(encoding="utf-8")
     assert 'phase="train"' in source
-    assert 'choices=("valid", "test")' in source
+    assert 'choices=("valid", "test", "valid_test")' in source
     assert 'default="test"' in source
     assert '{"WT": 0, "ET": 2}' in source
     assert "derive_size_strata(training_sizes" in source
     assert '"--strata-json"' in source
     assert 'strata_metadata.get("fit_split") != "train"' in source
+
+
+def test_pooled_validation_test_mode_is_auditable_and_does_not_overwrite_test():
+    source = SCRIPT.read_text(encoding="utf-8")
+    assert 'split_names = ("valid", "test") if phase == "valid_test"' in source
+    assert "ConcatDataset" in source
+    assert 'f"{region.lower()}_lesion_stratified_valid_test_results"' in source
+    assert 'f"{prefix}_evaluated_cases.csv"' in source
+    assert 'strata_metadata["evaluation_splits"]' in source
 
 
 def test_training_distribution_supports_wt_and_et_regions():
