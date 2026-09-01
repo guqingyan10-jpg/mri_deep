@@ -3,7 +3,10 @@
 For each seed-specific V2 best checkpoint, the script fixes the model weights,
 validation cases, preprocessing, and binarization threshold.  It evaluates the
 same checkpoint three times with alpha=0, the learned checkpoint alpha, and
-alpha=1.  No training or checkpoint-history reconstruction is performed.
+alpha=1.  Macro/ET Dice keep the existing case-level definitions; the third
+primary metric is training-stratified small-lesion ET GT-anchored Dice, using
+the repository's existing one-to-one lesion matcher.  No training or
+checkpoint-history reconstruction is performed.
 
 Seed 55 intentionally uses the main-experiment directory.  Seeds 42 and 123
 use the stability-runner directories, so cross-seed summaries are descriptive
@@ -17,6 +20,7 @@ import gc
 import json
 import re
 import sys
+from collections import OrderedDict
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -34,6 +38,11 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(PROJECT_ROOT))
 
 from data.dataset import BratsDataset, get_dataloader
+from evaluation.wt_lesion_stratified import (
+    classify_lesion_size,
+    match_lesion_components,
+    summarize_stratified_cases,
+)
 from models.resunet_hf_concat_boundary import ResUNetHFConcatBoundary
 
 
@@ -42,7 +51,7 @@ ALPHA_MODES = ("zero", "learned", "one")
 METRIC_COLUMNS = (
     "macro_dice",
     "et_dice",
-    "small_case_et_dice",
+    "small_lesion_gt_anchored_dice",
 )
 SEED_COLORS = {42: "#4E79A7", 55: "#E15759", 123: "#59A14F"}
 
@@ -52,6 +61,28 @@ class SeedCheckpointSpec:
     seed: int
     checkpoint_dir: Path
     training_protocol: str
+
+
+def load_et_strata(path: Path, min_component_size: int):
+    """Load ET lesion-size bounds fitted on the fixed training split."""
+    with path.open(encoding="utf-8") as handle:
+        metadata = json.load(handle)
+    if metadata.get("region") != "ET":
+        raise ValueError(f"strata JSON region must be ET, got {metadata.get('region')!r}")
+    if metadata.get("fit_split") != "train":
+        raise ValueError("ET strata must be fitted on the training split")
+    if metadata.get("connectivity") != 26:
+        raise ValueError("ET strata must use 26-connectivity")
+    if metadata.get("min_component_size") != min_component_size:
+        raise ValueError(
+            "ET strata minimum component size does not match "
+            "--min-component-size"
+        )
+    strata = OrderedDict(
+        (name, tuple(metadata["strata"][name]))
+        for name in ("small", "medium", "large")
+    )
+    return strata, metadata
 
 
 def default_seed_specs(stability_root: Path, seed55_dir: Path):
@@ -190,9 +221,19 @@ def _binary_dice(prediction, target):
     return 2.0 * intersection / denominator if denominator else 1.0
 
 
-def evaluate_case_dice(model, dataloader, device, threshold, description):
-    """Return case-level WT/TC/ET Dice using the existing metric convention."""
-    rows = []
+def evaluate_case_dice_and_et_lesions(
+    model,
+    dataloader,
+    device,
+    threshold,
+    min_component_size,
+    strata,
+    description,
+):
+    """Return case Dice plus one-to-one matched ET lesion results."""
+    case_rows = []
+    case_lesion_results = []
+    lesion_rows = []
     with torch.no_grad():
         for data in tqdm(dataloader, desc=description):
             images = data["image"].to(device)
@@ -211,7 +252,7 @@ def evaluate_case_dice(model, dataloader, device, threshold, description):
                     )
                     for channel in range(3)
                 ]
-                rows.append(
+                case_rows.append(
                     {
                         "case_id": case_id,
                         "wt_dice": dice[0],
@@ -220,25 +261,44 @@ def evaluate_case_dice(model, dataloader, device, threshold, description):
                         "gt_et_voxels": int(targets[index, 2].sum()),
                     }
                 )
-    frame = pd.DataFrame(rows)
-    if frame.empty:
+
+                result = match_lesion_components(
+                    predictions[index, 2],
+                    targets[index, 2],
+                    min_component_size=min_component_size,
+                )
+                result["case_id"] = case_id
+                case_lesion_results.append(result)
+                matched_by_gt = {
+                    match["gt_index"]: match for match in result["matches"]
+                }
+                for gt_index, component in enumerate(result["gt_components"]):
+                    match = matched_by_gt.get(gt_index)
+                    lesion_rows.append(
+                        {
+                            "case_id": case_id,
+                            "gt_lesion_id": component["id"],
+                            "stratum": classify_lesion_size(
+                                component["size"], strata
+                            ),
+                            "gt_voxels": component["size"],
+                            "pred_lesion_id": match["pred_id"] if match else "",
+                            "pred_voxels": match["pred_size"] if match else "",
+                            "intersection_voxels": (
+                                match["intersection"] if match else 0
+                            ),
+                            "detected": bool(match),
+                            "matched_dice": match["dice"] if match else np.nan,
+                            "gt_anchored_dice": match["dice"] if match else 0.0,
+                        }
+                    )
+    case_frame = pd.DataFrame(case_rows)
+    lesion_frame = pd.DataFrame(lesion_rows)
+    if case_frame.empty:
         raise ValueError("validation dataloader produced no cases")
-    if frame["case_id"].duplicated().any():
+    if case_frame["case_id"].duplicated().any():
         raise ValueError("validation dataloader produced duplicate case IDs")
-    return frame
-
-
-def small_case_definition(per_case: pd.DataFrame):
-    """Freeze the existing bottom-quartile positive-ET validation subset."""
-    positive = per_case.loc[per_case["gt_et_voxels"] > 0, "gt_et_voxels"]
-    if positive.empty:
-        raise ValueError("validation set has no positive-ET cases")
-    threshold = float(np.percentile(positive.to_numpy(), 25))
-    mask = (
-        (per_case["gt_et_voxels"] > 0)
-        & (per_case["gt_et_voxels"] <= threshold)
-    )
-    return threshold, set(per_case.loc[mask, "case_id"])
+    return case_frame, case_lesion_results, lesion_frame
 
 
 def assert_same_ground_truth(reference, candidate):
@@ -248,18 +308,34 @@ def assert_same_ground_truth(reference, candidate):
         raise ValueError("validation cases or GT ET volumes changed between runs")
 
 
-def summarize_run(per_case, small_case_ids):
+def assert_same_gt_lesions(reference, candidate):
+    columns = ["case_id", "gt_lesion_id", "stratum", "gt_voxels"]
+    left = reference[columns].sort_values(["case_id", "gt_lesion_id"])
+    right = candidate[columns].sort_values(["case_id", "gt_lesion_id"])
+    if not left.reset_index(drop=True).equals(right.reset_index(drop=True)):
+        raise ValueError("validation GT ET lesions changed between alpha runs")
+
+
+def summarize_run(per_case, case_lesion_results, strata):
     class_means = [
         float(per_case[column].mean())
         for column in ("wt_dice", "tc_dice", "et_dice")
     ]
-    small = per_case[per_case["case_id"].isin(small_case_ids)]
-    if len(small) != len(small_case_ids):
-        raise ValueError("small-case membership is incomplete")
+    small = summarize_stratified_cases(case_lesion_results, strata)["small"]
+    if not small["gt_lesions"]:
+        raise ValueError("validation set has no small ET lesions")
     return {
         "macro_dice": float(np.mean(class_means)),
         "et_dice": class_means[2],
-        "small_case_et_dice": float(small["et_dice"].mean()),
+        "small_lesion_gt_anchored_dice": small[
+            "gt_anchored_lesion_dice"
+        ],
+        "small_lesion_matched_dice": small["matched_lesion_dice"],
+        "small_lesion_recall": small["lesion_recall"],
+        "small_lesion_miss_rate": small["miss_rate"],
+        "small_gt_lesions": small["gt_lesions"],
+        "small_detected_lesions": small["detected"],
+        "small_missed_lesions": small["missed"],
     }
 
 
@@ -272,14 +348,16 @@ def evaluate_seed(
     dataloader,
     device,
     threshold,
+    min_component_size,
+    strata,
     reference_gt,
-    small_case_ids,
-    small_threshold,
+    reference_gt_lesions,
 ):
     checkpoint, state, learned_alpha = load_best_state(spec)
     model = build_v2_model(state, device)
     summary_rows = []
-    detail_frames = []
+    case_detail_frames = []
+    lesion_detail_frames = []
 
     for mode in ALPHA_MODES:
         missing, unexpected = model.load_state_dict(state, strict=False)
@@ -290,20 +368,25 @@ def evaluate_seed(
         evaluation_alpha = alpha_mode_value(mode, learned_alpha)
         with torch.no_grad():
             model.multiscale_context.alpha.fill_(evaluation_alpha)
-        per_case = evaluate_case_dice(
-            model,
-            dataloader,
-            device,
-            threshold,
-            f"Seed {spec.seed}, alpha={mode}",
+        per_case, case_lesion_results, per_lesion = (
+            evaluate_case_dice_and_et_lesions(
+                model,
+                dataloader,
+                device,
+                threshold,
+                min_component_size,
+                strata,
+                f"Seed {spec.seed}, alpha={mode}",
+            )
         )
         if reference_gt is None:
             reference_gt = per_case.copy()
-            small_threshold, small_case_ids = small_case_definition(per_case)
+            reference_gt_lesions = per_lesion.copy()
         else:
             assert_same_ground_truth(reference_gt, per_case)
+            assert_same_gt_lesions(reference_gt_lesions, per_lesion)
 
-        metrics = summarize_run(per_case, small_case_ids)
+        metrics = summarize_run(per_case, case_lesion_results, strata)
         summary_rows.append(
             {
                 "seed": spec.seed,
@@ -316,8 +399,6 @@ def evaluate_seed(
                 "evaluation_split": "valid",
                 "threshold": threshold,
                 "n_cases": len(per_case),
-                "small_case_threshold_voxels": small_threshold,
-                "small_case_n": len(small_case_ids),
                 **metrics,
             }
         )
@@ -326,7 +407,13 @@ def evaluate_seed(
         per_case.insert(0, "checkpoint_alpha", learned_alpha)
         per_case.insert(0, "training_protocol", spec.training_protocol)
         per_case.insert(0, "seed", spec.seed)
-        detail_frames.append(per_case)
+        case_detail_frames.append(per_case)
+        per_lesion.insert(0, "alpha_mode", mode)
+        per_lesion.insert(0, "evaluation_alpha", evaluation_alpha)
+        per_lesion.insert(0, "checkpoint_alpha", learned_alpha)
+        per_lesion.insert(0, "training_protocol", spec.training_protocol)
+        per_lesion.insert(0, "seed", spec.seed)
+        lesion_detail_frames.append(per_lesion)
 
     del model, state
     gc.collect()
@@ -334,10 +421,10 @@ def evaluate_seed(
         torch.cuda.empty_cache()
     return (
         summary_rows,
-        detail_frames,
+        case_detail_frames,
+        lesion_detail_frames,
         reference_gt,
-        small_case_ids,
-        small_threshold,
+        reference_gt_lesions,
     )
 
 
@@ -397,7 +484,9 @@ def plot_sensitivity(summary, output):
     titles = {
         "macro_dice": "Macro Dice",
         "et_dice": "ET Dice",
-        "small_case_et_dice": "Small-case ET Dice",
+        "small_lesion_gt_anchored_dice": (
+            "Small-lesion ET GT-anchored Dice"
+        ),
     }
     fig, axes = plt.subplots(1, 3, figsize=(15.5, 4.8))
     x = np.arange(len(ALPHA_MODES))
@@ -482,7 +571,7 @@ def write_report(summary, aggregate, alpha_table, alpha_aggregate, output):
             "",
             "## Per-seed sensitivity",
             "",
-            "| Seed | Protocol | Alpha mode | Eval alpha | Macro Dice | ET Dice | Small-case ET Dice |",
+            "| Seed | Protocol | Alpha mode | Eval alpha | Macro Dice | ET Dice | Small-lesion GT-anchored Dice |",
             "|---:|---|---|---:|---:|---:|---:|",
         ]
     )
@@ -490,14 +579,33 @@ def write_report(summary, aggregate, alpha_table, alpha_aggregate, output):
         lines.append(
             f"| {row.seed} | {row.training_protocol} | {row.alpha_mode} | "
             f"{row.evaluation_alpha:.8g} | {row.macro_dice:.5f} | "
-            f"{row.et_dice:.5f} | {row.small_case_et_dice:.5f} |"
+            f"{row.et_dice:.5f} | "
+            f"{row.small_lesion_gt_anchored_dice:.5f} |"
+        )
+    lines.extend(
+        [
+            "",
+            "## Small-lesion ET diagnostics",
+            "",
+            "| Seed | Alpha mode | GT lesions | Detected | Missed | Recall | Miss rate | Matched Dice | GT-anchored Dice |",
+            "|---:|---|---:|---:|---:|---:|---:|---:|---:|",
+        ]
+    )
+    for row in summary.itertuples(index=False):
+        lines.append(
+            f"| {row.seed} | {row.alpha_mode} | {row.small_gt_lesions} | "
+            f"{row.small_detected_lesions} | {row.small_missed_lesions} | "
+            f"{row.small_lesion_recall:.5f} | "
+            f"{row.small_lesion_miss_rate:.5f} | "
+            f"{row.small_lesion_matched_dice:.5f} | "
+            f"{row.small_lesion_gt_anchored_dice:.5f} |"
         )
     lines.extend(
         [
             "",
             "## Descriptive cross-seed summary",
             "",
-            "| Alpha mode | Macro Dice | ET Dice | Small-case ET Dice |",
+            "| Alpha mode | Macro Dice | ET Dice | Small-lesion GT-anchored Dice |",
             "|---|---:|---:|---:|",
         ]
     )
@@ -505,8 +613,9 @@ def write_report(summary, aggregate, alpha_table, alpha_aggregate, output):
         lines.append(
             f"| {row.alpha_mode} | {row.macro_dice_mean:.5f} +/- "
             f"{row.macro_dice_std:.5f} | {row.et_dice_mean:.5f} +/- "
-            f"{row.et_dice_std:.5f} | {row.small_case_et_dice_mean:.5f} +/- "
-            f"{row.small_case_et_dice_std:.5f} |"
+            f"{row.et_dice_std:.5f} | "
+            f"{row.small_lesion_gt_anchored_dice_mean:.5f} +/- "
+            f"{row.small_lesion_gt_anchored_dice_std:.5f} |"
         )
     output.write_text("\n".join(lines) + "\n", encoding="utf-8")
 
@@ -537,11 +646,20 @@ def main():
         help="Override a seed checkpoint directory; may be repeated",
     )
     parser.add_argument("--threshold", type=float, default=0.33)
+    parser.add_argument(
+        "--et-strata-json",
+        type=Path,
+        default=Path(
+            "training_lesion_distributions/et_training_lesion_strata.json"
+        ),
+        help="Frozen ET lesion-size strata fitted on the training split",
+    )
+    parser.add_argument("--min-component-size", type=int, default=10)
     parser.add_argument("--device", default=None)
     parser.add_argument(
         "--output-dir",
         type=Path,
-        default=Path("alpha_sensitivity_results"),
+        default=Path("alpha_sensitivity_lesion_results"),
     )
     parser.add_argument(
         "--inspect-only",
@@ -590,6 +708,17 @@ def main():
         print(f"Saved checkpoint alpha inspection to {args.output_dir}")
         return
 
+    strata, strata_metadata = load_et_strata(
+        args.et_strata_json, args.min_component_size
+    )
+    print(
+        "Training-defined ET strata:",
+        ", ".join(
+            f"{name}={lower}-{upper if upper is not None else 'inf'}"
+            for name, (lower, upper) in strata.items()
+        ),
+    )
+
     device = torch.device(
         args.device or ("cuda" if torch.cuda.is_available() else "cpu")
     )
@@ -599,26 +728,35 @@ def main():
     print(f"Device: {device}; fixed validation cases: {len(validation_loader.dataset)}")
 
     summary_rows = []
-    detail_frames = []
+    case_detail_frames = []
+    lesion_detail_frames = []
     reference_gt = None
-    small_case_ids = None
-    small_threshold = None
+    reference_gt_lesions = None
     for spec in selected:
         result = evaluate_seed(
             spec,
             validation_loader,
             device,
             args.threshold,
+            args.min_component_size,
+            strata,
             reference_gt,
-            small_case_ids,
-            small_threshold,
+            reference_gt_lesions,
         )
-        rows, details, reference_gt, small_case_ids, small_threshold = result
+        (
+            rows,
+            case_details,
+            lesion_details,
+            reference_gt,
+            reference_gt_lesions,
+        ) = result
         summary_rows.extend(rows)
-        detail_frames.extend(details)
+        case_detail_frames.extend(case_details)
+        lesion_detail_frames.extend(lesion_details)
 
     summary = pd.DataFrame(summary_rows)
-    details = pd.concat(detail_frames, ignore_index=True)
+    case_details = pd.concat(case_detail_frames, ignore_index=True)
+    lesion_details = pd.concat(lesion_detail_frames, ignore_index=True)
     learned_metrics = summary[summary["alpha_mode"] == "learned"].set_index(
         "seed"
     )
@@ -635,15 +773,26 @@ def main():
     aggregate.to_csv(
         args.output_dir / "alpha_sensitivity_summary.csv", index=False
     )
-    details.to_csv(
+    case_details.to_csv(
         args.output_dir / "alpha_sensitivity_per_case.csv", index=False
     )
-    pd.DataFrame(
-        {
-            "case_id": sorted(small_case_ids),
-            "small_case_threshold_voxels": small_threshold,
-        }
-    ).to_csv(args.output_dir / "small_case_validation_cases.csv", index=False)
+    lesion_details.to_csv(
+        args.output_dir / "alpha_sensitivity_per_lesion.csv", index=False
+    )
+    reference_gt_lesions[
+        reference_gt_lesions["stratum"] == "small"
+    ][["case_id", "gt_lesion_id", "gt_voxels", "stratum"]].to_csv(
+        args.output_dir / "small_et_validation_lesions.csv", index=False
+    )
+    strata_output = dict(strata_metadata)
+    strata_output["source_json"] = str(args.et_strata_json)
+    strata_output["apply_split"] = "valid"
+    with open(
+        args.output_dir / "et_lesion_strata_applied.json",
+        "w",
+        encoding="utf-8",
+    ) as handle:
+        json.dump(strata_output, handle, indent=2)
 
     plot_sensitivity(
         summary, args.output_dir / "alpha_sensitivity_metrics.png"

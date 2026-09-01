@@ -21,6 +21,21 @@ def test_alpha_sensitivity_uses_fixed_validation_and_three_gate_modes():
     assert '"evaluation_split": "valid"' in source
 
 
+def test_small_metric_reuses_training_defined_et_lesion_strata():
+    source = _source()
+    assert '"--et-strata-json"' in source
+    assert "et_training_lesion_strata.json" in source
+    assert 'metadata.get("fit_split") != "train"' in source
+    assert 'metadata.get("region") != "ET"' in source
+    assert "match_lesion_components(" in source
+    assert "summarize_stratified_cases(case_lesion_results, strata)" in source
+    assert '"small_lesion_gt_anchored_dice"' in source
+    assert '"small_lesion_matched_dice"' in source
+    assert '"small_lesion_recall"' in source
+    assert '"small_lesion_miss_rate"' in source
+    assert "small_case_definition" not in source
+
+
 def test_seed55_uses_the_distinct_main_experiment_directory():
     tree = ast.parse(_source())
     defaults = [
@@ -40,7 +55,7 @@ def test_seed55_uses_the_distinct_main_experiment_directory():
 def test_sensitivity_does_not_claim_to_reconstruct_training_history():
     source = _source()
     assert "last_epoch_model" not in source
-    assert "No training or checkpoint-history reconstruction" in source
+    assert "checkpoint-history reconstruction is performed" in source
 
 
 def test_outputs_include_auditable_cases_alpha_summary_and_figures():
@@ -48,9 +63,11 @@ def test_outputs_include_auditable_cases_alpha_summary_and_figures():
     for filename in (
         "alpha_sensitivity_per_seed.csv",
         "alpha_sensitivity_per_case.csv",
+        "alpha_sensitivity_per_lesion.csv",
         "alpha_checkpoint_values.csv",
         "alpha_checkpoint_summary.json",
-        "small_case_validation_cases.csv",
+        "small_et_validation_lesions.csv",
+        "et_lesion_strata_applied.json",
         "alpha_sensitivity_metrics.png",
     ):
         assert filename in source

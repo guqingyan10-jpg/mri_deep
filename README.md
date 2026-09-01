@@ -200,6 +200,12 @@ python scripts/eval_key_comparison.py --seed 42 --no-timing --no-cache
 seed42/123 使用 stability runner 目录；脚本会在结果中保留训练协议标签，
 因此三种子的汇总仅作描述性报告。
 
+三项主指标为 Macro Dice、ET Dice 和病灶级
+Small-lesion ET GT-anchored Dice。Small病灶使用训练集拟合并冻结的
+`et_training_lesion_strata.json`，复用现有26邻域、一对一匹配和最小10
+体素口径；漏检的small GT病灶Dice记为0。脚本同时输出small病灶的
+Matched Dice、Recall、Miss rate和逐病灶明细。
+
 ```bash
 python scripts/eval_alpha_sensitivity.py
 ```
@@ -227,7 +233,8 @@ python scripts/eval_alpha_sensitivity.py \
   --checkpoint-dir 123=/path/to/seed123_v2
 ```
 
-输出保存在 `alpha_sensitivity_results/`，包括逐种子结果、逐病例 Dice、
-small-case 固定病例表、best-checkpoint alpha 均值/范围和敏感性图。
+输出保存在 `alpha_sensitivity_lesion_results/`，包括逐种子结果、逐病例 Dice、
+逐ET病灶明细、small病灶固定清单、best-checkpoint alpha 均值/范围和
+敏感性图。
 当前版本不生成 alpha 学习过程；仅保留最后一个 last-epoch checkpoint
 不足以恢复真实的逐 epoch 曲线，该分析待后续单独设计。
