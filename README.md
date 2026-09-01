@@ -195,7 +195,7 @@ python scripts/eval_key_comparison.py --seed 42 --no-timing --no-cache
 
 ### V2 alpha 最小敏感性
 
-该诊断固定三个种子的 V2 `best_model` 和验证集，只在推理时将标量
+该诊断固定三个种子的 V2 `best_model` 和37例测试集，只在推理时将标量
 `alpha` 分别设置为 0、checkpoint 学习值和 1。seed55 使用主实验目录，
 seed42/123 使用 stability runner 目录；脚本会在结果中保留训练协议标签，
 因此三种子的汇总仅作描述性报告。
@@ -233,7 +233,7 @@ python scripts/eval_alpha_sensitivity.py \
   --checkpoint-dir 123=/path/to/seed123_v2
 ```
 
-输出保存在 `alpha_sensitivity_lesion_results/`，包括逐种子结果、逐病例 Dice、
+输出保存在 `alpha_sensitivity_test_results/`，包括逐种子结果、逐病例 Dice、
 逐ET病灶明细、small病灶固定清单、best-checkpoint alpha 均值/范围和
 敏感性图。
 当前版本不生成 alpha 学习过程；仅保留最后一个 last-epoch checkpoint

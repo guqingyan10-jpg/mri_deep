@@ -13,12 +13,14 @@ def _source():
     return SCRIPT.read_text(encoding="utf-8")
 
 
-def test_alpha_sensitivity_uses_fixed_validation_and_three_gate_modes():
+def test_alpha_sensitivity_uses_fixed_test_set_and_three_gate_modes():
     source = _source()
-    assert 'phase="valid"' in source
+    assert 'phase="test"' in source
+    assert '"--expected-test-cases"' in source
+    assert "default=37" in source
     assert 'ALPHA_MODES = ("zero", "learned", "one")' in source
     assert "model.multiscale_context.alpha.fill_(evaluation_alpha)" in source
-    assert '"evaluation_split": "valid"' in source
+    assert '"evaluation_split": "test"' in source
 
 
 def test_small_metric_reuses_training_defined_et_lesion_strata():
@@ -66,7 +68,7 @@ def test_outputs_include_auditable_cases_alpha_summary_and_figures():
         "alpha_sensitivity_per_lesion.csv",
         "alpha_checkpoint_values.csv",
         "alpha_checkpoint_summary.json",
-        "small_et_validation_lesions.csv",
+        "small_et_test_lesions.csv",
         "et_lesion_strata_applied.json",
         "alpha_sensitivity_metrics.png",
     ):
@@ -79,7 +81,7 @@ def test_cross_seed_summary_is_sample_standard_deviation():
     assert "mixed_training_protocols" in source
 
 
-def test_checkpoint_inspection_can_run_without_validation_inference():
+def test_checkpoint_inspection_can_run_without_test_inference():
     source = _source()
     assert '"--inspect-only"' in source
     assert "if args.inspect_only:" in source

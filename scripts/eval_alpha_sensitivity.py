@@ -1,7 +1,7 @@
-"""Run the minimal V2 alpha sensitivity experiment on the validation set.
+"""Run the minimal V2 alpha sensitivity experiment on the fixed test set.
 
 For each seed-specific V2 best checkpoint, the script fixes the model weights,
-validation cases, preprocessing, and binarization threshold.  It evaluates the
+test cases, preprocessing, and binarization threshold.  It evaluates the
 same checkpoint three times with alpha=0, the learned checkpoint alpha, and
 alpha=1.  Macro/ET Dice keep the existing case-level definitions; the third
 primary metric is training-stratified small-lesion ET GT-anchored Dice, using
@@ -295,9 +295,9 @@ def evaluate_case_dice_and_et_lesions(
     case_frame = pd.DataFrame(case_rows)
     lesion_frame = pd.DataFrame(lesion_rows)
     if case_frame.empty:
-        raise ValueError("validation dataloader produced no cases")
+        raise ValueError("test dataloader produced no cases")
     if case_frame["case_id"].duplicated().any():
-        raise ValueError("validation dataloader produced duplicate case IDs")
+        raise ValueError("test dataloader produced duplicate case IDs")
     return case_frame, case_lesion_results, lesion_frame
 
 
@@ -305,7 +305,7 @@ def assert_same_ground_truth(reference, candidate):
     left = reference[["case_id", "gt_et_voxels"]].sort_values("case_id")
     right = candidate[["case_id", "gt_et_voxels"]].sort_values("case_id")
     if not left.reset_index(drop=True).equals(right.reset_index(drop=True)):
-        raise ValueError("validation cases or GT ET volumes changed between runs")
+        raise ValueError("test cases or GT ET volumes changed between runs")
 
 
 def assert_same_gt_lesions(reference, candidate):
@@ -313,7 +313,7 @@ def assert_same_gt_lesions(reference, candidate):
     left = reference[columns].sort_values(["case_id", "gt_lesion_id"])
     right = candidate[columns].sort_values(["case_id", "gt_lesion_id"])
     if not left.reset_index(drop=True).equals(right.reset_index(drop=True)):
-        raise ValueError("validation GT ET lesions changed between alpha runs")
+        raise ValueError("test GT ET lesions changed between alpha runs")
 
 
 def summarize_run(per_case, case_lesion_results, strata):
@@ -323,7 +323,7 @@ def summarize_run(per_case, case_lesion_results, strata):
     ]
     small = summarize_stratified_cases(case_lesion_results, strata)["small"]
     if not small["gt_lesions"]:
-        raise ValueError("validation set has no small ET lesions")
+        raise ValueError("test set has no small ET lesions")
     return {
         "macro_dice": float(np.mean(class_means)),
         "et_dice": class_means[2],
@@ -396,7 +396,7 @@ def evaluate_seed(
                 "checkpoint_alpha": learned_alpha,
                 "alpha_mode": mode,
                 "evaluation_alpha": evaluation_alpha,
-                "evaluation_split": "valid",
+                "evaluation_split": "test",
                 "threshold": threshold,
                 "n_cases": len(per_case),
                 **metrics,
@@ -528,14 +528,14 @@ def plot_sensitivity(summary, output):
         ax.grid(axis="y", alpha=0.25)
     axes[0].legend(frameon=False, fontsize=8)
     fig.suptitle(
-        "Validation-set sensitivity to the V2 residual gate",
+        "Test-set sensitivity to the V2 residual gate",
         fontsize=15,
         fontweight="semibold",
     )
     fig.text(
         0.5,
         0.01,
-        "All weights and validation cases are fixed within seed; only alpha is overwritten. "
+        "All weights and test cases are fixed within seed; only alpha is overwritten. "
         "Axes use local ranges and exact values are annotated.",
         ha="center",
         fontsize=8.5,
@@ -547,7 +547,7 @@ def plot_sensitivity(summary, output):
 
 def write_report(summary, aggregate, alpha_table, alpha_aggregate, output):
     lines = [
-        "# V2 Alpha Sensitivity (Validation Set)",
+        "# V2 Alpha Sensitivity (Test Set)",
         "",
         "Seed 55 is the main experiment; seeds 42 and 123 use the stability runner. "
         "Cross-seed summaries are descriptive because the training protocols differ.",
@@ -655,11 +655,17 @@ def main():
         help="Frozen ET lesion-size strata fitted on the training split",
     )
     parser.add_argument("--min-component-size", type=int, default=10)
+    parser.add_argument(
+        "--expected-test-cases",
+        type=int,
+        default=37,
+        help="Fail unless the fixed test split contains this many cases",
+    )
     parser.add_argument("--device", default=None)
     parser.add_argument(
         "--output-dir",
         type=Path,
-        default=Path("alpha_sensitivity_lesion_results"),
+        default=Path("alpha_sensitivity_test_results"),
     )
     parser.add_argument(
         "--inspect-only",
@@ -722,10 +728,16 @@ def main():
     device = torch.device(
         args.device or ("cuda" if torch.cuda.is_available() else "cpu")
     )
-    validation_loader = get_dataloader(
-        BratsDataset, args.csv, phase="valid", batch_size=1
+    test_loader = get_dataloader(
+        BratsDataset, args.csv, phase="test", batch_size=1
     )
-    print(f"Device: {device}; fixed validation cases: {len(validation_loader.dataset)}")
+    actual_test_cases = len(test_loader.dataset)
+    if actual_test_cases != args.expected_test_cases:
+        raise ValueError(
+            f"expected {args.expected_test_cases} fixed test cases, "
+            f"but {args.csv} produced {actual_test_cases}"
+        )
+    print(f"Device: {device}; fixed test cases: {actual_test_cases}")
 
     summary_rows = []
     case_detail_frames = []
@@ -735,7 +747,7 @@ def main():
     for spec in selected:
         result = evaluate_seed(
             spec,
-            validation_loader,
+            test_loader,
             device,
             args.threshold,
             args.min_component_size,
@@ -782,11 +794,11 @@ def main():
     reference_gt_lesions[
         reference_gt_lesions["stratum"] == "small"
     ][["case_id", "gt_lesion_id", "gt_voxels", "stratum"]].to_csv(
-        args.output_dir / "small_et_validation_lesions.csv", index=False
+        args.output_dir / "small_et_test_lesions.csv", index=False
     )
     strata_output = dict(strata_metadata)
     strata_output["source_json"] = str(args.et_strata_json)
-    strata_output["apply_split"] = "valid"
+    strata_output["apply_split"] = "test"
     with open(
         args.output_dir / "et_lesion_strata_applied.json",
         "w",
