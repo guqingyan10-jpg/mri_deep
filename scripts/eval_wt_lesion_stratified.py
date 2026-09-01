@@ -282,7 +282,7 @@ def main(default_region="WT"):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--csv", default="tumourCSV.csv")
     parser.add_argument("--region", choices=("WT", "ET"), default=default_region)
-    parser.add_argument("--phase", choices=("valid", "test"), default="valid")
+    parser.add_argument("--phase", choices=("valid", "test"), default="test")
     parser.add_argument("--output-dir", default=None)
     parser.add_argument("--threshold", type=float, default=0.33)
     parser.add_argument("--min-component-size", type=int, default=10)

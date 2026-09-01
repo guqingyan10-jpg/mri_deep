@@ -4,6 +4,7 @@ from pathlib import Path
 
 SCRIPT = Path(__file__).resolve().parents[1] / "scripts" / "eval_wt_lesion_stratified.py"
 ET_SCRIPT = Path(__file__).resolve().parents[1] / "scripts" / "eval_et_lesion_stratified.py"
+STRATA_SCRIPT = Path(__file__).resolve().parents[1] / "scripts" / "derive_train_lesion_strata.py"
 
 
 def _registry_literal():
@@ -65,7 +66,17 @@ def test_evaluation_fits_strata_on_train_and_applies_to_selected_phase():
     source = SCRIPT.read_text(encoding="utf-8")
     assert 'phase="train"' in source
     assert 'choices=("valid", "test")' in source
-    assert 'default="valid"' in source
+    assert 'default="test"' in source
+    assert '{"WT": 0, "ET": 2}' in source
     assert "derive_size_strata(training_sizes" in source
     assert '"--strata-json"' in source
     assert 'strata_metadata.get("fit_split") != "train"' in source
+
+
+def test_training_distribution_supports_wt_and_et_regions():
+    source = STRATA_SCRIPT.read_text(encoding="utf-8")
+    assert '"WT": (1, 2, 4)' in source
+    assert '"ET": (4,)' in source
+    assert 'default="BOTH"' in source
+    assert "train_test_split(" in source
+    assert "random_state=10" in source
