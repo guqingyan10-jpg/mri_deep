@@ -1,31 +1,63 @@
-"""WT lesion-level matching and size-stratified metrics.
+"""WT/ET lesion-level matching and size-stratified metrics.
 
-The functions in this module deliberately operate on individual 3-D WT
+The functions in this module deliberately operate on individual 3-D region
 connected components, not on whole cases.  Ground-truth component size
 determines the stratum; predictions are only used for one-to-one matching.
 """
 
 from __future__ import annotations
 
-from collections import OrderedDict
+from collections import Counter, OrderedDict
 
 import numpy as np
 from scipy import ndimage
 from scipy.optimize import linear_sum_assignment
 
 
-# Empirical WT tertiles from the 729-component distribution.  Rounded bounds
-# give 245/242/242 components while remaining easy to report in a paper.
-STRATA = OrderedDict(
-    (
-        ("small", (10, 74)),
-        ("medium", (75, 64999)),
-        ("large", (65000, None)),
+def derive_size_strata(component_sizes, min_component_size: int = 10):
+    """Fit integer tertile bounds from training components only.
+
+    Cut points are observed component sizes.  All possible pairs are searched
+    to minimize the range of the three lesion counts (then total deviation
+    from N/3 as a tie-breaker).  Equal sizes are never split across strata.
+    """
+    sizes = [int(value) for value in component_sizes if value >= min_component_size]
+    if not sizes:
+        raise ValueError("no training components survived minimum-size filtering")
+    counts = Counter(sizes)
+    observed = sorted(counts)
+    cumulative = np.cumsum([counts[value] for value in observed])
+    target = len(sizes) / 3.0
+    best = None
+    for first in range(len(observed) - 2):
+        for second in range(first + 1, len(observed) - 1):
+            group_counts = (
+                int(cumulative[first]),
+                int(cumulative[second] - cumulative[first]),
+                int(len(sizes) - cumulative[second]),
+            )
+            objective = (
+                max(group_counts) - min(group_counts),
+                sum(abs(count - target) for count in group_counts),
+                first,
+                second,
+            )
+            if best is None or objective < best[0]:
+                best = (objective, first, second)
+    if best is None:
+        raise ValueError("at least three distinct component sizes are required")
+    _, first, second = best
+    small_upper, medium_upper = observed[first], observed[second]
+    return OrderedDict(
+        (
+            ("small", (min_component_size, small_upper)),
+            ("medium", (small_upper + 1, medium_upper)),
+            ("large", (medium_upper + 1, None)),
+        )
     )
-)
 
 
-def classify_wt_size(size: int, strata=STRATA) -> str | None:
+def classify_wt_size(size: int, strata) -> str | None:
     """Return the stratum for a component size, or ``None`` if out of range."""
     size = int(size)
     for name, (lower, upper) in strata.items():
@@ -149,8 +181,8 @@ def _empty_summary(name: str):
     }
 
 
-def summarize_stratified_cases(case_results, strata=STRATA):
-    """Aggregate lesion-level metrics across cases for each WT size stratum.
+def summarize_stratified_cases(case_results, strata):
+    """Aggregate lesion-level metrics across cases for each size stratum.
 
     Recall and miss rate use all GT lesions in a stratum.  ``matched_lesion_dice``
     is conditional on a valid match; ``gt_anchored_lesion_dice`` assigns Dice=0
@@ -216,3 +248,9 @@ def summarize_stratified_cases(case_results, strata=STRATA):
             )
 
     return summaries
+
+
+# Region-neutral names used by both WT and ET entry points.  The historical
+# names remain available for compatibility with earlier WT analysis code.
+classify_lesion_size = classify_wt_size
+match_lesion_components = match_wt_components

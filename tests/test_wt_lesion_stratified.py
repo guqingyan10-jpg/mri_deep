@@ -9,18 +9,39 @@ _SPEC = importlib.util.spec_from_file_location(
 _MODULE = importlib.util.module_from_spec(_SPEC)
 _SPEC.loader.exec_module(_MODULE)
 
-STRATA = _MODULE.STRATA
+derive_size_strata = _MODULE.derive_size_strata
 classify_wt_size = _MODULE.classify_wt_size
 match_wt_components = _MODULE.match_wt_components
 summarize_stratified_cases = _MODULE.summarize_stratified_cases
 
 
 def test_size_strata_use_inclusive_integer_boundaries():
-    assert classify_wt_size(10) == "small"
-    assert classify_wt_size(74) == "small"
-    assert classify_wt_size(75) == "medium"
-    assert classify_wt_size(64999) == "medium"
-    assert classify_wt_size(65000) == "large"
+    strata = derive_size_strata([10, 20, 30, 40, 50, 60])
+    assert classify_wt_size(10, strata) == "small"
+    assert classify_wt_size(20, strata) == "small"
+    assert classify_wt_size(21, strata) == "medium"
+    assert classify_wt_size(40, strata) == "medium"
+    assert classify_wt_size(41, strata) == "large"
+
+
+def test_strata_are_fitted_from_supplied_training_components_only():
+    train_strata = derive_size_strata([10, 20, 30, 40, 50, 60])
+    # Validation/test sizes are classified by the frozen training bounds and
+    # are not passed back into threshold fitting.
+    assert train_strata["small"] == (10, 20)
+    assert train_strata["medium"] == (21, 40)
+    assert train_strata["large"] == (41, None)
+    assert classify_wt_size(10000, train_strata) == "large"
+
+
+def test_cut_points_optimize_lesion_counts_without_splitting_ties():
+    sizes = [10] * 5 + [20] * 4 + [30] + [40] * 5
+    strata = derive_size_strata(sizes)
+    assert strata == {
+        "small": (10, 10),
+        "medium": (11, 30),
+        "large": (31, None),
+    }
 
 
 def test_one_to_one_matching_and_matched_dice():
@@ -43,11 +64,12 @@ def test_one_to_one_matching_and_matched_dice():
 def test_no_gt_case_is_not_scored_as_perfect_recall():
     empty = np.zeros((1, 1, 5), dtype=np.uint8)
     result = match_wt_components(empty, empty, min_component_size=1)
-    summary = summarize_stratified_cases([result], strata=STRATA)
+    strata = derive_size_strata([10, 20, 30])
+    summary = summarize_stratified_cases([result], strata=strata)
     assert summary["small"]["gt_lesions"] == 0
     assert np.isnan(summary["small"]["lesion_recall"])
     assert np.isnan(summary["small"]["miss_rate"])
-    assert summary["small"]["true_negative_cases"] == 1
+    assert summary["all"]["n_true_negative_cases"] == 1
 
 
 def test_prediction_without_gt_counts_as_false_positive():
@@ -55,5 +77,6 @@ def test_prediction_without_gt_counts_as_false_positive():
     pred = np.zeros_like(gt)
     pred[0, 0, 2] = 1
     result = match_wt_components(pred, gt, min_component_size=1)
-    summary = summarize_stratified_cases([result], strata=STRATA)
+    strata = derive_size_strata([10, 20, 30])
+    summary = summarize_stratified_cases([result], strata=strata)
     assert summary["all"]["fp"] == 1

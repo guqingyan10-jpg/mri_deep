@@ -1,8 +1,8 @@
-"""Compare five requested models on WT lesion-size strata.
+"""Compare five requested models on training-defined lesion-size strata.
 
 Metrics are lesion-level (not case-level): one-to-one matched lesion recall,
-miss rate, matched lesion Dice, and GT-anchored lesion Dice.  WT is channel 0
-of the BraTS multi-label target and all connected components use 26-connectivity.
+miss rate, matched lesion Dice, and GT-anchored lesion Dice.  Size thresholds
+are fitted on the training split only and then frozen for validation/test.
 """
 
 from __future__ import annotations
@@ -12,6 +12,7 @@ import gc
 import json
 import os
 import sys
+from collections import OrderedDict
 from pathlib import Path
 
 import numpy as np
@@ -32,9 +33,9 @@ from models.resunet_edge import ResUNetEdge
 from models.resunet_hf_concat_boundary import ResUNetHFConcatBoundary
 from models.resunet3d import ResUNet3d
 from evaluation.wt_lesion_stratified import (
-    STRATA,
-    classify_wt_size,
-    match_wt_components,
+    classify_lesion_size,
+    derive_size_strata,
+    match_lesion_components,
     summarize_stratified_cases,
 )
 
@@ -163,11 +164,30 @@ def _safe_json(value):
     return value
 
 
-def evaluate_model(model, dataloader, device, threshold, min_size):
+def training_component_sizes(csv_path, channel, min_size):
+    """Extract components from the fixed training split without model inference."""
+    dataset = get_dataloader(
+        BratsDataset, csv_path, phase="train", batch_size=1
+    ).dataset
+    sizes = []
+    for row in tqdm(dataset.df.itertuples(index=False), total=len(dataset.df),
+                    desc="Fit training lesion strata"):
+        case_id = row.Brats20ID
+        mask = dataset.load_img(os.path.join(row.path, case_id + "_seg.nii"))
+        if dataset.is_resize:
+            mask = dataset.resize(mask)
+        mask = dataset.preprocess_mask_labels(mask)[channel]
+        labeled, count = ndimage.label(mask > 0, structure=STRUCTURE_26)
+        counts = np.bincount(labeled.ravel())[1 : count + 1]
+        sizes.extend(int(value) for value in counts if value >= min_size)
+    return sizes
+
+
+def evaluate_model(model, dataloader, device, threshold, min_size, channel, strata, region):
     case_results = []
     detail_rows = []
     with torch.no_grad():
-        for data in tqdm(dataloader, desc="WT lesion evaluation"):
+        for data in tqdm(dataloader, desc=f"{region} lesion evaluation"):
             images = data["image"].to(device)
             targets = data["mask"].cpu().numpy()
             logits = model(images)
@@ -179,9 +199,9 @@ def evaluate_model(model, dataloader, device, threshold, min_size):
                 ids = [ids]
 
             for i, case_id in enumerate(ids):
-                result = match_wt_components(
-                    predictions[i, 0],
-                    targets[i, 0],
+                result = match_lesion_components(
+                    predictions[i, channel],
+                    targets[i, channel],
                     structure=STRUCTURE_26,
                     min_component_size=min_size,
                 )
@@ -190,7 +210,7 @@ def evaluate_model(model, dataloader, device, threshold, min_size):
 
                 matched_by_gt = {m["gt_index"]: m for m in result["matches"]}
                 for gi, component in enumerate(result["gt_components"]):
-                    stratum = classify_wt_size(component["size"])
+                    stratum = classify_lesion_size(component["size"], strata)
                     match = matched_by_gt.get(gi)
                     detail_rows.append(
                         {
@@ -218,7 +238,7 @@ def flatten_summaries(model_name, summaries):
     return rows
 
 
-def plot_summary(summary_df: pd.DataFrame, output: Path):
+def plot_summary(summary_df: pd.DataFrame, output: Path, region: str):
     models = list(summary_df["model"].drop_duplicates())
     strata = ["small", "medium", "large"]
     fig, axes = plt.subplots(1, 3, figsize=(15, 5), sharey=False)
@@ -252,18 +272,25 @@ def plot_summary(summary_df: pd.DataFrame, output: Path):
         ax.set_ylim(0, 1.05)
         ax.grid(axis="y", alpha=0.25)
     axes[0].legend(frameon=False, fontsize=9)
-    fig.suptitle("WT lesion-level performance by ground-truth lesion size", y=1.02)
+    fig.suptitle(f"{region} lesion-level performance by ground-truth lesion size", y=1.02)
     fig.tight_layout()
     fig.savefig(output, dpi=240, bbox_inches="tight")
     plt.close(fig)
 
 
-def main():
+def main(default_region="WT"):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--csv", default="tumourCSV.csv")
-    parser.add_argument("--output-dir", default="wt_lesion_stratified_results")
+    parser.add_argument("--region", choices=("WT", "ET"), default=default_region)
+    parser.add_argument("--phase", choices=("valid", "test"), default="valid")
+    parser.add_argument("--output-dir", default=None)
     parser.add_argument("--threshold", type=float, default=0.33)
     parser.add_argument("--min-component-size", type=int, default=10)
+    parser.add_argument(
+        "--strata-json",
+        default=None,
+        help="Frozen training-split strata JSON from derive_train_lesion_strata.py",
+    )
     parser.add_argument("--device", default=None, help="e.g. cuda or cpu")
     parser.add_argument("--baseline-checkpoint", default=None)
     parser.add_argument("--edge-laplacian-checkpoint", default=None)
@@ -276,7 +303,9 @@ def main():
     parser.add_argument("--hf-w005-checkpoint", dest="hf_w005_checkpoint", default=None)
     args = parser.parse_args()
 
-    output_dir = Path(args.output_dir)
+    region = args.region
+    channel = {"WT": 0, "ET": 2}[region]
+    output_dir = Path(args.output_dir or f"{region.lower()}_lesion_stratified_results")
     output_dir.mkdir(parents=True, exist_ok=True)
     device = torch.device(args.device or ("cuda" if torch.cuda.is_available() else "cpu"))
     checkpoint_overrides = {
@@ -287,10 +316,84 @@ def main():
         "hf_w005": args.hf_w005_checkpoint,
     }
 
-    dataloader = get_dataloader(BratsDataset, args.csv, phase="test", batch_size=1)
-    print(f"Device: {device}; test cases: {len(dataloader.dataset)}")
-    print("Region: WT (channel 0); connectivity: 26; minimum component size:", args.min_component_size)
-    print("Strata:", ", ".join(f"{name}={lo}-{hi or 'inf'}" for name, (lo, hi) in STRATA.items()))
+    training_sizes = None
+    distribution = None
+    if args.strata_json:
+        strata_path = Path(args.strata_json)
+        with open(strata_path, encoding="utf-8") as handle:
+            strata_metadata = json.load(handle)
+        if strata_metadata.get("region") != region:
+            raise ValueError(
+                f"strata region {strata_metadata.get('region')!r} does not match {region}"
+            )
+        if strata_metadata.get("fit_split") != "train":
+            raise ValueError("strata JSON was not fitted on the training split")
+        if strata_metadata.get("connectivity") != 26:
+            raise ValueError("strata JSON must use 26-connectivity")
+        if strata_metadata.get("min_component_size") != args.min_component_size:
+            raise ValueError("strata JSON minimum component size does not match CLI")
+        strata = OrderedDict(
+            (name, tuple(strata_metadata["strata"][name]))
+            for name in ("small", "medium", "large")
+        )
+        distribution_path = strata_path.with_name(
+            f"{region.lower()}_training_lesion_size_distribution.csv"
+        )
+        if distribution_path.exists():
+            distribution = pd.read_csv(distribution_path)
+    else:
+        training_sizes = training_component_sizes(
+            args.csv, channel, args.min_component_size
+        )
+        strata = derive_size_strata(training_sizes, args.min_component_size)
+        strata_metadata = {
+            "region": region,
+            "fit_split": "train",
+            "split_random_state": 10,
+            "training_cases": None,
+            "connectivity": 26,
+            "min_component_size": args.min_component_size,
+            "training_component_count": len(training_sizes),
+            "strata": strata,
+            "stratum_counts": {
+                name: sum(
+                    value >= lower and (upper is None or value <= upper)
+                    for value in training_sizes
+                )
+                for name, (lower, upper) in strata.items()
+            },
+        }
+    dataloader = get_dataloader(
+        BratsDataset, args.csv, phase=args.phase, batch_size=1
+    )
+    print(f"Device: {device}; {args.phase} cases: {len(dataloader.dataset)}")
+    print(f"Region: {region} (channel {channel}); connectivity: 26; minimum component size:", args.min_component_size)
+    print("Training-defined strata:", ", ".join(f"{name}={lo}-{hi or 'inf'}" for name, (lo, hi) in strata.items()))
+    strata_metadata["apply_split"] = args.phase
+    strata_metadata["train_fraction"] = 0.7
+    with open(output_dir / f"{region.lower()}_lesion_strata.json", "w", encoding="utf-8") as handle:
+        json.dump(_safe_json(strata_metadata), handle, indent=2)
+    if distribution is None and training_sizes is not None:
+        distribution = (
+            pd.Series(training_sizes, name="lesion_voxels")
+            .value_counts()
+            .rename_axis("lesion_voxels")
+            .rename("lesion_count")
+            .sort_index()
+            .reset_index()
+        )
+        distribution["cumulative_count"] = distribution["lesion_count"].cumsum()
+        distribution["cumulative_fraction"] = (
+            distribution["cumulative_count"] / len(training_sizes)
+        )
+        distribution["stratum"] = distribution["lesion_voxels"].map(
+            lambda value: classify_lesion_size(value, strata)
+        )
+    if distribution is not None:
+        distribution.to_csv(
+            output_dir / f"{region.lower()}_training_lesion_size_distribution.csv",
+            index=False,
+        )
 
     all_rows = []
     all_details = []
@@ -309,9 +412,10 @@ def main():
         print(f"\nEvaluating {model_name}: {checkpoint}")
         model = load_model(spec, checkpoint, device)
         case_results, detail_rows = evaluate_model(
-            model, dataloader, device, args.threshold, args.min_component_size
+            model, dataloader, device, args.threshold, args.min_component_size,
+            channel, strata, region,
         )
-        summaries = summarize_stratified_cases(case_results)
+        summaries = summarize_stratified_cases(case_results, strata)
         all_rows.extend(flatten_summaries(model_name, summaries))
         for row in detail_rows:
             row["model"] = model_name
@@ -333,12 +437,13 @@ def main():
 
     summary_df = pd.DataFrame(all_rows)
     detail_df = pd.DataFrame(all_details)
-    summary_df.to_csv(output_dir / "wt_lesion_stratified_summary.csv", index=False)
-    detail_df.to_csv(output_dir / "wt_lesion_stratified_detail.csv", index=False)
-    with open(output_dir / "wt_lesion_stratified_summary.json", "w", encoding="utf-8") as handle:
+    prefix = region.lower()
+    summary_df.to_csv(output_dir / f"{prefix}_lesion_stratified_summary.csv", index=False)
+    detail_df.to_csv(output_dir / f"{prefix}_lesion_stratified_detail.csv", index=False)
+    with open(output_dir / f"{prefix}_lesion_stratified_summary.json", "w", encoding="utf-8") as handle:
         json.dump(_safe_json(all_json), handle, indent=2)
     if not summary_df.empty:
-        plot_summary(summary_df, output_dir / "wt_lesion_stratified_comparison.png")
+        plot_summary(summary_df, output_dir / f"{prefix}_lesion_stratified_comparison.png", region)
     print(f"\nSaved results to {output_dir}")
 
 

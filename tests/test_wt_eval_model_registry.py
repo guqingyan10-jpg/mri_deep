@@ -3,6 +3,7 @@ from pathlib import Path
 
 
 SCRIPT = Path(__file__).resolve().parents[1] / "scripts" / "eval_wt_lesion_stratified.py"
+ET_SCRIPT = Path(__file__).resolve().parents[1] / "scripts" / "eval_et_lesion_stratified.py"
 
 
 def _registry_literal():
@@ -52,3 +53,19 @@ def test_wt_comparison_plot_has_a_color_for_each_registered_model():
     )
     colors = ast.literal_eval(colors_assignment.value)
     assert len(colors) >= len(_registry_literal())
+
+
+def test_et_entry_point_reuses_shared_five_model_evaluation():
+    source = ET_SCRIPT.read_text(encoding="utf-8")
+    assert "from eval_wt_lesion_stratified import main" in source
+    assert 'main(default_region="ET")' in source
+
+
+def test_evaluation_fits_strata_on_train_and_applies_to_selected_phase():
+    source = SCRIPT.read_text(encoding="utf-8")
+    assert 'phase="train"' in source
+    assert 'choices=("valid", "test")' in source
+    assert 'default="valid"' in source
+    assert "derive_size_strata(training_sizes" in source
+    assert '"--strata-json"' in source
+    assert 'strata_metadata.get("fit_split") != "train"' in source
