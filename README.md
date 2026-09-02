@@ -2,6 +2,14 @@
 
 在 **ResUNet3d** 基线上，从 **损失 / 架构 / 数据采样** 三个维度做单变量增强，目标是改善 **ET（增强肿瘤）小病灶**的边界与检出。
 
+## 审核入口
+
+近期新增的 WT/ET 病灶分层、病灶级 Dice 与 α 敏感性分析集中说明在
+**[病灶分层与 α 敏感性审核指南](docs/LESION_ALPHA_REVIEW.md)**。该文档列出
+核心实现、训练集阈值拟合、37例测试集评价、三个种子 checkpoint 映射、
+输出文件及复现命令；生成的训练集阈值文件约定见
+**[training_lesion_distributions/README.md](training_lesion_distributions/README.md)**。
+
 ## 目录结构
 
 ```

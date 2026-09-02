@@ -82,6 +82,13 @@ def test_pooled_validation_test_mode_is_auditable_and_does_not_overwrite_test():
     assert 'strata_metadata["evaluation_splits"]' in source
 
 
+def test_formal_lesion_evaluation_never_falls_back_to_last_checkpoint():
+    source = SCRIPT.read_text(encoding="utf-8")
+    assert 'path.glob("best_model_*.pth")' in source
+    assert 'path.glob("last_epoch_model_*.pth")' not in source
+    assert 'requires best_model_*.pth' in source
+
+
 def test_training_distribution_supports_wt_and_et_regions():
     source = STRATA_SCRIPT.read_text(encoding="utf-8")
     assert '"WT": (1, 2, 4)' in source

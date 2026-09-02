@@ -144,12 +144,11 @@ def evaluation_dataloader(csv_path, phase):
 
 
 def find_checkpoint(directory: str) -> str | None:
+    """Return the latest improving best checkpoint; never fall back to last."""
     path = Path(directory)
     if not path.exists():
         return None
     candidates = list(path.glob("best_model_*.pth"))
-    if not candidates:
-        candidates = list(path.glob("last_epoch_model_*.pth"))
     if not candidates:
         return None
 
@@ -468,6 +467,11 @@ def main(default_region="WT"):
                 f"({spec['checkpoint_dir']})"
             )
             continue
+        if not Path(checkpoint).name.startswith("best_model_"):
+            raise ValueError(
+                f"formal lesion evaluation requires best_model_*.pth, got: "
+                f"{checkpoint}"
+            )
         print(f"\nEvaluating {model_name}: {checkpoint}")
         model = load_model(spec, checkpoint, device)
         case_results, detail_rows = evaluate_model(
