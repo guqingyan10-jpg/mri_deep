@@ -17,8 +17,12 @@
 5. [α敏感性分析](scripts/eval_alpha_sensitivity.py)  
    三个种子的best checkpoint分别评价α=0、learned α和α=1，固定37例测试集。
 
+6. [边界典型病例自动筛选与论文图](scripts/select_boundary_typical_cases.py)
+   自动筛选小病灶改善、两类边界改善和退化病例，并生成统一5列展示图。
+
 对应测试：
 
 - [病灶分层与匹配测试](tests/test_wt_lesion_stratified.py)
 - [WT/ET入口与模型注册测试](tests/test_wt_eval_model_registry.py)
 - [α敏感性测试](tests/test_alpha_sensitivity.py)
+- [边界病例筛选测试](tests/test_boundary_typical_case_selection.py)
