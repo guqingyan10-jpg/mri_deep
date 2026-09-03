@@ -78,6 +78,26 @@ def _case_rows(case_id, values, small_gt=0):
     return rows
 
 
+def _small_lesion_rows(case_id, gt_index, gt_id, gt_size, dice_by_model):
+    rows = []
+    for model_key in MODULE.MODEL_KEYS:
+        dice = float(dice_by_model[model_key])
+        rows.append(
+            {
+                "case_id": case_id,
+                "gt_index": gt_index,
+                "gt_id": gt_id,
+                "gt_size": gt_size,
+                "model_key": model_key,
+                "detected": dice > 0,
+                "pred_index": gt_index if dice > 0 else -1,
+                "pred_size": gt_size if dice > 0 else 0,
+                "lesion_dice": dice,
+            }
+        )
+    return rows
+
+
 def test_identical_and_one_voxel_shifted_boundaries():
     gt = np.zeros((10, 10, 10), dtype=bool)
     gt[3:7, 3:7, 3:7] = True
@@ -88,6 +108,34 @@ def test_identical_and_one_voxel_shifted_boundaries():
     shifted[4:8, 3:7, 3:7] = True
     assert MODULE.hd95_single(shifted, gt) == pytest.approx(1.0)
     assert MODULE.nsd_single(shifted, gt, tau=1.0) == pytest.approx(1.0)
+
+
+def test_focus_uses_complete_matched_component_not_unrelated_prediction():
+    gt = np.zeros((12, 20, 20), dtype=bool)
+    gt[4:8, 6:11, 6:11] = True
+    baseline = np.zeros_like(gt)
+    baseline[4:8, 6:10, 6:10] = True
+    baseline[2:4, 16:18, 16:18] = True  # unrelated false-positive component
+    full = np.zeros_like(gt)
+    full[4:8, 6:11, 6:11] = True
+    predictions = {
+        "baseline": baseline,
+        "lhfc": full.copy(),
+        "full": full,
+    }
+
+    focus_gt, focus_predictions = MODULE._focus_masks_for_case(
+        gt,
+        predictions,
+        "small_lesion_improvement",
+        min_component_size=1,
+        selected_gt_index=0,
+    )
+
+    assert np.array_equal(focus_gt, gt)
+    assert int(focus_predictions["baseline"].sum()) == 4 * 4 * 4
+    assert not focus_predictions["baseline"][2:4, 16:18, 16:18].any()
+    assert np.array_equal(focus_predictions["full"], full)
 
 
 def test_case_selection_returns_four_unique_predefined_roles():
@@ -133,8 +181,26 @@ def test_case_selection_returns_four_unique_predefined_roles():
             "full": {"hd": 8, "bd": 0.65},
         },
     )
+    lesion_rows = []
+    lesion_rows += _small_lesion_rows(
+        "small", 0, 1, 18,
+        {"baseline": 0.60, "lhfc": 0.65, "full": 0.70},
+    )
+    lesion_rows += _small_lesion_rows(
+        "small", 1, 2, 14,
+        {"baseline": 0.10, "lhfc": 0.55, "full": 0.80},
+    )
+    # A Baseline miss is a detection improvement, not a matched-Dice
+    # comparison, so it must not win even with a numerically larger gain.
+    lesion_rows += _small_lesion_rows(
+        "missed_small", 0, 1, 12,
+        {"baseline": 0.0, "lhfc": 0.75, "full": 0.95},
+    )
     comparison = MODULE.build_case_comparison(pd.DataFrame(rows))
-    selected = MODULE.select_typical_cases(comparison)
+    small_lesions = MODULE.build_small_lesion_comparison(
+        pd.DataFrame(lesion_rows)
+    )
+    selected = MODULE.select_typical_cases(comparison, small_lesions)
     chosen = dict(zip(selected["selection_role"].astype(str), selected["case_id"]))
 
     assert chosen == {
@@ -144,6 +210,13 @@ def test_case_selection_returns_four_unique_predefined_roles():
         "regression": "regression",
     }
     assert selected["case_id"].nunique() == 4
+    small_selected = selected[
+        selected["selection_role"].astype(str) == "small_lesion_improvement"
+    ].iloc[0]
+    assert small_selected["gt_id"] == 2
+    assert small_selected["baseline_lesion_dice"] == pytest.approx(0.10)
+    assert small_selected["full_lesion_dice"] == pytest.approx(0.80)
+    assert small_selected["small_lesion_dice_gain"] == pytest.approx(0.70)
 
 
 def test_script_fixes_test_cohort_and_best_checkpoints():
@@ -152,6 +225,9 @@ def test_script_fixes_test_cohort_and_best_checkpoints():
     assert 'default=37' in source
     assert 'requires best_model_*.pth' in source
     assert "last_epoch_model" not in source
+    assert 'linestyle="dashed"' not in source
+    assert "Small-lesion Dice" in source
+    assert "small_lesion_comparison.csv" in source
     assert '"Baseline"' in source
     assert '"LHFC"' in source
     assert '"Full"' in source

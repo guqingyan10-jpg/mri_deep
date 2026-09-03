@@ -1,9 +1,11 @@
 """Automatically select and plot four representative ET boundary cases.
 
 The script evaluates the fixed 37-case test split with the main-experiment
-Baseline, LHFC, and Full AFBMS checkpoints.  It selects one small-lesion
-improvement, two boundary improvements, and one regression using deterministic
-metric rules, then creates aligned context and zoomed paper figures.
+Baseline, LHFC, and Full AFBMS checkpoints.  It selects the individual small
+GT lesion, matched by both models, with the largest Full-vs-Baseline
+matched-lesion Dice gain, two
+boundary improvements, and one regression using deterministic metric rules.
+The figures show solid, complete prediction contours for the selected lesion.
 """
 
 from __future__ import annotations
@@ -98,7 +100,7 @@ ROLE_ORDER = (
     "regression",
 )
 ROLE_LABELS = {
-    "small_lesion_improvement": "Small-lesion improvement",
+    "small_lesion_improvement": "Small-lesion Dice improvement",
     "hd95_improvement": "HD95 improvement",
     "boundary_dice_improvement": "Boundary Dice improvement",
     "regression": "Regression",
@@ -228,6 +230,7 @@ def evaluate_test_cases(
     voxel_spacing,
 ):
     rows = []
+    lesion_rows = []
     with torch.inference_mode():
         for data in tqdm(dataloader, desc="Screen ET boundary cases"):
             case_id = _case_id(data)
@@ -240,6 +243,44 @@ def evaluate_test_cases(
                     gt_et,
                     min_component_size=min_component_size,
                 )
+                matches_by_gt = {
+                    match["gt_index"]: match
+                    for match in match_result["matches"]
+                }
+                for gt_index, component in enumerate(
+                    match_result["gt_components"]
+                ):
+                    if classify_lesion_size(component["size"], strata) != "small":
+                        continue
+                    match = matches_by_gt.get(gt_index)
+                    lesion_rows.append(
+                        {
+                            "case_id": case_id,
+                            "gt_index": int(gt_index),
+                            "gt_id": int(component["id"]),
+                            "gt_size": int(component["size"]),
+                            "model_key": model_key,
+                            "detected": match is not None,
+                            "pred_index": (
+                                int(match["pred_index"])
+                                if match is not None
+                                else -1
+                            ),
+                            "pred_size": (
+                                int(match["pred_size"])
+                                if match is not None
+                                else 0
+                            ),
+                            # A missed GT lesion receives zero.  This makes
+                            # the per-lesion comparison GT-anchored and avoids
+                            # selecting only among lesions already detected.
+                            "lesion_dice": (
+                                float(match["dice"])
+                                if match is not None
+                                else 0.0
+                            ),
+                        }
+                    )
                 small = _small_metrics(match_result, strata)
                 boundary_valid = bool(gt_et.any() and pred_et.any())
                 hd95 = (
@@ -279,7 +320,33 @@ def evaluate_test_cases(
     frame = pd.DataFrame(rows)
     if frame.empty:
         raise ValueError("test dataloader produced no cases")
-    return frame
+    return frame, pd.DataFrame(lesion_rows)
+
+
+def build_small_lesion_comparison(per_lesion: pd.DataFrame) -> pd.DataFrame:
+    """Place each individual small GT lesion's three model results in one row."""
+    if per_lesion.empty:
+        raise ValueError("the test split contains no eligible small ET lesions")
+    identity = ["case_id", "gt_index", "gt_id", "gt_size"]
+    counts = per_lesion.groupby(identity)["model_key"].nunique()
+    if not (counts == len(MODEL_KEYS)).all():
+        raise ValueError("every small GT lesion must have all three model results")
+
+    output = per_lesion[identity].drop_duplicates().set_index(identity)
+    for model_key in MODEL_KEYS:
+        model_rows = per_lesion[per_lesion["model_key"] == model_key].set_index(
+            identity
+        )
+        for column in ("detected", "pred_index", "pred_size", "lesion_dice"):
+            output[f"{model_key}_{column}"] = model_rows[column]
+    output = output.reset_index()
+    output["small_lesion_dice_gain"] = (
+        output["full_lesion_dice"] - output["baseline_lesion_dice"]
+    )
+    output["small_lesion_dice_gain_vs_lhfc"] = (
+        output["full_lesion_dice"] - output["lhfc_lesion_dice"]
+    )
+    return output
 
 
 def build_case_comparison(per_case: pd.DataFrame) -> pd.DataFrame:
@@ -367,29 +434,39 @@ def _choose_row(pool, sort_columns, ascending):
     ).iloc[0]
 
 
-def select_typical_cases(comparison: pd.DataFrame) -> pd.DataFrame:
+def select_typical_cases(
+    comparison: pd.DataFrame,
+    small_lesions: pd.DataFrame,
+) -> pd.DataFrame:
     """Select four unique cases with deterministic, auditable rules."""
     selected = []
     used = set()
 
-    small_all = comparison[comparison["small_gt_lesions"] > 0]
-    small_strict = small_all[
-        (small_all["small_detection_gain"] > 0)
-        & (small_all["small_dice_gain"] > 0)
+    small_pool = small_lesions[
+        small_lesions["baseline_detected"]
+        & small_lesions["full_detected"]
+        & (small_lesions["small_lesion_dice_gain"] > 0)
     ]
-    small_pool = small_strict if not small_strict.empty else small_all
+    if small_pool.empty:
+        raise ValueError(
+            "no small ET lesion matched by both Baseline and Full has a "
+            "higher Full matched-lesion Dice"
+        )
     small = _choose_row(
         small_pool,
-        ("small_detection_gain", "small_dice_gain", "et_dice_gain"),
-        (False, False, False),
+        ("small_lesion_dice_gain", "full_lesion_dice", "gt_size"),
+        (False, False, True),
     )
+    small_case = comparison[comparison["case_id"] == small["case_id"]].iloc[0]
     selected.append(
         {
+            **small_case.to_dict(),
             **small.to_dict(),
             "selection_role": "small_lesion_improvement",
-            "selection_strict": not small_strict.empty,
+            "selection_strict": True,
             "selection_reason": (
-                "largest small-lesion detection/GT-anchored Dice gain"
+                "largest matched small-lesion Dice gain over Baseline "
+                "among lesions detected by both models"
             ),
         }
     )
@@ -496,38 +573,54 @@ def select_typical_cases(comparison: pd.DataFrame) -> pd.DataFrame:
     return result.sort_values("selection_role").reset_index(drop=True)
 
 
-def _focus_mask_for_case(gt_et, predictions, role, min_component_size, strata):
-    full_result = match_lesion_components(
-        predictions["full"], gt_et, min_component_size=min_component_size
-    )
-    if not full_result["gt_components"]:
-        return gt_et.astype(bool)
-    if role == "small_lesion_improvement":
-        baseline_result = match_lesion_components(
-            predictions["baseline"],
-            gt_et,
-            min_component_size=min_component_size,
+def _focus_masks_for_case(
+    gt_et,
+    predictions,
+    role,
+    min_component_size,
+    selected_gt_index=None,
+):
+    """Return one GT lesion and each model's complete matched component."""
+    match_results = {
+        key: match_lesion_components(
+            predictions[key], gt_et, min_component_size=min_component_size
         )
-        baseline_matches = {
-            match["gt_index"]: match for match in baseline_result["matches"]
-        }
-        full_matches = {
-            match["gt_index"]: match for match in full_result["matches"]
-        }
-        candidates = []
-        for index, component in enumerate(full_result["gt_components"]):
-            if classify_lesion_size(component["size"], strata) != "small":
-                continue
-            baseline_dice = baseline_matches.get(index, {}).get("dice", 0.0)
-            full_dice = full_matches.get(index, {}).get("dice", 0.0)
-            candidates.append(
-                (full_dice - baseline_dice, full_dice, -component["size"], index)
-            )
-        if candidates:
-            index = max(candidates)[-1]
-            return full_result["gt_components"][index]["mask"]
-    largest = max(full_result["gt_components"], key=lambda item: item["size"])
-    return largest["mask"]
+        for key in MODEL_KEYS
+    }
+    gt_components = match_results["full"]["gt_components"]
+    if not gt_components:
+        empty = np.zeros_like(gt_et, dtype=bool)
+        return gt_et.astype(bool), {key: empty.copy() for key in MODEL_KEYS}
+
+    if role == "small_lesion_improvement":
+        if selected_gt_index is None:
+            raise ValueError("selected small lesion is missing its GT index")
+        gt_index = int(selected_gt_index)
+        if gt_index < 0 or gt_index >= len(gt_components):
+            raise IndexError(f"selected GT lesion index out of range: {gt_index}")
+    else:
+        gt_index = max(
+            range(len(gt_components)),
+            key=lambda index: gt_components[index]["size"],
+        )
+
+    focus_gt = gt_components[gt_index]["mask"]
+    focus_predictions = {}
+    for key, result in match_results.items():
+        match = next(
+            (
+                item
+                for item in result["matches"]
+                if item["gt_index"] == gt_index
+            ),
+            None,
+        )
+        focus_predictions[key] = (
+            result["pred_components"][match["pred_index"]]["mask"]
+            if match is not None
+            else np.zeros_like(gt_et, dtype=bool)
+        )
+    return focus_gt, focus_predictions
 
 
 def _crop_bounds(mask_2d, margin=16, min_size=64):
@@ -568,6 +661,7 @@ def collect_selected_visuals(
     crop_margin,
     minimum_crop_size,
 ):
+    selected_by_case = selected.set_index("case_id")
     role_by_case = dict(zip(selected["case_id"], selected["selection_role"].astype(str)))
     wanted = set(role_by_case)
     visuals = {}
@@ -582,12 +676,18 @@ def collect_selected_visuals(
                 key: _predict_et(models[key], images, threshold)
                 for key in MODEL_KEYS
             }
-            focus = _focus_mask_for_case(
+            role = role_by_case[case_id]
+            selected_gt_index = (
+                selected_by_case.loc[case_id].get("gt_index")
+                if role == "small_lesion_improvement"
+                else None
+            )
+            focus, focus_predictions = _focus_masks_for_case(
                 gt_et,
                 predictions,
-                role_by_case[case_id],
+                role,
                 min_component_size,
-                strata,
+                selected_gt_index,
             )
             slice_sums = focus.reshape(focus.shape[0], -1).sum(axis=1)
             z_index = (
@@ -595,13 +695,19 @@ def collect_selected_visuals(
                 if slice_sums.max() > 0
                 else int(np.argmax(gt_et.reshape(gt_et.shape[0], -1).sum(axis=1)))
             )
+            # Include every matched prediction in the crop so the relevant
+            # red contour is never cut into an apparently open curve.
+            crop_support = focus[z_index].copy()
+            for prediction in focus_predictions.values():
+                crop_support |= prediction[z_index]
             crop = _crop_bounds(
-                focus[z_index], margin=crop_margin, min_size=minimum_crop_size
+                crop_support, margin=crop_margin, min_size=minimum_crop_size
             )
             visuals[case_id] = {
                 "t1ce": images[0, 2].detach().cpu().numpy(),
                 "gt_et": gt_et,
                 "predictions": predictions,
+                "focus_predictions": focus_predictions,
                 "focus": focus,
                 "z_index": z_index,
                 "crop": crop,
@@ -636,7 +742,12 @@ def _draw_contour(ax, mask, color, linewidth=1.5, linestyle="solid"):
         )
 
 
-def _metric_text(row, model_key):
+def _metric_text(row, model_key, selected_row, role):
+    if role == "small_lesion_improvement":
+        if not bool(selected_row[f"{model_key}_detected"]):
+            return "Small lesion missed"
+        value = float(selected_row[f"{model_key}_lesion_dice"])
+        return f"Matched lesion Dice {value:.3f}"
     hd95 = row[f"{model_key}_hd95_mm"]
     boundary_dice = row[f"{model_key}_boundary_dice"]
     if not np.isfinite(hd95) or not np.isfinite(boundary_dice):
@@ -659,10 +770,20 @@ def plot_case_grid(selected, comparison, visuals, output_stem: Path, zoomed: boo
         y0, y1, x0, x1 = visual["crop"]
         crop = (slice(y0, y1), slice(x0, x1)) if zoomed else (slice(None), slice(None))
         mri = _normalize_mri(visual["t1ce"][z_index])[crop]
-        gt = visual["gt_et"][z_index][crop]
+        gt_source = (
+            visual["focus"]
+            if role == "small_lesion_improvement"
+            else visual["gt_et"]
+        )
+        gt = gt_source[z_index][crop]
         focus = visual["focus"][z_index][crop]
+        prediction_source = (
+            visual["focus_predictions"]
+            if role == "small_lesion_improvement"
+            else visual["predictions"]
+        )
         prediction_slices = {
-            key: visual["predictions"][key][z_index][crop] for key in MODEL_KEYS
+            key: prediction_source[key][z_index][crop] for key in MODEL_KEYS
         }
 
         for column_index, title in enumerate(columns):
@@ -681,33 +802,25 @@ def plot_case_grid(selected, comparison, visuals, output_stem: Path, zoomed: boo
 
         for column_index, model_key in enumerate(MODEL_KEYS, start=2):
             ax = axes[row_index, column_index]
-            _draw_contour(ax, gt, "#00A878", linewidth=1.5, linestyle="solid")
+            # Draw GT wider underneath so exact overlap remains visible as a
+            # green rim around the complete red prediction contour.
+            _draw_contour(ax, gt, "#00A878", linewidth=2.6, linestyle="solid")
             _draw_contour(
                 ax,
                 prediction_slices[model_key],
                 "#E84A5F",
-                linewidth=1.5,
-                linestyle="dashed",
+                linewidth=1.4,
+                linestyle="solid",
             )
             ax.text(
                 0.5,
                 -0.035,
-                _metric_text(metrics, model_key),
+                _metric_text(metrics, model_key, selected_row, role),
                 transform=ax.transAxes,
                 ha="center",
                 va="top",
                 fontsize=7.7,
             )
-
-        if role == "small_lesion_improvement":
-            for column_index in range(1, 5):
-                _draw_contour(
-                    axes[row_index, column_index],
-                    focus,
-                    "#FFC857",
-                    linewidth=2.2,
-                    linestyle="dotted",
-                )
 
         if not zoomed:
             rect = Rectangle(
@@ -720,10 +833,17 @@ def plot_case_grid(selected, comparison, visuals, output_stem: Path, zoomed: boo
             )
             axes[row_index, 0].add_patch(rect)
 
-        row_label = (
-            f"{ROLE_LABELS[role]}\n{case_id}\n"
-            f"GT ET={int(metrics['gt_et_voxels'])} vox, z={z_index}"
-        )
+        if role == "small_lesion_improvement":
+            row_label = (
+                f"{ROLE_LABELS[role]}\n{case_id}, lesion {int(selected_row['gt_id'])}\n"
+                f"{int(selected_row['gt_size'])} vox, "
+                f"Dice gain={float(selected_row['small_lesion_dice_gain']):+.3f}"
+            )
+        else:
+            row_label = (
+                f"{ROLE_LABELS[role]}\n{case_id}\n"
+                f"GT ET={int(metrics['gt_et_voxels'])} vox, z={z_index}"
+            )
         axes[row_index, 0].set_ylabel(
             row_label,
             fontsize=9,
@@ -740,19 +860,11 @@ def plot_case_grid(selected, comparison, visuals, output_stem: Path, zoomed: boo
             [0],
             color="#E84A5F",
             lw=2,
-            linestyle="--",
+            linestyle="-",
             label="Predicted ET boundary",
         ),
-        Line2D(
-            [0],
-            [0],
-            color="#FFC857",
-            lw=2,
-            linestyle=":",
-            label="Selected small GT lesion",
-        ),
     ]
-    fig.legend(handles=legend, loc="lower center", ncol=3, frameon=False)
+    fig.legend(handles=legend, loc="lower center", ncol=2, frameon=False)
     view_name = "zoomed ROIs" if zoomed else "full-slice context"
     fig.suptitle(
         f"Automatically selected ET cases — {view_name}",
@@ -857,7 +969,7 @@ def main():
         print(f"{spec['label']}: {checkpoint}")
         models[spec["key"]] = load_model(spec, checkpoint, device)
 
-    per_case = evaluate_test_cases(
+    per_case, per_lesion = evaluate_test_cases(
         models,
         test_loader,
         device,
@@ -868,9 +980,16 @@ def main():
         tuple(args.voxel_spacing),
     )
     comparison = build_case_comparison(per_case)
-    selected = select_typical_cases(comparison)
+    small_lesions = build_small_lesion_comparison(per_lesion)
+    selected = select_typical_cases(comparison, small_lesions)
 
     per_case.to_csv(args.output_dir / "boundary_metrics_per_case.csv", index=False)
+    per_lesion.to_csv(
+        args.output_dir / "small_lesion_metrics_long.csv", index=False
+    )
+    small_lesions.to_csv(
+        args.output_dir / "small_lesion_comparison.csv", index=False
+    )
     comparison.to_csv(args.output_dir / "case_selection_ranking.csv", index=False)
     selected.to_csv(args.output_dir / "selected_typical_cases.csv", index=False)
 
@@ -914,8 +1033,9 @@ def main():
                 "case_id",
                 "hd95_improvement",
                 "boundary_dice_improvement",
-                "small_detection_gain",
-                "small_dice_gain",
+                "small_lesion_dice_gain",
+                "baseline_lesion_dice",
+                "full_lesion_dice",
             ]
         ].to_string(index=False)
     )
