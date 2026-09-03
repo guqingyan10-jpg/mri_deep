@@ -138,6 +138,17 @@ def test_focus_uses_complete_matched_component_not_unrelated_prediction():
     assert np.array_equal(focus_predictions["full"], full)
 
 
+def test_small_lesion_overlay_separates_tp_fn_and_fp_regions():
+    gt = np.array([[1, 1], [0, 0]], dtype=bool)
+    prediction = np.array([[1, 0], [1, 0]], dtype=bool)
+    overlay = MODULE._region_error_overlay(gt, prediction)
+
+    assert np.allclose(overlay[0, 0], MODULE.REGION_COLORS["tp"])
+    assert np.allclose(overlay[0, 1], MODULE.REGION_COLORS["fn"])
+    assert np.allclose(overlay[1, 0], MODULE.REGION_COLORS["fp"])
+    assert np.allclose(overlay[1, 1], 0.0)
+
+
 def test_case_selection_returns_four_unique_predefined_roles():
     rows = []
     rows += _case_rows(
@@ -227,6 +238,7 @@ def test_script_fixes_test_cohort_and_best_checkpoints():
     assert "last_epoch_model" not in source
     assert 'linestyle="dashed"' not in source
     assert "Small-lesion Dice" in source
+    assert "Small lesion: TP overlap" in source
     assert "small_lesion_comparison.csv" in source
     assert '"Baseline"' in source
     assert '"LHFC"' in source

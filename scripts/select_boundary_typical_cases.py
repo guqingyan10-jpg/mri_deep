@@ -3,9 +3,9 @@
 The script evaluates the fixed 37-case test split with the main-experiment
 Baseline, LHFC, and Full AFBMS checkpoints.  It selects the individual small
 GT lesion, matched by both models, with the largest Full-vs-Baseline
-matched-lesion Dice gain, two
-boundary improvements, and one regression using deterministic metric rules.
-The figures show solid, complete prediction contours for the selected lesion.
+matched-lesion Dice gain, two boundary improvements, and one regression using
+deterministic metric rules.  The small-lesion row uses filled TP/FN/FP regions
+because its endpoint is Dice; the boundary rows use solid contour comparisons.
 """
 
 from __future__ import annotations
@@ -26,7 +26,7 @@ import numpy as np
 import pandas as pd
 import torch
 from matplotlib.lines import Line2D
-from matplotlib.patches import Rectangle
+from matplotlib.patches import Patch, Rectangle
 from scipy import ndimage
 from tqdm import tqdm
 
@@ -731,6 +731,24 @@ def _normalize_mri(slice_2d):
     return np.clip((slice_2d - lower) / (upper - lower), 0, 1)
 
 
+REGION_COLORS = {
+    "tp": (0.12, 0.70, 0.36, 0.68),
+    "fn": (0.12, 0.47, 0.71, 0.68),
+    "fp": (0.89, 0.10, 0.11, 0.68),
+}
+
+
+def _region_error_overlay(gt, prediction):
+    """Create a filled error map for a whole matched lesion cross-section."""
+    gt = np.asarray(gt, dtype=bool)
+    prediction = np.asarray(prediction, dtype=bool)
+    overlay = np.zeros((*gt.shape, 4), dtype=float)
+    overlay[np.logical_and(gt, prediction)] = REGION_COLORS["tp"]
+    overlay[np.logical_and(gt, ~prediction)] = REGION_COLORS["fn"]
+    overlay[np.logical_and(~gt, prediction)] = REGION_COLORS["fp"]
+    return overlay
+
+
 def _draw_contour(ax, mask, color, linewidth=1.5, linestyle="solid"):
     if np.asarray(mask).any():
         ax.contour(
@@ -802,16 +820,26 @@ def plot_case_grid(selected, comparison, visuals, output_stem: Path, zoomed: boo
 
         for column_index, model_key in enumerate(MODEL_KEYS, start=2):
             ax = axes[row_index, column_index]
-            # Draw GT wider underneath so exact overlap remains visible as a
-            # green rim around the complete red prediction contour.
-            _draw_contour(ax, gt, "#00A878", linewidth=2.6, linestyle="solid")
-            _draw_contour(
-                ax,
-                prediction_slices[model_key],
-                "#E84A5F",
-                linewidth=1.4,
-                linestyle="solid",
-            )
+            if role == "small_lesion_improvement":
+                # Dice measures the complete region, so expose overlap and
+                # both error types instead of reducing this row to contours.
+                ax.imshow(
+                    _region_error_overlay(gt, prediction_slices[model_key]),
+                    interpolation="nearest",
+                )
+            else:
+                # Boundary examples compare only the two complete contours.
+                # GT is wider underneath so exact overlap remains visible.
+                _draw_contour(
+                    ax, gt, "#00A878", linewidth=2.6, linestyle="solid"
+                )
+                _draw_contour(
+                    ax,
+                    prediction_slices[model_key],
+                    "#E84A5F",
+                    linewidth=1.4,
+                    linestyle="solid",
+                )
             ax.text(
                 0.5,
                 -0.035,
@@ -854,6 +882,21 @@ def plot_case_grid(selected, comparison, visuals, output_stem: Path, zoomed: boo
         )
 
     legend = [
+        Patch(
+            facecolor=REGION_COLORS["tp"],
+            edgecolor="none",
+            label="Small lesion: TP overlap",
+        ),
+        Patch(
+            facecolor=REGION_COLORS["fn"],
+            edgecolor="none",
+            label="Small lesion: FN (GT only)",
+        ),
+        Patch(
+            facecolor=REGION_COLORS["fp"],
+            edgecolor="none",
+            label="Small lesion: FP (prediction only)",
+        ),
         Line2D([0], [0], color="#00A878", lw=2, label="GT ET boundary"),
         Line2D(
             [0],
@@ -864,7 +907,7 @@ def plot_case_grid(selected, comparison, visuals, output_stem: Path, zoomed: boo
             label="Predicted ET boundary",
         ),
     ]
-    fig.legend(handles=legend, loc="lower center", ncol=2, frameon=False)
+    fig.legend(handles=legend, loc="lower center", ncol=5, frameon=False)
     view_name = "zoomed ROIs" if zoomed else "full-slice context"
     fig.suptitle(
         f"Automatically selected ET cases — {view_name}",
