@@ -238,5 +238,28 @@ python scripts/eval_alpha_sensitivity.py \
 输出保存在 `alpha_sensitivity_test_results/`，包括逐种子结果、逐病例 Dice、
 逐ET病灶明细、small病灶固定清单、best-checkpoint alpha 均值/范围和
 敏感性图。
-当前版本不生成 alpha 学习过程；仅保留最后一个 last-epoch checkpoint
-不足以恢复真实的逐 epoch 曲线，该分析待后续单独设计。
+
+### seed123 alpha 学习轨迹补充训练
+
+下面的独立运行保持原 seed123 V2 目录不变，复用同一个 seed123 baseline
+best checkpoint，并写入新的 `_alpha_trace` 目录：
+
+```bash
+python scripts/run_seed123_alpha_trace.py --dry-run
+python scripts/run_seed123_alpha_trace.py
+```
+
+新目录：
+
+```text
+/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale_v2_alpha_trace
+```
+
+其中 `alpha_history.csv` 保存初始化及每个 epoch 的 alpha、学习率和损失；
+`alpha_learning_curve.png/.pdf` 绘制轨迹并标记 best epoch。使用该次重训的
+best checkpoint 做 seed123 敏感性分析时显式覆盖目录：
+
+```bash
+python scripts/eval_alpha_sensitivity.py \
+  --checkpoint-dir 123=/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale_v2_alpha_trace
+```

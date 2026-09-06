@@ -24,8 +24,14 @@ Usage:
 
 import argparse
 import os
+import re
 import sys
 
+import matplotlib
+
+matplotlib.use("Agg")
+import matplotlib.pyplot as plt
+import pandas as pd
 import torch
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -41,12 +47,123 @@ from training.trainer import Trainer
 class HFConcatBoundaryTrainer(Trainer):
     """Pass both heads to the loss and only segmentation logits to metrics."""
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.alpha_trace_path = os.path.join(
+            self.model_type, "alpha_history.csv"
+        )
+        self.alpha_trace_rows = {}
+        if os.path.exists(self.alpha_trace_path):
+            old_trace = pd.read_csv(self.alpha_trace_path)
+            for row in old_trace.to_dict(orient="records"):
+                self.alpha_trace_rows[int(row["epoch"])] = row
+
     def _compute_loss_and_outputs(self, images, targets):
         images = images.to(self.device)
         targets = targets.to(self.device)
         seg, boundary_pred = self.net(images)
         loss = self.criterion((seg, boundary_pred), targets)
         return loss, seg
+
+    def _alpha_values(self):
+        network = self.net.module if hasattr(self.net, "module") else self.net
+        multiscale = getattr(network, "multiscale_context", None)
+        alpha = getattr(multiscale, "alpha", None)
+        if alpha is None:
+            return None
+        return alpha.detach().cpu().reshape(-1).tolist()
+
+    def record_alpha_snapshot(self, epoch):
+        """Persist the learned residual coefficient at one epoch boundary."""
+        values = self._alpha_values()
+        if values is None:
+            return
+        row = {
+            "epoch": int(epoch),
+            "learning_rate": float(self.optimizer.param_groups[0]["lr"]),
+            "train_loss": (
+                float(self.losses["train"][-1])
+                if self.losses["train"]
+                else float("nan")
+            ),
+            "valid_loss": (
+                float(self.losses["valid"][-1])
+                if self.losses["valid"]
+                else float("nan")
+            ),
+        }
+        if len(values) == 1:
+            row["alpha"] = float(values[0])
+        else:
+            branch_names = ("dilation1", "dilation2", "dilation3", "kernel1x1")
+            for name, value in zip(branch_names, values):
+                row[f"alpha_{name}"] = float(value)
+        self.alpha_trace_rows[int(epoch)] = row
+        pd.DataFrame(
+            [self.alpha_trace_rows[key] for key in sorted(self.alpha_trace_rows)]
+        ).to_csv(self.alpha_trace_path, index=False)
+
+    def _save_train_history(self, epoch):
+        super()._save_train_history(epoch)
+        self.record_alpha_snapshot(epoch)
+
+    def save_alpha_curve(self):
+        """Plot the complete saved alpha trajectory and mark the best epoch."""
+        if not self.alpha_trace_rows:
+            return
+        frame = pd.DataFrame(
+            [self.alpha_trace_rows[key] for key in sorted(self.alpha_trace_rows)]
+        )
+        alpha_columns = [
+            column for column in frame.columns if column == "alpha" or column.startswith("alpha_")
+        ]
+        if not alpha_columns:
+            return
+
+        figure, axis = plt.subplots(figsize=(7.2, 4.6))
+        for column in alpha_columns:
+            axis.plot(
+                frame["epoch"],
+                frame[column],
+                marker="o",
+                markersize=2.5,
+                linewidth=1.5,
+                label=column,
+            )
+        axis.axhline(0.0, color="0.45", linewidth=1.0, linestyle="--")
+
+        best_files = [
+            name
+            for name in os.listdir(self.model_type)
+            if name.startswith("best_model_") and name.endswith(".pth")
+        ]
+        best_epochs = []
+        for name in best_files:
+            match = re.search(r"_(\d+)\.pth$", name)
+            if match:
+                best_epochs.append(int(match.group(1)))
+        if best_epochs:
+            best_epoch = max(best_epochs)
+            axis.axvline(
+                best_epoch,
+                color="#D62728",
+                linewidth=1.2,
+                linestyle=":",
+                label=f"best epoch {best_epoch}",
+            )
+        axis.set_xlabel("Epoch")
+        axis.set_ylabel("Learned residual coefficient alpha")
+        axis.set_title("MultiScaleContext alpha learning trajectory")
+        axis.grid(alpha=0.25)
+        axis.legend(frameon=False)
+        figure.tight_layout()
+        for suffix in ("png", "pdf"):
+            figure.savefig(
+                os.path.join(self.model_type, f"alpha_learning_curve.{suffix}"),
+                dpi=300 if suffix == "png" else None,
+                bbox_inches="tight",
+            )
+        plt.close(figure)
 
 
 parser = argparse.ArgumentParser(
@@ -209,7 +326,9 @@ if resume:
 print("\n" + "=" * 72)
 print("STARTING TRAINING")
 print("=" * 72 + "\n")
+trainer.record_alpha_snapshot(trainer.epoch_value)
 trainer.run(check_path=CHECKPOINT_DIR)
+trainer.save_alpha_curve()
 
 multiscale_module = getattr(model, "multiscale_context", None)
 gates = getattr(multiscale_module, "alpha", None)
