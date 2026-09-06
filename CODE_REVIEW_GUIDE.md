@@ -1,6 +1,6 @@
 # 新增评价代码审核入口
 
-请在默认 `main` 分支按以下顺序查看：
+请在默认 `master` 分支按以下顺序查看：
 
 1. [病灶级核心实现](evaluation/wt_lesion_stratified.py)  
    WT/ET共用的分层、26邻域连通域、一对一匹配、Recall、Miss rate、Matched Dice和GT-anchored Dice。
@@ -20,9 +20,13 @@
 6. [边界典型病例自动筛选与论文图](scripts/select_boundary_typical_cases.py)
    自动筛选小病灶改善、两类边界改善和退化病例，并生成统一5列展示图。
 
+7. [三种子典型病例汇总](scripts/run_multiseed_typical_case_analysis.py)
+   分别生成三个种子的病灶图，并按同一GT病灶/病例汇总跨种子一致性排名。
+
 对应测试：
 
 - [病灶分层与匹配测试](tests/test_wt_lesion_stratified.py)
 - [WT/ET入口与模型注册测试](tests/test_wt_eval_model_registry.py)
 - [α敏感性测试](tests/test_alpha_sensitivity.py)
 - [边界病例筛选测试](tests/test_boundary_typical_case_selection.py)
+- [三种子汇总测试](tests/test_multiseed_typical_case_analysis.py)

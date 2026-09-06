@@ -263,3 +263,20 @@ best checkpoint 做 seed123 敏感性分析时显式覆盖目录：
 python scripts/eval_alpha_sensitivity.py \
   --checkpoint-dir 123=/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale_v2_alpha_trace
 ```
+
+### 三种子典型病灶与边界病例筛选
+
+正式筛选同时运行 seed42、seed55、seed123，并固定使用同一批37例测试集。
+每个 seed 均输出病灶可视化图；脚本还会按同一个GT小病灶或同一个病例
+汇总跨 seed 一致性，优先推荐三个 seed 均改善的候选，避免只挑某个 seed
+的最佳结果。seed55 保留主实验路径，seed42/123 使用 stability runner 路径。
+
+```bash
+python scripts/run_multiseed_typical_case_analysis.py --dry-run
+python scripts/run_multiseed_typical_case_analysis.py
+```
+
+每个 seed 的图位于
+`boundary_typical_case_multiseed_results/seed{42,55,123}/`；跨 seed 排名为
+`cross_seed_small_lesion_ranking.csv` 和
+`cross_seed_boundary_case_ranking.csv`。
