@@ -1,11 +1,13 @@
 """Automatically select and plot four representative ET boundary cases.
 
-The script evaluates the fixed 37-case test split with the main-experiment
-Baseline, LHFC, and Full AFBMS checkpoints.  It selects the individual small
-GT lesion, matched by both models, with the largest Full-vs-Baseline
-matched-lesion Dice gain, two boundary improvements, and one regression using
-deterministic metric rules.  The small-lesion row uses filled TP/FN/FP regions
-because its endpoint is Dice; the boundary rows use solid contour comparisons.
+The script evaluates the fixed 37-case test split with Baseline, LHFC, and Full
+AFBMS checkpoints.  It selects the individual small GT lesion, matched by both
+models, with the largest Full-vs-Baseline matched-lesion Dice gain, two boundary
+comparisons, and one regression using deterministic metric rules.  When a seed
+has no positive matched-lesion Dice gain, the best comparable lesion is shown
+and explicitly marked as a non-improvement instead of aborting the analysis.
+The small-lesion row uses filled TP/FN/FP regions because its endpoint is Dice;
+the boundary rows use solid contour comparisons.
 """
 
 from __future__ import annotations
@@ -100,7 +102,7 @@ ROLE_ORDER = (
     "regression",
 )
 ROLE_LABELS = {
-    "small_lesion_improvement": "Small-lesion Dice improvement",
+    "small_lesion_improvement": "Small-lesion region Dice",
     "hd95_improvement": "HD95 improvement",
     "boundary_dice_improvement": "Boundary Dice improvement",
     "regression": "Regression",
@@ -442,32 +444,52 @@ def select_typical_cases(
     selected = []
     used = set()
 
-    small_pool = small_lesions[
+    comparable_small = small_lesions[
         small_lesions["baseline_detected"]
         & small_lesions["full_detected"]
-        & (small_lesions["small_lesion_dice_gain"] > 0)
     ]
+    strict_small = comparable_small[
+        comparable_small["small_lesion_dice_gain"] > 0
+    ]
+    small_pool = strict_small if not strict_small.empty else comparable_small
     if small_pool.empty:
-        raise ValueError(
-            "no small ET lesion matched by both Baseline and Full has a "
-            "higher Full matched-lesion Dice"
-        )
+        # This last-resort branch keeps the per-seed audit complete even when
+        # the two models share no matched small lesion.  Such a row is never
+        # reported as a matched-Dice improvement.
+        small_pool = small_lesions
     small = _choose_row(
         small_pool,
         ("small_lesion_dice_gain", "full_lesion_dice", "gt_size"),
         (False, False, True),
     )
+    small_strict = bool(
+        small["baseline_detected"]
+        and small["full_detected"]
+        and small["small_lesion_dice_gain"] > 0
+    )
+    if small_strict:
+        small_reason = (
+            "largest matched small-lesion Dice gain over Baseline "
+            "among lesions detected by both models"
+        )
+    elif bool(small["baseline_detected"] and small["full_detected"]):
+        small_reason = (
+            "best comparable lesion; no small lesion detected by both "
+            "models had a positive Full-vs-Baseline Dice gain"
+        )
+    else:
+        small_reason = (
+            "best available small lesion; Baseline and Full had no common "
+            "matched small lesion"
+        )
     small_case = comparison[comparison["case_id"] == small["case_id"]].iloc[0]
     selected.append(
         {
             **small_case.to_dict(),
             **small.to_dict(),
             "selection_role": "small_lesion_improvement",
-            "selection_strict": True,
-            "selection_reason": (
-                "largest matched small-lesion Dice gain over Baseline "
-                "among lesions detected by both models"
-            ),
+            "selection_strict": small_strict,
+            "selection_reason": small_reason,
         }
     )
     used.add(small["case_id"])
@@ -873,10 +895,16 @@ def plot_case_grid(selected, comparison, visuals, output_stem: Path, zoomed: boo
             axes[row_index, 0].add_patch(rect)
 
         if role == "small_lesion_improvement":
+            effect_label = (
+                "improvement"
+                if bool(selected_row["selection_strict"])
+                else "best available (not a positive matched-Dice gain)"
+            )
             row_label = (
                 f"{ROLE_LABELS[role]}\n{case_id}, lesion {int(selected_row['gt_id'])}\n"
                 f"{int(selected_row['gt_size'])} vox, "
-                f"Dice gain={float(selected_row['small_lesion_dice_gain']):+.3f}"
+                f"Dice gain={float(selected_row['small_lesion_dice_gain']):+.3f}\n"
+                f"{effect_label}"
             )
         else:
             row_label = (
@@ -994,6 +1022,11 @@ def plot_small_lesion_region_figure(selected, visuals, output_dir: Path):
         )
 
     gain = float(row["small_lesion_dice_gain"])
+    effect_label = (
+        "positive matched-lesion improvement"
+        if bool(row["selection_strict"])
+        else "best available comparison; no positive matched-lesion gain"
+    )
 
     legend = [
         Patch(facecolor=REGION_COLORS["tp"], label="TP: overlap"),
@@ -1011,7 +1044,7 @@ def plot_small_lesion_region_figure(selected, visuals, output_dir: Path):
         "Small ET lesion: region overlap and whole-lesion Dice\n"
         f"{case_id}, lesion {int(row['gt_id'])}, "
         f"GT volume {int(row['gt_size'])} voxels, "
-        f"Full - Baseline Dice = {gain:+.3f}",
+        f"Full - Baseline Dice = {gain:+.3f}\n{effect_label}",
         fontsize=14,
         fontweight="semibold",
         y=0.995,
@@ -1142,8 +1175,9 @@ def main():
     )
     comparison = build_case_comparison(per_case)
     small_lesions = build_small_lesion_comparison(per_lesion)
-    selected = select_typical_cases(comparison, small_lesions)
 
+    # Persist exhaustive metrics before qualitative selection so a later
+    # rendering/selection issue never discards the completed 37-case inference.
     per_case.to_csv(args.output_dir / "boundary_metrics_per_case.csv", index=False)
     per_lesion.to_csv(
         args.output_dir / "small_lesion_metrics_long.csv", index=False
@@ -1152,6 +1186,7 @@ def main():
         args.output_dir / "small_lesion_comparison.csv", index=False
     )
     comparison.to_csv(args.output_dir / "case_selection_ranking.csv", index=False)
+    selected = select_typical_cases(comparison, small_lesions)
     selected.to_csv(args.output_dir / "selected_typical_cases.csv", index=False)
 
     visuals = collect_selected_visuals(
@@ -1198,6 +1233,8 @@ def main():
                 "small_lesion_dice_gain",
                 "baseline_lesion_dice",
                 "full_lesion_dice",
+                "selection_strict",
+                "selection_reason",
             ]
         ].to_string(index=False)
     )

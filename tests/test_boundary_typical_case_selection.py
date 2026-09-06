@@ -230,6 +230,45 @@ def test_case_selection_returns_four_unique_predefined_roles():
     assert small_selected["small_lesion_dice_gain"] == pytest.approx(0.70)
 
 
+def test_case_selection_does_not_abort_when_no_matched_small_lesion_improves():
+    rows = []
+    for case_id, baseline_hd, full_hd in (
+        ("small", 12, 8),
+        ("hd", 20, 5),
+        ("bd", 14, 9),
+        ("regression", 5, 18),
+        ("spare", 10, 9),
+    ):
+        rows += _case_rows(
+            case_id,
+            {
+                "baseline": {"hd": baseline_hd, "bd": 0.60},
+                "lhfc": {"hd": 9, "bd": 0.62},
+                "full": {
+                    "hd": full_hd,
+                    "bd": 0.40 if case_id == "regression" else 0.70,
+                },
+            },
+        )
+    lesion_rows = _small_lesion_rows(
+        "small", 0, 1, 18,
+        {"baseline": 0.60, "lhfc": 0.55, "full": 0.50},
+    )
+
+    selected = MODULE.select_typical_cases(
+        MODULE.build_case_comparison(pd.DataFrame(rows)),
+        MODULE.build_small_lesion_comparison(pd.DataFrame(lesion_rows)),
+    )
+    small = selected[
+        selected["selection_role"].astype(str) == "small_lesion_improvement"
+    ].iloc[0]
+
+    assert small["case_id"] == "small"
+    assert not bool(small["selection_strict"])
+    assert small["small_lesion_dice_gain"] == pytest.approx(-0.10)
+    assert "no small lesion" in small["selection_reason"]
+
+
 def test_script_fixes_test_cohort_and_best_checkpoints():
     source = SCRIPT.read_text(encoding="utf-8")
     assert 'phase="test"' in source
@@ -237,7 +276,7 @@ def test_script_fixes_test_cohort_and_best_checkpoints():
     assert 'requires best_model_*.pth' in source
     assert "last_epoch_model" not in source
     assert 'linestyle="dashed"' not in source
-    assert "Small-lesion Dice" in source
+    assert "Small-lesion region Dice" in source
     assert "Small lesion: TP overlap" in source
     assert "small_lesion_comparison.csv" in source
     assert "small_lesion_region_dice.{suffix}" in source

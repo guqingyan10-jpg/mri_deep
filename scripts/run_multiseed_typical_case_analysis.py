@@ -20,6 +20,14 @@ import pandas as pd
 REPO_ROOT = Path(__file__).resolve().parents[1]
 SELECTOR = REPO_ROOT / "scripts" / "select_boundary_typical_cases.py"
 SEEDS = (42, 55, 123)
+COMPLETE_SEED_OUTPUTS = (
+    "small_lesion_comparison.csv",
+    "case_selection_ranking.csv",
+    "selected_typical_cases.csv",
+    "small_lesion_region_dice.png",
+    "typical_cases_4x5_zoom.png",
+    "typical_cases_4x5_context.png",
+)
 
 
 @dataclass(frozen=True)
@@ -95,6 +103,10 @@ def _flatten_seed_columns(frame, index_columns, value_columns):
         for column in value_columns:
             output[f"seed{seed}_{column}"] = seed_rows[column]
     return output.reset_index()
+
+
+def seed_output_complete(seed_dir: Path) -> bool:
+    return all((seed_dir / name).is_file() for name in COMPLETE_SEED_OUTPUTS)
 
 
 def aggregate_small_lesions(frame: pd.DataFrame) -> pd.DataFrame:
@@ -295,6 +307,11 @@ def main() -> None:
     )
     parser.add_argument("--dry-run", action="store_true")
     parser.add_argument("--aggregate-only", action="store_true")
+    parser.add_argument(
+        "--rerun-existing",
+        action="store_true",
+        help="Recompute seeds whose metrics and figures are already complete",
+    )
     args = parser.parse_args()
 
     triplets = default_seed_triplets(
@@ -311,7 +328,11 @@ def main() -> None:
         print(f"\n[seed{triplet.seed} | {triplet.protocol}]")
         print(subprocess.list2cmdline(command))
         if not args.dry_run and not args.aggregate_only:
-            subprocess.run(command, cwd=REPO_ROOT, check=True)
+            seed_dir = args.output_dir / f"seed{triplet.seed}"
+            if seed_output_complete(seed_dir) and not args.rerun_existing:
+                print(f"Already complete; skipping {seed_dir}")
+            else:
+                subprocess.run(command, cwd=REPO_ROOT, check=True)
 
     if args.dry_run:
         return

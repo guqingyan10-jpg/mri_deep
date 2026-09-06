@@ -1,6 +1,7 @@
 import importlib.util
 from pathlib import Path
 import sys
+from unittest.mock import patch
 
 import pandas as pd
 
@@ -61,6 +62,13 @@ def test_selector_command_writes_each_seed_to_its_own_directory():
     assert command[command.index("--baseline-checkpoint") + 1] == str(
         triplet.baseline
     )
+
+
+def test_completed_seed_outputs_are_detected_for_resume():
+    with patch.object(Path, "is_file", return_value=True):
+        assert MODULE.seed_output_complete(Path("results/seed42"))
+    with patch.object(Path, "is_file", side_effect=[True, True, True, False]):
+        assert not MODULE.seed_output_complete(Path("results/seed123"))
 
 
 def _small_row(seed, case_id, gt_index, baseline, full):

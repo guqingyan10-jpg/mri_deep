@@ -276,6 +276,11 @@ python scripts/run_multiseed_typical_case_analysis.py --dry-run
 python scripts/run_multiseed_typical_case_analysis.py
 ```
 
+默认会跳过结果文件齐全的 seed，因此中断后可直接重跑；只有需要强制重算
+全部三个 seed 时才加 `--rerun-existing`。若某个 seed 没有正向的匹配小病灶
+Dice 增益，脚本会保留完整统计并将该 seed 的图明确标为“最佳可比较、非正向
+改善”，不会因缺少理想病例而中止或误报。
+
 每个 seed 的图位于
 `boundary_typical_case_multiseed_results/seed{42,55,123}/`；跨 seed 排名为
 `cross_seed_small_lesion_ranking.csv` 和
