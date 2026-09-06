@@ -806,7 +806,18 @@ def plot_case_grid(selected, comparison, visuals, output_stem: Path, zoomed: boo
 
         for column_index, title in enumerate(columns):
             ax = axes[row_index, column_index]
-            ax.imshow(mri, cmap="gray", interpolation="nearest")
+            if role == "small_lesion_improvement" and column_index >= 2:
+                # A neutral mask canvas makes the area-based first row
+                # visually distinct from the MRI boundary comparisons below.
+                ax.imshow(
+                    np.zeros_like(mri),
+                    cmap="gray",
+                    vmin=0,
+                    vmax=1,
+                    interpolation="nearest",
+                )
+            else:
+                ax.imshow(mri, cmap="gray", interpolation="nearest")
             if row_index == 0:
                 ax.set_title(title, fontsize=11, fontweight="semibold", pad=8)
             ax.axis("off")
@@ -922,6 +933,113 @@ def plot_case_grid(selected, comparison, visuals, output_stem: Path, zoomed: boo
     fig.savefig(png_path, dpi=300, bbox_inches="tight", facecolor="white")
     fig.savefig(pdf_path, bbox_inches="tight", facecolor="white")
     plt.close(fig)
+
+
+def plot_small_lesion_region_figure(selected, visuals, output_dir: Path):
+    """Create a standalone area-based figure for the selected small lesion."""
+    selected_rows = selected[
+        selected["selection_role"].astype(str) == "small_lesion_improvement"
+    ]
+    if len(selected_rows) != 1:
+        raise ValueError("exactly one selected small-lesion case is required")
+    row = selected_rows.iloc[0]
+    case_id = row["case_id"]
+    visual = visuals[case_id]
+    z_index = visual["z_index"]
+    y0, y1, x0, x1 = visual["crop"]
+    crop = (slice(y0, y1), slice(x0, x1))
+    mri = _normalize_mri(visual["t1ce"][z_index])[crop]
+    gt = visual["focus"][z_index][crop]
+    predictions = {
+        key: visual["focus_predictions"][key][z_index][crop]
+        for key in MODEL_KEYS
+    }
+
+    figure, axes = plt.subplots(1, 5, figsize=(15.2, 3.8))
+    titles = ("MRI (T1ce)", "Ground truth", "Baseline", "LHFC", "Full")
+    for axis, title in zip(axes, titles):
+        axis.set_title(title, fontsize=11, fontweight="semibold", pad=8)
+        axis.axis("off")
+
+    axes[0].imshow(mri, cmap="gray", interpolation="nearest")
+    axes[1].imshow(mri, cmap="gray", interpolation="nearest")
+    gt_overlay = np.zeros((*gt.shape, 4), dtype=float)
+    gt_overlay[gt] = (0.0, 0.66, 0.47, 0.72)
+    axes[1].imshow(gt_overlay, interpolation="nearest")
+
+    for axis_index, model_key in enumerate(MODEL_KEYS, start=2):
+        axes[axis_index].imshow(
+            np.zeros_like(mri),
+            cmap="gray",
+            vmin=0,
+            vmax=1,
+            interpolation="nearest",
+        )
+        axes[axis_index].imshow(
+            _region_error_overlay(gt, predictions[model_key]),
+            interpolation="nearest",
+        )
+        detected = bool(row[f"{model_key}_detected"])
+        dice = float(row[f"{model_key}_lesion_dice"])
+        label = f"3D Dice {dice:.3f}" if detected else "Missed"
+        axes[axis_index].text(
+            0.5,
+            -0.055,
+            label,
+            transform=axes[axis_index].transAxes,
+            ha="center",
+            va="top",
+            fontsize=9,
+            fontweight="semibold",
+        )
+
+    gain = float(row["small_lesion_dice_gain"])
+
+    legend = [
+        Patch(facecolor=REGION_COLORS["tp"], label="TP: overlap"),
+        Patch(facecolor=REGION_COLORS["fn"], label="FN: GT only"),
+        Patch(facecolor=REGION_COLORS["fp"], label="FP: prediction only"),
+    ]
+    figure.legend(
+        handles=legend,
+        loc="lower center",
+        ncol=3,
+        frameon=False,
+        bbox_to_anchor=(0.5, 0.07),
+    )
+    figure.suptitle(
+        "Small ET lesion: region overlap and whole-lesion Dice\n"
+        f"{case_id}, lesion {int(row['gt_id'])}, "
+        f"GT volume {int(row['gt_size'])} voxels, "
+        f"Full - Baseline Dice = {gain:+.3f}",
+        fontsize=14,
+        fontweight="semibold",
+        y=0.995,
+    )
+    figure.text(
+        0.5,
+        0.005,
+        "Maps show the maximal axial cross-section; Dice is computed on the complete 3D matched component.",
+        ha="center",
+        va="bottom",
+        fontsize=8.5,
+        color="0.35",
+    )
+    figure.subplots_adjust(
+        left=0.015,
+        right=0.985,
+        top=0.78,
+        bottom=0.20,
+        wspace=0.18,
+    )
+    for suffix in ("png", "pdf"):
+        figure.savefig(
+            output_dir / f"small_lesion_region_dice.{suffix}",
+            dpi=300 if suffix == "png" else None,
+            bbox_inches="tight",
+            facecolor="white",
+        )
+    plt.close(figure)
 
 
 def _json_safe(value):
@@ -1050,6 +1168,7 @@ def main():
     output_stem = args.output_dir / "typical_cases_4x5"
     plot_case_grid(selected, comparison, visuals, output_stem, zoomed=True)
     plot_case_grid(selected, comparison, visuals, output_stem, zoomed=False)
+    plot_small_lesion_region_figure(selected, visuals, args.output_dir)
 
     audit = {
         "evaluation_split": "test",

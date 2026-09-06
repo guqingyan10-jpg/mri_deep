@@ -240,6 +240,8 @@ def test_script_fixes_test_cohort_and_best_checkpoints():
     assert "Small-lesion Dice" in source
     assert "Small lesion: TP overlap" in source
     assert "small_lesion_comparison.csv" in source
+    assert "small_lesion_region_dice.{suffix}" in source
+    assert ".barh(" not in source
     assert '"Baseline"' in source
     assert '"LHFC"' in source
     assert '"Full"' in source
