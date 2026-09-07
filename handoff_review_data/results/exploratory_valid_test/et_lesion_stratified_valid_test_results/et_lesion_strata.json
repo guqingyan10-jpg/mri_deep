@@ -1,0 +1,35 @@
+{
+  "region": "ET",
+  "fit_split": "train",
+  "split_random_state": 10,
+  "training_cases": 257,
+  "connectivity": 26,
+  "min_component_size": 10,
+  "training_component_count": 564,
+  "strata": {
+    "small": [
+      10,
+      44
+    ],
+    "medium": [
+      45,
+      4678
+    ],
+    "large": [
+      4679,
+      null
+    ]
+  },
+  "stratum_counts": {
+    "small": 188,
+    "medium": 188,
+    "large": 188
+  },
+  "apply_split": "valid_test",
+  "evaluation_splits": [
+    "valid",
+    "test"
+  ],
+  "evaluation_cases": 111,
+  "train_fraction": 0.7
+}

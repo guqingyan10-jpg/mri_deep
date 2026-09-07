@@ -1,0 +1,7 @@
+{
+  "status": "completed",
+  "seed": 123,
+  "epochs": 200,
+  "best_checkpoint": "/root/autodl-tmp/stability/seed123/baseline/best_model_79.pth",
+  "completed_at_utc": "2026-08-19T17:33:10.219863+00:00"
+}

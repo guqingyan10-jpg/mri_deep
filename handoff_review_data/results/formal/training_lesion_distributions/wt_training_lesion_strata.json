@@ -1,0 +1,28 @@
+{
+  "region": "WT",
+  "fit_split": "train",
+  "split_random_state": 10,
+  "training_cases": 257,
+  "connectivity": 26,
+  "min_component_size": 10,
+  "training_component_count": 517,
+  "strata": {
+    "small": [
+      10,
+      64
+    ],
+    "medium": [
+      65,
+      63158
+    ],
+    "large": [
+      63159,
+      null
+    ]
+  },
+  "stratum_counts": {
+    "small": 172,
+    "medium": 172,
+    "large": 173
+  }
+}

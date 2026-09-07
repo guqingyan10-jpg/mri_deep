@@ -1,0 +1,16 @@
+{
+  "definition": "scalar alpha read from each evaluated best checkpoint",
+  "seeds": [
+    42,
+    55,
+    123
+  ],
+  "mean": -0.0022530431548754373,
+  "minimum": -0.03620530664920807,
+  "maximum": 0.05985186994075775,
+  "range": [
+    -0.03620530664920807,
+    0.05985186994075775
+  ],
+  "mixed_training_protocols": true
+}

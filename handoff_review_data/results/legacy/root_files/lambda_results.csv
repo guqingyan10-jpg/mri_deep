@@ -1,0 +1,3 @@
+Model,ET_Dice,TC_Dice,WT_Dice,ET_Recall,ET_Precision,ET_HD95_mm,TC_HD95_mm,Lesion_Recall,Lesion_Precision,Overall_Lesion_Recall,Small_case_ET_Dice
+lb=0.1 (Dice+CE+0.1*BD),0.7534,0.8070,0.8794,0.7951,0.7442,12.30,10.41,0.7490,0.7449,0.5932,0.6342
+lb=0.3 (Dice+CE+0.3*BD),0.7665,0.8055,0.8805,0.7934,0.7672,11.77,9.31,0.7406,0.8249,0.5763,0.6424

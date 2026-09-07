@@ -1,0 +1,1277 @@
+[
+  {
+    "model_name": "Baseline (BCEDice)",
+    "category": "Baseline",
+    "description": "Standard 3D ResUNet with BCEDiceLoss. Architecture: ResBlock encoder/decoder, GroupNorm, MaxPool3d down, Trilinear up, skip connections.",
+    "checkpoint_path": "/root/autodl-tmp/ResUNet_model/best_model_132.pth",
+    "checkpoint_epoch": 132,
+    "n_params": 5763867,
+    "n_params_matched": 81,
+    "inference_time_mean_s": 0.08775690904654124,
+    "inference_time_std_s": 8.834332596195841e-05,
+    "confusion_matrix": {
+      "WT": {
+        "TP": 3361330,
+        "FP": 477201,
+        "TN": 102844202,
+        "FN": 247267
+      },
+      "TC": {
+        "TP": 1167562,
+        "FP": 269295,
+        "TN": 105298540,
+        "FN": 194603
+      },
+      "ET": {
+        "TP": 557131,
+        "FP": 93856,
+        "TN": 106161052,
+        "FN": 117961
+      }
+    },
+    "classification_metrics": {
+      "WT": {
+        "Accuracy": 0.993225,
+        "Precision": 0.875681,
+        "Recall": 0.931478,
+        "F1": 0.902718
+      },
+      "TC": {
+        "Accuracy": 0.995662,
+        "Precision": 0.812581,
+        "Recall": 0.857137,
+        "F1": 0.834264
+      },
+      "ET": {
+        "Accuracy": 0.998019,
+        "Precision": 0.855825,
+        "Recall": 0.825267,
+        "F1": 0.840268
+      }
+    },
+    "WT_Dice_mean": 0.8860072864068521,
+    "WT_Dice_std": 0.0732218607355265,
+    "WT_Jaccard_mean": 0.8096334338188171,
+    "WT_Jaccard_std": 0.11261244118213654,
+    "TC_Dice_mean": 0.8174530742941676,
+    "TC_Dice_std": 0.15271062819348818,
+    "TC_Jaccard_mean": 0.7181908488273621,
+    "TC_Jaccard_std": 0.19268617033958435,
+    "ET_Dice_mean": 0.7584827548141491,
+    "ET_Dice_std": 0.2408710165289142,
+    "ET_Jaccard_mean": 0.648255467414856,
+    "ET_Jaccard_std": 0.24355995655059814,
+    "ET_Recall_mean": 0.7774755231465059,
+    "ET_Precision_mean": 0.7825054353633693,
+    "ET_HD95_mean": 10.259442386190559,
+    "ET_NSD_mean": 0.7502504993863321,
+    "TC_HD95_mean": 9.020054318475044,
+    "TC_NSD_mean": 0.644650707283818,
+    "Lesion_Recall_mean": 0.718050193050193,
+    "Lesion_Precision_mean": 0.8078042328042327,
+    "Overall_lesion_recall": 0.5508474576271186,
+    "Small_case_ET_Dice_mean": 0.6211707315582317,
+    "training_time_stats": {
+      "total_epochs": 199,
+      "best_epoch": 132,
+      "best_val_loss": 0.1718263561661179,
+      "best_val_dice": 0.8514350652694702,
+      "final_val_loss": 0.1718659417552722,
+      "train_time_mean_s": 124.66949748743717,
+      "train_time_std_s": 7.951602071518765,
+      "train_time_total_s": 24809.229999999996,
+      "valid_time_mean_s": 25.374472361809048,
+      "valid_time_std_s": 2.9105804200894414
+    }
+  },
+  {
+    "model_name": "\u03bbb=0.1 (Dice+CE+0.1\u00b7BD)",
+    "category": "V1: Loss Function",
+    "description": "Replaces BCEDiceLoss with DiceCEBoundaryLoss (\u03bbb=0.1). Boundary loss from Kervadec et al. 2019 using distance-transform on GT boundaries. Class weights: WT=1, TC=3, ET=5.",
+    "checkpoint_path": "/root/autodl-tmp/ResUNet_Enhanced_lb0.1_model/best_model_33.pth",
+    "checkpoint_epoch": 33,
+    "n_params": 5763867,
+    "n_params_matched": 81,
+    "inference_time_mean_s": 0.08792091013096712,
+    "inference_time_std_s": 0.00010817138438216571,
+    "confusion_matrix": {
+      "WT": {
+        "TP": 3336054,
+        "FP": 416004,
+        "TN": 102905399,
+        "FN": 272543
+      },
+      "TC": {
+        "TP": 1172694,
+        "FP": 273322,
+        "TN": 105294513,
+        "FN": 189471
+      },
+      "ET": {
+        "TP": 561123,
+        "FP": 86906,
+        "TN": 106168002,
+        "FN": 113969
+      }
+    },
+    "classification_metrics": {
+      "WT": {
+        "Accuracy": 0.993561,
+        "Precision": 0.889126,
+        "Recall": 0.924474,
+        "F1": 0.906456
+      },
+      "TC": {
+        "Accuracy": 0.995672,
+        "Precision": 0.810983,
+        "Recall": 0.860905,
+        "F1": 0.835198
+      },
+      "ET": {
+        "Accuracy": 0.998121,
+        "Precision": 0.865892,
+        "Recall": 0.83118,
+        "F1": 0.848181
+      }
+    },
+    "WT_Dice_mean": 0.8918790720604561,
+    "WT_Dice_std": 0.06850362469236226,
+    "WT_Jaccard_mean": 0.816044807434082,
+    "WT_Jaccard_std": 0.10821560025215149,
+    "TC_Dice_mean": 0.8215478513691876,
+    "TC_Dice_std": 0.14441150975431896,
+    "TC_Jaccard_mean": 0.7245924472808838,
+    "TC_Jaccard_std": 0.18663470447063446,
+    "ET_Dice_mean": 0.7657058772605818,
+    "ET_Dice_std": 0.2439568450398499,
+    "ET_Jaccard_mean": 0.656899631023407,
+    "ET_Jaccard_std": 0.24388380348682404,
+    "ET_Recall_mean": 0.7837191644955392,
+    "ET_Precision_mean": 0.7890460249540775,
+    "ET_HD95_mean": 9.748570334357849,
+    "ET_NSD_mean": 0.7712291919165726,
+    "TC_HD95_mean": 8.808225322247031,
+    "TC_NSD_mean": 0.6526282883864419,
+    "Lesion_Recall_mean": 0.709041184041184,
+    "Lesion_Precision_mean": 0.8214506172839505,
+    "Overall_lesion_recall": 0.5423728813559322,
+    "Small_case_ET_Dice_mean": 0.6284404344856739,
+    "training_time_stats": {
+      "total_epochs": 58,
+      "best_epoch": 34,
+      "best_val_loss": 0.1709437989000533,
+      "best_val_dice": 0.8577867746353149,
+      "final_val_loss": 0.1711111104971653,
+      "train_time_mean_s": 357.0177586206897,
+      "train_time_std_s": 10.7501412545764,
+      "train_time_total_s": 20707.030000000002,
+      "valid_time_mean_s": 86.02224137931036,
+      "valid_time_std_s": 2.9244138972567217
+    }
+  },
+  {
+    "model_name": "\u03bbb=0.3 (Dice+CE+0.3\u00b7BD)",
+    "category": "V1: Loss Function",
+    "description": "Same as \u03bbb=0.1 but with increased boundary weight \u03bbb=0.3. Tests whether stronger boundary supervision improves HD95.",
+    "checkpoint_path": "/root/autodl-tmp/ResUNet_Enhanced_lb0.3_model/best_model_93.pth",
+    "checkpoint_epoch": 93,
+    "n_params": 5763867,
+    "n_params_matched": 81,
+    "inference_time_mean_s": 0.08782821981345906,
+    "inference_time_std_s": 0.00012769297485676654,
+    "confusion_matrix": {
+      "WT": {
+        "TP": 3285526,
+        "FP": 476292,
+        "TN": 102845111,
+        "FN": 323071
+      },
+      "TC": {
+        "TP": 1154467,
+        "FP": 293561,
+        "TN": 105274274,
+        "FN": 207698
+      },
+      "ET": {
+        "TP": 580297,
+        "FP": 109551,
+        "TN": 106145357,
+        "FN": 94795
+      }
+    },
+    "classification_metrics": {
+      "WT": {
+        "Accuracy": 0.992524,
+        "Precision": 0.873388,
+        "Recall": 0.910472,
+        "F1": 0.891544
+      },
+      "TC": {
+        "Accuracy": 0.995312,
+        "Precision": 0.797268,
+        "Recall": 0.847524,
+        "F1": 0.821628
+      },
+      "ET": {
+        "Accuracy": 0.998089,
+        "Precision": 0.841195,
+        "Recall": 0.859582,
+        "F1": 0.850289
+      }
+    },
+    "WT_Dice_mean": 0.8696914218567513,
+    "WT_Dice_std": 0.15785969089733703,
+    "WT_Jaccard_mean": 0.8004380464553833,
+    "WT_Jaccard_std": 0.16572459042072296,
+    "TC_Dice_mean": 0.789626695014335,
+    "TC_Dice_std": 0.2137134203627916,
+    "TC_Jaccard_mean": 0.6998513340950012,
+    "TC_Jaccard_std": 0.2371700555086136,
+    "ET_Dice_mean": 0.7792859190219158,
+    "ET_Dice_std": 0.22818326823271184,
+    "ET_Jaccard_mean": 0.6783517599105835,
+    "ET_Jaccard_std": 0.23677022755146027,
+    "ET_Recall_mean": 0.8245356920603226,
+    "ET_Precision_mean": 0.7633086604042167,
+    "ET_HD95_mean": 9.566479986523728,
+    "ET_NSD_mean": 0.7860315655140302,
+    "TC_HD95_mean": 8.934379249498344,
+    "TC_NSD_mean": 0.6559794453820044,
+    "Lesion_Recall_mean": 0.7771342771342771,
+    "Lesion_Precision_mean": 0.9378378378378377,
+    "Overall_lesion_recall": 0.6186440677966102,
+    "Small_case_ET_Dice_mean": 0.6730469048023224,
+    "training_time_stats": {
+      "total_epochs": 118,
+      "best_epoch": 93,
+      "best_val_loss": 0.1764059809313432,
+      "best_val_dice": 0.8590968251228333,
+      "final_val_loss": 0.176661461491037,
+      "train_time_mean_s": 354.6677966101695,
+      "train_time_std_s": 10.915191572729729,
+      "train_time_total_s": 41850.8,
+      "valid_time_mean_s": 86.91271186440677,
+      "valid_time_std_s": 3.6780182468226825
+    }
+  },
+  {
+    "model_name": "\u03bbb=0.5 (Dice+CE+0.5\u00b7BD)",
+    "category": "V1: Loss Function",
+    "description": "Same as \u03bbb=0.1 but with \u03bbb=0.5. Tests whether boundary loss dominates and degrades volume segmentation.",
+    "checkpoint_path": "/root/autodl-tmp/ResUNet_Enhanced_lb0.5_model/best_model_29.pth",
+    "checkpoint_epoch": 29,
+    "n_params": 5763867,
+    "n_params_matched": 81,
+    "inference_time_mean_s": 0.08762299477615777,
+    "inference_time_std_s": 7.130501608798963e-05,
+    "confusion_matrix": {
+      "WT": {
+        "TP": 3272348,
+        "FP": 458929,
+        "TN": 102862474,
+        "FN": 336249
+      },
+      "TC": {
+        "TP": 1136548,
+        "FP": 292023,
+        "TN": 105275812,
+        "FN": 225617
+      },
+      "ET": {
+        "TP": 567157,
+        "FP": 94748,
+        "TN": 106160160,
+        "FN": 107935
+      }
+    },
+    "classification_metrics": {
+      "WT": {
+        "Accuracy": 0.992564,
+        "Precision": 0.877005,
+        "Recall": 0.90682,
+        "F1": 0.891663
+      },
+      "TC": {
+        "Accuracy": 0.995159,
+        "Precision": 0.795584,
+        "Recall": 0.834369,
+        "F1": 0.814515
+      },
+      "ET": {
+        "Accuracy": 0.998105,
+        "Precision": 0.856856,
+        "Recall": 0.840118,
+        "F1": 0.848404
+      }
+    },
+    "WT_Dice_mean": 0.8691565205116529,
+    "WT_Dice_std": 0.13894640378625198,
+    "WT_Jaccard_mean": 0.7949738502502441,
+    "WT_Jaccard_std": 0.16292761266231537,
+    "TC_Dice_mean": 0.7985911050408676,
+    "TC_Dice_std": 0.19765822765444013,
+    "TC_Jaccard_mean": 0.7067006826400757,
+    "TC_Jaccard_std": 0.22149229049682617,
+    "ET_Dice_mean": 0.7630583423809651,
+    "ET_Dice_std": 0.25139881108115464,
+    "ET_Jaccard_mean": 0.6584281325340271,
+    "ET_Jaccard_std": 0.244429811835289,
+    "ET_Recall_mean": 0.7896275729628452,
+    "ET_Precision_mean": 0.788632207160176,
+    "ET_HD95_mean": 9.577724461438333,
+    "ET_NSD_mean": 0.7626822606230204,
+    "TC_HD95_mean": 9.902755140527898,
+    "TC_NSD_mean": 0.6417423449621805,
+    "Lesion_Recall_mean": 0.709041184041184,
+    "Lesion_Precision_mean": 0.8963319088319087,
+    "Overall_lesion_recall": 0.5423728813559322,
+    "Small_case_ET_Dice_mean": 0.6170638581330422,
+    "training_time_stats": {
+      "total_epochs": 54,
+      "best_epoch": 29,
+      "best_val_loss": 0.1868839203505902,
+      "best_val_dice": 0.85636204,
+      "final_val_loss": 0.1873062012364735,
+      "train_time_mean_s": 347.1344444444444,
+      "train_time_std_s": 16.061083596361364,
+      "train_time_total_s": 18745.26,
+      "valid_time_mean_s": 85.29629629629632,
+      "valid_time_std_s": 3.732210279570192
+    }
+  },
+  {
+    "model_name": "Edge (Sobel, concat)",
+    "category": "V2: Architecture",
+    "description": "Adds Sobel edge detection branch (1st-derivative) to ResUNet. Edge features concatenated with decoder features. Sobel kernels operate on each MRI channel independently, then fused via 1\u00d71\u00d71 conv into edge feature map.",
+    "checkpoint_path": "/root/autodl-tmp/ResUNet_Edge_concat_sobel_model/best_model_60.pth",
+    "checkpoint_epoch": 60,
+    "n_params": 6293307,
+    "n_params_matched": 100,
+    "inference_time_mean_s": 0.1278680910849396,
+    "inference_time_std_s": 6.743804494280833e-05,
+    "confusion_matrix": {
+      "WT": {
+        "TP": 3291161,
+        "FP": 414283,
+        "TN": 102907120,
+        "FN": 317436
+      },
+      "TC": {
+        "TP": 1145423,
+        "FP": 317174,
+        "TN": 105250661,
+        "FN": 216742
+      },
+      "ET": {
+        "TP": 551805,
+        "FP": 89305,
+        "TN": 106165603,
+        "FN": 123287
+      }
+    },
+    "classification_metrics": {
+      "WT": {
+        "Accuracy": 0.993157,
+        "Precision": 0.888196,
+        "Recall": 0.912033,
+        "F1": 0.899957
+      },
+      "TC": {
+        "Accuracy": 0.995007,
+        "Precision": 0.783143,
+        "Recall": 0.840884,
+        "F1": 0.810987
+      },
+      "ET": {
+        "Accuracy": 0.998012,
+        "Precision": 0.860703,
+        "Recall": 0.817377,
+        "F1": 0.838481
+      }
+    },
+    "WT_Dice_mean": 0.881419454877441,
+    "WT_Dice_std": 0.10248344827179172,
+    "WT_Jaccard_mean": 0.8058017492294312,
+    "WT_Jaccard_std": 0.14420746266841888,
+    "TC_Dice_mean": 0.7992045967965513,
+    "TC_Dice_std": 0.1695276681164245,
+    "TC_Jaccard_mean": 0.6970316767692566,
+    "TC_Jaccard_std": 0.20865857601165771,
+    "ET_Dice_mean": 0.7672279130768132,
+    "ET_Dice_std": 0.222628581420725,
+    "ET_Jaccard_mean": 0.6516119241714478,
+    "ET_Jaccard_std": 0.22666962444782257,
+    "ET_Recall_mean": 0.7773046735170792,
+    "ET_Precision_mean": 0.8081014857099135,
+    "ET_HD95_mean": 7.613176453835131,
+    "ET_NSD_mean": 0.7751031294415788,
+    "TC_HD95_mean": 9.442200677249959,
+    "TC_NSD_mean": 0.6264632844482207,
+    "Lesion_Recall_mean": 0.7435757185757186,
+    "Lesion_Precision_mean": 0.885939510939511,
+    "Overall_lesion_recall": 0.5847457627118644,
+    "Small_case_ET_Dice_mean": 0.6627605944871903,
+    "training_time_stats": {
+      "total_epochs": 85,
+      "best_epoch": 64,
+      "best_val_loss": 0.1690737801427776,
+      "best_val_dice": 0.85467064,
+      "final_val_loss": 0.1690816662299472,
+      "train_time_mean_s": 161.4251764705882,
+      "train_time_std_s": 2.7479068275276566,
+      "train_time_total_s": 13721.139999999998,
+      "valid_time_mean_s": 31.1484705882353,
+      "valid_time_std_s": 0.6928882028326427
+    }
+  },
+  {
+    "model_name": "Edge (Sobel, add)",
+    "category": "V2: Architecture",
+    "description": "Same Sobel edge branch but edge features ADDED (residual) to decoder instead of concatenated. Tests fusion strategy.",
+    "checkpoint_path": "/root/autodl-tmp/ResUNet_Edge_add_sobel_model/best_model_59.pth",
+    "checkpoint_epoch": 59,
+    "n_params": 5950779,
+    "n_params_matched": 104,
+    "inference_time_mean_s": 0.1102773262297406,
+    "inference_time_std_s": 0.00011093441043496517,
+    "confusion_matrix": {
+      "WT": {
+        "TP": 3364366,
+        "FP": 414540,
+        "TN": 102906863,
+        "FN": 244231
+      },
+      "TC": {
+        "TP": 1185076,
+        "FP": 289523,
+        "TN": 105278312,
+        "FN": 177089
+      },
+      "ET": {
+        "TP": 553986,
+        "FP": 83246,
+        "TN": 106171662,
+        "FN": 121106
+      }
+    },
+    "classification_metrics": {
+      "WT": {
+        "Accuracy": 0.993839,
+        "Precision": 0.890302,
+        "Recall": 0.93232,
+        "F1": 0.910826
+      },
+      "TC": {
+        "Accuracy": 0.995636,
+        "Precision": 0.80366,
+        "Recall": 0.869994,
+        "F1": 0.835513
+      },
+      "ET": {
+        "Accuracy": 0.998089,
+        "Precision": 0.869363,
+        "Recall": 0.820608,
+        "F1": 0.844282
+      }
+    },
+    "WT_Dice_mean": 0.8955135490443256,
+    "WT_Dice_std": 0.06650173579112449,
+    "WT_Jaccard_mean": 0.8223171830177307,
+    "WT_Jaccard_std": 0.10545787960290909,
+    "TC_Dice_mean": 0.8229987411885649,
+    "TC_Dice_std": 0.14257403223153822,
+    "TC_Jaccard_mean": 0.7279394268989563,
+    "TC_Jaccard_std": 0.181620255112648,
+    "ET_Dice_mean": 0.7649349562306196,
+    "ET_Dice_std": 0.23738445042369588,
+    "ET_Jaccard_mean": 0.6541106104850769,
+    "ET_Jaccard_std": 0.2386435568332672,
+    "ET_Recall_mean": 0.7757081860256378,
+    "ET_Precision_mean": 0.7941864184072732,
+    "ET_HD95_mean": 10.059887765959827,
+    "ET_NSD_mean": 0.7661226022355946,
+    "TC_HD95_mean": 11.119752343335762,
+    "TC_NSD_mean": 0.6490914513350309,
+    "Lesion_Recall_mean": 0.7360682110682111,
+    "Lesion_Precision_mean": 0.8842903342903344,
+    "Overall_lesion_recall": 0.5677966101694916,
+    "Small_case_ET_Dice_mean": 0.6331541985593503,
+    "training_time_stats": {
+      "total_epochs": 84,
+      "best_epoch": 59,
+      "best_val_loss": 0.1658498143928276,
+      "best_val_dice": 0.85618335,
+      "final_val_loss": 0.1658997324773588,
+      "train_time_mean_s": 149.64095238095237,
+      "train_time_std_s": 5.917248754022617,
+      "train_time_total_s": 12569.84,
+      "valid_time_mean_s": 29.138452380952383,
+      "valid_time_std_s": 1.342953492136811
+    }
+  },
+  {
+    "model_name": "Edge (Laplacian, concat)",
+    "category": "V2: Architecture",
+    "description": "Replaces Sobel with Laplacian edge operator (2nd-derivative, I\u2212blur(I)). Laplacian captures zero-crossings and finer edge details. Concat fusion with decoder features.",
+    "checkpoint_path": "/root/autodl-tmp/ResUNet_Edge_concat_laplacian_model/best_model_55.pth",
+    "checkpoint_epoch": 55,
+    "n_params": 6293307,
+    "n_params_matched": 98,
+    "inference_time_mean_s": 0.12199047646101784,
+    "inference_time_std_s": 5.738489910648485e-05,
+    "confusion_matrix": {
+      "WT": {
+        "TP": 3252351,
+        "FP": 387876,
+        "TN": 102933527,
+        "FN": 356246
+      },
+      "TC": {
+        "TP": 1138615,
+        "FP": 255333,
+        "TN": 105312502,
+        "FN": 223550
+      },
+      "ET": {
+        "TP": 564352,
+        "FP": 83442,
+        "TN": 106171466,
+        "FN": 110740
+      }
+    },
+    "classification_metrics": {
+      "WT": {
+        "Accuracy": 0.993041,
+        "Precision": 0.893447,
+        "Recall": 0.901279,
+        "F1": 0.897346
+      },
+      "TC": {
+        "Accuracy": 0.995522,
+        "Precision": 0.816827,
+        "Recall": 0.835886,
+        "F1": 0.826247
+      },
+      "ET": {
+        "Accuracy": 0.998184,
+        "Precision": 0.871191,
+        "Recall": 0.835963,
+        "F1": 0.853213
+      }
+    },
+    "WT_Dice_mean": 0.8720948624147756,
+    "WT_Dice_std": 0.15937727451315395,
+    "WT_Jaccard_mean": 0.8034228086471558,
+    "WT_Jaccard_std": 0.17117035388946533,
+    "TC_Dice_mean": 0.797275920675413,
+    "TC_Dice_std": 0.20070118257553118,
+    "TC_Jaccard_mean": 0.7043917775154114,
+    "TC_Jaccard_std": 0.22302693128585815,
+    "ET_Dice_mean": 0.7814288968975479,
+    "ET_Dice_std": 0.22166906204637543,
+    "ET_Jaccard_mean": 0.6737775802612305,
+    "ET_Jaccard_std": 0.22746531665325165,
+    "ET_Recall_mean": 0.7954707330948665,
+    "ET_Precision_mean": 0.8160951822190969,
+    "ET_HD95_mean": 7.363605749768731,
+    "ET_NSD_mean": 0.8197571244951374,
+    "TC_HD95_mean": 11.644771599247543,
+    "TC_NSD_mean": 0.6394962191369324,
+    "Lesion_Recall_mean": 0.751984126984127,
+    "Lesion_Precision_mean": 0.7833679833679833,
+    "Overall_lesion_recall": 0.6016949152542372,
+    "Small_case_ET_Dice_mean": 0.6715670853853226,
+    "training_time_stats": {
+      "total_epochs": 80,
+      "best_epoch": 55,
+      "best_val_loss": 0.1622186297601139,
+      "best_val_dice": 0.8591704964637756,
+      "final_val_loss": 0.162271335066573,
+      "train_time_mean_s": 159.638125,
+      "train_time_std_s": 4.7829843693919925,
+      "train_time_total_s": 12771.05,
+      "valid_time_mean_s": 30.476,
+      "valid_time_std_s": 1.2396269344883004
+    }
+  },
+  {
+    "model_name": "HF Boundary (Laplacian, w=0.2)",
+    "category": "V2: Architecture",
+    "description": "High-Frequency Boundary branch: Laplacian edge extraction + separate decoder path for boundary prediction. Boundary output supervised with BD loss (weight=0.2), fused with main decoder via learnable attention gate. Combines explicit edge prior with learnable boundary refinement.",
+    "checkpoint_path": "/root/autodl-tmp/ResUNet_HFBoundary_model/best_model_53.pth",
+    "checkpoint_epoch": 53,
+    "n_params": 5779662,
+    "n_params_matched": 89,
+    "inference_time_mean_s": 0.10725312915575855,
+    "inference_time_std_s": 0.00012732915629290613,
+    "confusion_matrix": {
+      "WT": {
+        "TP": 3332224,
+        "FP": 397986,
+        "TN": 102923417,
+        "FN": 276373
+      },
+      "TC": {
+        "TP": 1171550,
+        "FP": 279489,
+        "TN": 105288346,
+        "FN": 190615
+      },
+      "ET": {
+        "TP": 557602,
+        "FP": 81188,
+        "TN": 106173720,
+        "FN": 117490
+      }
+    },
+    "classification_metrics": {
+      "WT": {
+        "Accuracy": 0.993693,
+        "Precision": 0.893307,
+        "Recall": 0.923413,
+        "F1": 0.908111
+      },
+      "TC": {
+        "Accuracy": 0.995604,
+        "Precision": 0.807387,
+        "Recall": 0.860065,
+        "F1": 0.832894
+      },
+      "ET": {
+        "Accuracy": 0.998142,
+        "Precision": 0.872903,
+        "Recall": 0.825964,
+        "F1": 0.848786
+      }
+    },
+    "WT_Dice_mean": 0.89339584273261,
+    "WT_Dice_std": 0.06613688706274876,
+    "WT_Jaccard_mean": 0.8182905316352844,
+    "WT_Jaccard_std": 0.1060185581445694,
+    "TC_Dice_mean": 0.8143566323293222,
+    "TC_Dice_std": 0.1595684384443576,
+    "TC_Jaccard_mean": 0.7171736359596252,
+    "TC_Jaccard_std": 0.19964852929115295,
+    "ET_Dice_mean": 0.7768238266297566,
+    "ET_Dice_std": 0.22641733235671083,
+    "ET_Jaccard_mean": 0.6660630702972412,
+    "ET_Jaccard_std": 0.23318643867969513,
+    "ET_Recall_mean": 0.785379352973075,
+    "ET_Precision_mean": 0.797056780221931,
+    "ET_HD95_mean": 9.628714326141012,
+    "ET_NSD_mean": 0.7872550921404255,
+    "TC_HD95_mean": 9.10424316125149,
+    "TC_NSD_mean": 0.6517488872637712,
+    "Lesion_Recall_mean": 0.727059202059202,
+    "Lesion_Precision_mean": 0.9119047619047618,
+    "Overall_lesion_recall": 0.559322033898305,
+    "Small_case_ET_Dice_mean": 0.6716948121786117,
+    "training_time_stats": {
+      "total_epochs": 78,
+      "best_epoch": 54,
+      "best_val_loss": 0.1665481253451592,
+      "best_val_dice": 0.8574323654174805,
+      "final_val_loss": 0.1666021967759809,
+      "train_time_mean_s": 160.4228205128205,
+      "train_time_std_s": 20.45811145753499,
+      "train_time_total_s": 12512.98,
+      "valid_time_mean_s": 29.968589743589746,
+      "valid_time_std_s": 2.787198809939328
+    }
+  },
+  {
+    "model_name": "HF Boundary+ (Laplacian, w=0.3)",
+    "category": "V2: Architecture",
+    "description": "Same as HF Boundary but with increased boundary loss weight (w=0.3). Tests whether stronger boundary supervision in the auxiliary branch further improves boundary quality.",
+    "checkpoint_path": "/root/autodl-tmp/ResUNet_HFBoundary_Plus_model/best_model_10.pth",
+    "checkpoint_epoch": 10,
+    "n_params": 5779662,
+    "n_params_matched": 89,
+    "inference_time_mean_s": 0.10727754832409761,
+    "inference_time_std_s": 0.00012893416632965676,
+    "confusion_matrix": {
+      "WT": {
+        "TP": 3371923,
+        "FP": 483003,
+        "TN": 102838400,
+        "FN": 236674
+      },
+      "TC": {
+        "TP": 1170771,
+        "FP": 292135,
+        "TN": 105275700,
+        "FN": 191394
+      },
+      "ET": {
+        "TP": 557115,
+        "FP": 87160,
+        "TN": 106167748,
+        "FN": 117977
+      }
+    },
+    "classification_metrics": {
+      "WT": {
+        "Accuracy": 0.99327,
+        "Precision": 0.874705,
+        "Recall": 0.934414,
+        "F1": 0.903574
+      },
+      "TC": {
+        "Accuracy": 0.995478,
+        "Precision": 0.800305,
+        "Recall": 0.859493,
+        "F1": 0.828844
+      },
+      "ET": {
+        "Accuracy": 0.998082,
+        "Precision": 0.864716,
+        "Recall": 0.825243,
+        "F1": 0.844519
+      }
+    },
+    "WT_Dice_mean": 0.8896066304799672,
+    "WT_Dice_std": 0.06436847440422085,
+    "WT_Jaccard_mean": 0.8148205876350403,
+    "WT_Jaccard_std": 0.0993761494755745,
+    "TC_Dice_mean": 0.7989862714264844,
+    "TC_Dice_std": 0.18421610335212352,
+    "TC_Jaccard_mean": 0.7010602951049805,
+    "TC_Jaccard_std": 0.220144122838974,
+    "ET_Dice_mean": 0.7673122890897699,
+    "ET_Dice_std": 0.23008113737959188,
+    "ET_Jaccard_mean": 0.65619295835495,
+    "ET_Jaccard_std": 0.23679548501968384,
+    "ET_Recall_mean": 0.7835113237033087,
+    "ET_Precision_mean": 0.7799711461003214,
+    "ET_HD95_mean": 10.402365987846276,
+    "ET_NSD_mean": 0.7685191575548405,
+    "TC_HD95_mean": 9.427744360653849,
+    "TC_NSD_mean": 0.6268586927429444,
+    "Lesion_Recall_mean": 0.7405727155727155,
+    "Lesion_Precision_mean": 0.7802981552981553,
+    "Overall_lesion_recall": 0.576271186440678,
+    "Small_case_ET_Dice_mean": 0.6410016864538193,
+    "training_time_stats": {
+      "total_epochs": 35,
+      "best_epoch": 10,
+      "best_val_loss": 0.175613190022272,
+      "best_val_dice": 0.85505235,
+      "final_val_loss": 0.176076432136265,
+      "train_time_mean_s": 177.28485714285716,
+      "train_time_std_s": 5.476127534408713,
+      "train_time_total_s": 6204.97,
+      "valid_time_mean_s": 31.942,
+      "valid_time_std_s": 0.5627861363734165
+    }
+  },
+  {
+    "model_name": "FG Sampling (4-strategy)",
+    "category": "SLA-FB: Data",
+    "description": "Foreground-Aware 3D Patch Sampling. 4 weighted strategies: random (20%), foreground/WT-centered (30%), ET-connected-component-centered (30%), small-lesion-only <50 vox (20%). Inspired by STSNet (Zhao et al., 2025). No model/loss changes \u2014 only data sampling changed. Addresses ET class imbalance (~0.5% of voxels).",
+    "checkpoint_path": "/root/autodl-tmp/ResUNet_FG_Sampling_model/best_model_10.pth",
+    "checkpoint_epoch": 10,
+    "n_params": 5763867,
+    "n_params_matched": 81,
+    "inference_time_mean_s": 0.0879823494812145,
+    "inference_time_std_s": 6.694057885292429e-05,
+    "confusion_matrix": {
+      "WT": {
+        "TP": 3377002,
+        "FP": 538498,
+        "TN": 102782905,
+        "FN": 231595
+      },
+      "TC": {
+        "TP": 1211611,
+        "FP": 384694,
+        "TN": 105183141,
+        "FN": 150554
+      },
+      "ET": {
+        "TP": 557937,
+        "FP": 116608,
+        "TN": 106138300,
+        "FN": 117155
+      }
+    },
+    "classification_metrics": {
+      "WT": {
+        "Accuracy": 0.992798,
+        "Precision": 0.86247,
+        "Recall": 0.935821,
+        "F1": 0.89765
+      },
+      "TC": {
+        "Accuracy": 0.994994,
+        "Precision": 0.75901,
+        "Recall": 0.889474,
+        "F1": 0.819079
+      },
+      "ET": {
+        "Accuracy": 0.997814,
+        "Precision": 0.827131,
+        "Recall": 0.826461,
+        "F1": 0.826796
+      }
+    },
+    "WT_Dice_mean": 0.8822236882673727,
+    "WT_Dice_std": 0.09328600872664904,
+    "WT_Jaccard_mean": 0.8088859915733337,
+    "WT_Jaccard_std": 0.12535865604877472,
+    "TC_Dice_mean": 0.7974201380401045,
+    "TC_Dice_std": 0.18251673982500763,
+    "TC_Jaccard_mean": 0.7050360441207886,
+    "TC_Jaccard_std": 0.21400731801986694,
+    "ET_Dice_mean": 0.7547228341211086,
+    "ET_Dice_std": 0.23729593314815384,
+    "ET_Jaccard_mean": 0.6488215923309326,
+    "ET_Jaccard_std": 0.23184995353221893,
+    "ET_Recall_mean": 0.7944977130069143,
+    "ET_Precision_mean": 0.743707544238109,
+    "ET_HD95_mean": 9.835202705699944,
+    "ET_NSD_mean": 0.7531941814755451,
+    "TC_HD95_mean": 10.91474982399107,
+    "TC_NSD_mean": 0.6170631759275209,
+    "Lesion_Recall_mean": 0.7336658086658087,
+    "Lesion_Precision_mean": 0.7157384657384658,
+    "Overall_lesion_recall": 0.5677966101694916,
+    "Small_case_ET_Dice_mean": 0.6362216669484042,
+    "training_time_stats": {
+      "total_epochs": 35,
+      "best_epoch": 10,
+      "best_val_loss": 0.1717226120668488,
+      "best_val_dice": 0.8510303,
+      "final_val_loss": 0.1780126657639001,
+      "train_time_mean_s": 90.16857142857141,
+      "train_time_std_s": 1.4075471841576939,
+      "train_time_total_s": 3155.8999999999996,
+      "valid_time_mean_s": 26.504285714285714,
+      "valid_time_std_s": 1.7877298876677385
+    }
+  },
+  {
+    "model_name": "CC-Dice Loss",
+    "category": "SLA-FB: Loss",
+    "description": "Connected-Component Dice Loss. Computes Dice separately for each ET connected component, then averages. Each lesion receives equal loss weight regardless of size \u2014 directly targets the \"Dice dominated by large lesions\" problem. 42% of ET lesions < 50 vox are invisible to global Dice.",
+    "checkpoint_path": "/root/autodl-tmp/ResUNet_CCDice_model/best_model_1.pth",
+    "checkpoint_epoch": 1,
+    "n_params": 5763867,
+    "n_params_matched": 81,
+    "inference_time_mean_s": 0.08784051957156729,
+    "inference_time_std_s": 0.00010639180120791603,
+    "confusion_matrix": {
+      "WT": {
+        "TP": 3279622,
+        "FP": 494821,
+        "TN": 102826582,
+        "FN": 328975
+      },
+      "TC": {
+        "TP": 1161041,
+        "FP": 371324,
+        "TN": 105196511,
+        "FN": 201124
+      },
+      "ET": {
+        "TP": 649676,
+        "FP": 633118,
+        "TN": 105621790,
+        "FN": 25416
+      }
+    },
+    "classification_metrics": {
+      "WT": {
+        "Accuracy": 0.992296,
+        "Precision": 0.868902,
+        "Recall": 0.908836,
+        "F1": 0.88842
+      },
+      "TC": {
+        "Accuracy": 0.994647,
+        "Precision": 0.757679,
+        "Recall": 0.85235,
+        "F1": 0.802231
+      },
+      "ET": {
+        "Accuracy": 0.993841,
+        "Precision": 0.506454,
+        "Recall": 0.962352,
+        "F1": 0.66365
+      }
+    },
+    "WT_Dice_mean": 0.8761213164071779,
+    "WT_Dice_std": 0.0854702784349057,
+    "WT_Jaccard_mean": 0.7935630083084106,
+    "WT_Jaccard_std": 0.1273769587278366,
+    "TC_Dice_mean": 0.7764807669697581,
+    "TC_Dice_std": 0.1964633888082268,
+    "TC_Jaccard_mean": 0.6767018437385559,
+    "TC_Jaccard_std": 0.22568245232105255,
+    "ET_Dice_mean": 0.6114541858787069,
+    "ET_Dice_std": 0.23089119087763618,
+    "ET_Jaccard_mean": 0.5191034078598022,
+    "ET_Jaccard_std": 0.22442089021205902,
+    "ET_Recall_mean": 0.9557414908666868,
+    "ET_Precision_mean": 0.4833430877282611,
+    "ET_HD95_mean": 20.051641508681328,
+    "ET_NSD_mean": 0.4081385618912082,
+    "TC_HD95_mean": 12.95859574088036,
+    "TC_NSD_mean": 0.5822988951517132,
+    "Lesion_Recall_mean": 0.9327541827541826,
+    "Lesion_Precision_mean": 0.41106056106056105,
+    "Overall_lesion_recall": 0.923728813559322,
+    "Small_case_ET_Dice_mean": 0.4381014655344188,
+    "training_time_stats": {
+      "total_epochs": 26,
+      "best_epoch": 1,
+      "best_val_loss": 0.2799766500656669,
+      "best_val_dice": 0.82623583,
+      "final_val_loss": 0.2842659076826798,
+      "train_time_mean_s": 160.23499999999999,
+      "train_time_std_s": 6.200459499101663,
+      "train_time_total_s": 4166.11,
+      "valid_time_mean_s": 32.082307692307694,
+      "valid_time_std_s": 1.6123704479859648
+    }
+  },
+  {
+    "model_name": "PM-Dice Loss (\u03b3=2)",
+    "category": "SLA-FB: Loss",
+    "description": "Power-Mean Dice Loss (Hosseini et al., 2025). Modulates Dice by |y\u2212p\u0302|^\u03b3, upweighting misclassified pixels exponentially. \u03b3=2 gives stronger penalty to boundary/rare-class errors. Operates at pixel level unlike CC-Dice (component level).",
+    "checkpoint_path": "/root/autodl-tmp/ResUNet_PMDice_model/best_model_2.pth",
+    "checkpoint_epoch": 2,
+    "n_params": 5763867,
+    "n_params_matched": 81,
+    "inference_time_mean_s": 0.08784261893700152,
+    "inference_time_std_s": 9.417646111144222e-05,
+    "confusion_matrix": {
+      "WT": {
+        "TP": 3327513,
+        "FP": 722741,
+        "TN": 102598662,
+        "FN": 281084
+      },
+      "TC": {
+        "TP": 1236889,
+        "FP": 703540,
+        "TN": 104864295,
+        "FN": 125276
+      },
+      "ET": {
+        "TP": 607045,
+        "FP": 294139,
+        "TN": 105960769,
+        "FN": 68047
+      }
+    },
+    "classification_metrics": {
+      "WT": {
+        "Accuracy": 0.990612,
+        "Precision": 0.821557,
+        "Recall": 0.922107,
+        "F1": 0.868933
+      },
+      "TC": {
+        "Accuracy": 0.992249,
+        "Precision": 0.637431,
+        "Recall": 0.908032,
+        "F1": 0.749041
+      },
+      "ET": {
+        "Accuracy": 0.996613,
+        "Precision": 0.673608,
+        "Recall": 0.899203,
+        "F1": 0.770227
+      }
+    },
+    "WT_Dice_mean": 0.8601346015930176,
+    "WT_Dice_std": 0.08354260304720294,
+    "WT_Jaccard_mean": 0.7773362994194031,
+    "WT_Jaccard_std": 0.126437708735466,
+    "TC_Dice_mean": 0.7453611553520769,
+    "TC_Dice_std": 0.21048210117050142,
+    "TC_Jaccard_mean": 0.66185063123703,
+    "TC_Jaccard_std": 0.22824227809906006,
+    "ET_Dice_mean": 0.7048605565938193,
+    "ET_Dice_std": 0.2695924731900754,
+    "ET_Jaccard_mean": 0.6309026479721069,
+    "ET_Jaccard_std": 0.263352632522583,
+    "ET_Recall_mean": 0.8959247486011411,
+    "ET_Precision_mean": 0.6254272700564608,
+    "ET_HD95_mean": 13.823767226803437,
+    "ET_NSD_mean": 0.6410325899788539,
+    "TC_HD95_mean": 12.38389091109714,
+    "TC_NSD_mean": 0.5043516283515448,
+    "Lesion_Recall_mean": 0.842074217074217,
+    "Lesion_Precision_mean": 0.7306091806091805,
+    "Overall_lesion_recall": 0.8135593220338984,
+    "Small_case_ET_Dice_mean": 0.5394788437522948,
+    "training_time_stats": {
+      "total_epochs": 27,
+      "best_epoch": 2,
+      "best_val_loss": 1.0937929491739016,
+      "best_val_dice": 0.82863694,
+      "final_val_loss": 1.103380953137939,
+      "train_time_mean_s": 141.07185185185187,
+      "train_time_std_s": 6.117917592573118,
+      "train_time_total_s": 3808.9400000000005,
+      "valid_time_mean_s": 27.81814814814815,
+      "valid_time_std_s": 1.6535115012905977
+    }
+  },
+  {
+    "model_name": "BCE+CC-Dice (no Global Dice)",
+    "category": "SLA-FB: Loss",
+    "description": "BCE + CC-Level Dice WITHOUT global Dice. Ablation: tests whether the CC-level Dice alone (with BCE) suffices, or whether global Dice is still needed for volume integrity.",
+    "checkpoint_path": "/root/autodl-tmp/ResUNet_BCECCDice_model/best_model_4.pth",
+    "checkpoint_epoch": 4,
+    "n_params": 5763867,
+    "n_params_matched": 81,
+    "inference_time_mean_s": 0.08781894427888534,
+    "inference_time_std_s": 0.00010463267472877162,
+    "confusion_matrix": {
+      "WT": {
+        "TP": 3397146,
+        "FP": 662974,
+        "TN": 102658429,
+        "FN": 211451
+      },
+      "TC": {
+        "TP": 1236868,
+        "FP": 650231,
+        "TN": 104917604,
+        "FN": 125297
+      },
+      "ET": {
+        "TP": 673657,
+        "FP": 3369339,
+        "TN": 102885569,
+        "FN": 1435
+      }
+    },
+    "classification_metrics": {
+      "WT": {
+        "Accuracy": 0.991822,
+        "Precision": 0.836711,
+        "Recall": 0.941404,
+        "F1": 0.885975
+      },
+      "TC": {
+        "Accuracy": 0.992747,
+        "Precision": 0.655434,
+        "Recall": 0.908016,
+        "F1": 0.761322
+      },
+      "ET": {
+        "Accuracy": 0.968477,
+        "Precision": 0.166623,
+        "Recall": 0.997874,
+        "F1": 0.285564
+      }
+    },
+    "WT_Dice_mean": 0.8708354234695435,
+    "WT_Dice_std": 0.07478391013874199,
+    "WT_Jaccard_mean": 0.800643801689148,
+    "WT_Jaccard_std": 0.11533606797456741,
+    "TC_Dice_mean": 0.7211288338577425,
+    "TC_Dice_std": 0.21412698207028288,
+    "TC_Jaccard_mean": 0.6576821208000183,
+    "TC_Jaccard_std": 0.2163790613412857,
+    "ET_Dice_mean": 0.28417168910665486,
+    "ET_Dice_std": 0.17731945315456574,
+    "ET_Jaccard_mean": 0.2356833666563034,
+    "ET_Jaccard_std": 0.16263754665851593,
+    "ET_Recall_mean": 0.9976864843755155,
+    "ET_Precision_mean": 0.17861953985600457,
+    "ET_HD95_mean": 31.48138791659339,
+    "ET_NSD_mean": 0.05265439205926499,
+    "TC_HD95_mean": 11.937619251853128,
+    "TC_NSD_mean": 0.45155083748589164,
+    "Lesion_Recall_mean": 0.9932432432432432,
+    "Lesion_Precision_mean": 1.0204403431372304,
+    "Overall_lesion_recall": 0.9915254237288136,
+    "Small_case_ET_Dice_mean": 0.11008616874460131,
+    "training_time_stats": {
+      "total_epochs": 29,
+      "best_epoch": 4,
+      "best_val_loss": 0.0357924100370272,
+      "best_val_dice": 0.78959775,
+      "final_val_loss": 0.0444045679272479,
+      "train_time_mean_s": 156.2410344827586,
+      "train_time_std_s": 4.626179652514578,
+      "train_time_total_s": 4530.99,
+      "valid_time_mean_s": 31.33103448275862,
+      "valid_time_std_s": 1.1600564790055516
+    }
+  },
+  {
+    "model_name": "BCE+PM-Dice (no Global Dice)",
+    "category": "SLA-FB: Loss",
+    "description": "BCE + PM-Dice WITHOUT global Dice. Ablation: tests whether PM-Dice alone handles pixel-level imbalance sufficiently.",
+    "checkpoint_path": "/root/autodl-tmp/ResUNet_BCEPMDice_model/best_model_22.pth",
+    "checkpoint_epoch": 22,
+    "n_params": 5763867,
+    "n_params_matched": 81,
+    "inference_time_mean_s": 0.08769016170545536,
+    "inference_time_std_s": 8.803206696319863e-05,
+    "confusion_matrix": {
+      "WT": {
+        "TP": 3400767,
+        "FP": 1035350,
+        "TN": 102286053,
+        "FN": 207830
+      },
+      "TC": {
+        "TP": 1223872,
+        "FP": 612780,
+        "TN": 104955055,
+        "FN": 138293
+      },
+      "ET": {
+        "TP": 625575,
+        "FP": 350547,
+        "TN": 105904361,
+        "FN": 49517
+      }
+    },
+    "classification_metrics": {
+      "WT": {
+        "Accuracy": 0.988374,
+        "Precision": 0.766609,
+        "Recall": 0.942407,
+        "F1": 0.845466
+      },
+      "TC": {
+        "Accuracy": 0.992976,
+        "Precision": 0.66636,
+        "Recall": 0.898476,
+        "F1": 0.765203
+      },
+      "ET": {
+        "Accuracy": 0.996259,
+        "Precision": 0.640878,
+        "Recall": 0.926651,
+        "F1": 0.757715
+      }
+    },
+    "WT_Dice_mean": 0.8199410937927865,
+    "WT_Dice_std": 0.15557993508910564,
+    "WT_Jaccard_mean": 0.7964047193527222,
+    "WT_Jaccard_std": 0.166657492518425,
+    "TC_Dice_mean": 0.7402382746741578,
+    "TC_Dice_std": 0.2277626804935707,
+    "TC_Jaccard_mean": 0.7042047381401062,
+    "TC_Jaccard_std": 0.21935544908046722,
+    "ET_Dice_mean": 0.6890996065292809,
+    "ET_Dice_std": 0.26624256367212035,
+    "ET_Jaccard_mean": 0.6757521629333496,
+    "ET_Jaccard_std": 0.23546501994132996,
+    "ET_Recall_mean": 0.9200673771871113,
+    "ET_Precision_mean": 0.5922043205720343,
+    "ET_HD95_mean": 11.336854107477784,
+    "ET_NSD_mean": 0.6091198830001534,
+    "TC_HD95_mean": 10.503496715641141,
+    "TC_NSD_mean": 0.5063200887574635,
+    "Lesion_Recall_mean": 0.8680823680823682,
+    "Lesion_Precision_mean": 0.7316008316008316,
+    "Overall_lesion_recall": 0.8305084745762712,
+    "Small_case_ET_Dice_mean": 0.5439711268991232,
+    "training_time_stats": {
+      "total_epochs": 47,
+      "best_epoch": 22,
+      "best_val_loss": 0.5873705728633983,
+      "best_val_dice": 0.8442684,
+      "final_val_loss": 0.587809210693514,
+      "train_time_mean_s": 138.12936170212765,
+      "train_time_std_s": 4.928382045227294,
+      "train_time_total_s": 6492.08,
+      "valid_time_mean_s": 27.228510638297873,
+      "valid_time_std_s": 0.7270427854266129
+    }
+  },
+  {
+    "model_name": "Full (Global+CC+PM)",
+    "category": "SLA-FB: Loss",
+    "description": "Combined loss: Global Dice + CC-Level Dice + PM-Dice. Multi-scale supervision: global (volume), component (lesion), pixel (hard examples). Tests whether the combination outperforms any single loss.",
+    "checkpoint_path": "/root/autodl-tmp/ResUNet_FullCombined_model/best_model_11.pth",
+    "checkpoint_epoch": 11,
+    "n_params": 5763867,
+    "n_params_matched": 81,
+    "inference_time_mean_s": 0.08774145079009674,
+    "inference_time_std_s": 8.33611962486676e-05,
+    "confusion_matrix": {
+      "WT": {
+        "TP": 3329489,
+        "FP": 700560,
+        "TN": 102620843,
+        "FN": 279108
+      },
+      "TC": {
+        "TP": 1183623,
+        "FP": 500068,
+        "TN": 105067767,
+        "FN": 178542
+      },
+      "ET": {
+        "TP": 630984,
+        "FP": 790040,
+        "TN": 105464868,
+        "FN": 44108
+      }
+    },
+    "classification_metrics": {
+      "WT": {
+        "Accuracy": 0.990838,
+        "Precision": 0.826166,
+        "Recall": 0.922655,
+        "F1": 0.871748
+      },
+      "TC": {
+        "Accuracy": 0.993654,
+        "Precision": 0.702993,
+        "Recall": 0.868928,
+        "F1": 0.777202
+      },
+      "ET": {
+        "Accuracy": 0.992199,
+        "Precision": 0.444035,
+        "Recall": 0.934664,
+        "F1": 0.602051
+      }
+    },
+    "WT_Dice_mean": 0.851421352173831,
+    "WT_Dice_std": 0.14821638873055623,
+    "WT_Jaccard_mean": 0.7829220294952393,
+    "WT_Jaccard_std": 0.16736775636672974,
+    "TC_Dice_mean": 0.7526784960079838,
+    "TC_Dice_std": 0.2120409537124693,
+    "TC_Jaccard_mean": 0.6674802303314209,
+    "TC_Jaccard_std": 0.24008654057979584,
+    "ET_Dice_mean": 0.6259875563225029,
+    "ET_Dice_std": 0.28318805881326536,
+    "ET_Jaccard_mean": 0.5522567629814148,
+    "ET_Jaccard_std": 0.27608722448349,
+    "ET_Recall_mean": 0.9453905160362656,
+    "ET_Precision_mean": 0.5328727945106456,
+    "ET_HD95_mean": 17.76894361747658,
+    "ET_NSD_mean": 0.5039950638039754,
+    "TC_HD95_mean": 10.682083607075011,
+    "TC_NSD_mean": 0.5063985041833063,
+    "Lesion_Recall_mean": 0.9153796653796654,
+    "Lesion_Precision_mean": 0.47856253885665645,
+    "Overall_lesion_recall": 0.8728813559322034,
+    "Small_case_ET_Dice_mean": 0.4473773583304137,
+    "training_time_stats": {
+      "total_epochs": 36,
+      "best_epoch": 11,
+      "best_val_loss": 1.186077673692961,
+      "best_val_dice": 0.830115,
+      "final_val_loss": 1.1948417392936912,
+      "train_time_mean_s": 156.6638888888889,
+      "train_time_std_s": 13.72210048014886,
+      "train_time_total_s": 5639.9,
+      "valid_time_mean_s": 31.88888888888889,
+      "valid_time_std_s": 2.1384918287398955
+    }
+  }
+]

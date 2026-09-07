@@ -1,0 +1,4 @@
+seed,training_protocol,checkpoint,best_epoch,checkpoint_alpha
+42,stability_runner,/root/autodl-tmp/stability/seed42/hf_concat_boundary_w0.1_multiscale_v2/best_model_51.pth,51,0.05985186994075775
+55,main_experiment,/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_multiscale_v2_model/best_model_90.pth,90,-0.03620530664920807
+123,stability_runner,/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale_v2/best_model_33.pth,33,-0.030405692756175995

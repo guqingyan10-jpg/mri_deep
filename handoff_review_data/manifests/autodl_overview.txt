@@ -1,0 +1,1741 @@
+===== 顶层目录大小 =====
+0	/root/autodl-tmp/GIF
+0	/root/autodl-tmp/ResUNet_FGFE_model
+0	/root/autodl-tmp/test_df
+12K	/root/autodl-tmp/test_df.csv
+20K	/root/autodl-tmp/val_df.csv
+24K	/root/autodl-tmp/brats2020_results.tar.gz
+40K	/root/autodl-tmp/et_statistics.csv
+44K	/root/autodl-tmp/et_components_detail.csv
+60K	/root/autodl-tmp/BraTS20_Training_329_lesions.png
+60K	/root/autodl-tmp/train_df.csv
+84K	/root/autodl-tmp/tumourCSV.csv
+208K	/root/autodl-tmp/Untitled.ipynb
+268K	/root/autodl-tmp/BraTS20_Training_274_lesions.png
+352K	/root/autodl-tmp/BraTS20_Training_225_lesions.png
+468K	/root/autodl-tmp/BraTS20_Training_293_lesions.png
+544K	/root/autodl-tmp/BraTS20_Training_284_lesions.png
+4.5M	/root/autodl-tmp/MultiModel XAI Brats2020.ipynb
+21M	/root/autodl-tmp/brats2020_full_report.tar.gz
+32M	/root/autodl-tmp/nnUnet
+44M	/root/autodl-tmp/Unet
+45M	/root/autodl-tmp/ResUNet_BCEPMDice_model
+45M	/root/autodl-tmp/ResUNet_CCDice_model
+45M	/root/autodl-tmp/ResUNet_Enhanced_lb0.1_model
+45M	/root/autodl-tmp/ResUNet_Enhanced_lb0.3_model
+45M	/root/autodl-tmp/ResUNet_Enhanced_lb0.5_model
+45M	/root/autodl-tmp/ResUNet_model
+46M	/root/autodl-tmp/ResUNet_Edge_add_sobel_model
+49M	/root/autodl-tmp/ResUNet_Edge_concat_laplacian_model
+49M	/root/autodl-tmp/ResUNet_Edge_concat_sobel_model
+49M	/root/autodl-tmp/ResUNet_HFConcatBoundary_model
+49M	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.2_model
+67M	/root/autodl-tmp/ResUNet_BCECCDice_model
+87M	/root/autodl-tmp/FDD_FDCA_UNet_model
+617M	/root/autodl-tmp/ResUNet_PMDice_model
+795M	/root/autodl-tmp/ResUNet_HFBoundary_Plus_model
+797M	/root/autodl-tmp/mri_deep
+815M	/root/autodl-tmp/ResUNet_FullCombined_model
+1.4G	/root/autodl-tmp/ResUNet_FG_Sampling_model
+1.6G	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.15_model
+1.6G	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_model
+1.7G	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.05_model
+1.8G	/root/autodl-tmp/ResUNet_HFBoundary_model
+3.1G	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_multiscale_v2_model
+16G	/root/autodl-tmp/stability
+40G	/root/autodl-tmp/brats_project
+
+===== 目录结构（三级） =====
+/root/autodl-tmp/.Trash-0
+/root/autodl-tmp/.Trash-0/files
+/root/autodl-tmp/.Trash-0/files/alpha_sensitivity_lesion_results
+/root/autodl-tmp/.Trash-0/files/alpha_sensitivity_results
+/root/autodl-tmp/.Trash-0/files/boundary_typical_case_results
+/root/autodl-tmp/.Trash-0/files/edge_laplacian_concat
+/root/autodl-tmp/.Trash-0/files/edge_laplacian_concat 1
+/root/autodl-tmp/.Trash-0/files/hf_concat_boundary_w0 1.1
+/root/autodl-tmp/.Trash-0/files/hf_concat_boundary_w0.1
+/root/autodl-tmp/.Trash-0/info
+/root/autodl-tmp/.autodl
+/root/autodl-tmp/.autodl/attention-unet
+/root/autodl-tmp/.ipynb_checkpoints
+/root/autodl-tmp/.vscode
+/root/autodl-tmp/FDD_FDCA_UNet_model
+/root/autodl-tmp/GIF
+/root/autodl-tmp/ResUNet_BCECCDice_model
+/root/autodl-tmp/ResUNet_BCECCDice_model/.ipynb_checkpoints
+/root/autodl-tmp/ResUNet_BCEPMDice_model
+/root/autodl-tmp/ResUNet_CCDice_model
+/root/autodl-tmp/ResUNet_Edge_add_sobel_model
+/root/autodl-tmp/ResUNet_Edge_concat_laplacian_model
+/root/autodl-tmp/ResUNet_Edge_concat_sobel_model
+/root/autodl-tmp/ResUNet_Enhanced_lb0.1_model
+/root/autodl-tmp/ResUNet_Enhanced_lb0.3_model
+/root/autodl-tmp/ResUNet_Enhanced_lb0.5_model
+/root/autodl-tmp/ResUNet_FGFE_model
+/root/autodl-tmp/ResUNet_FG_Sampling_model
+/root/autodl-tmp/ResUNet_FullCombined_model
+/root/autodl-tmp/ResUNet_HFBoundary_Plus_model
+/root/autodl-tmp/ResUNet_HFBoundary_model
+/root/autodl-tmp/ResUNet_HFConcatBoundary_model
+/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.05_model
+/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.15_model
+/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_model
+/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_multiscale_v2_model
+/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.2_model
+/root/autodl-tmp/ResUNet_PMDice_model
+/root/autodl-tmp/ResUNet_model
+/root/autodl-tmp/Unet
+/root/autodl-tmp/brats_project
+/root/autodl-tmp/brats_project/MICCAI_BraTS2020_TrainingData
+/root/autodl-tmp/brats_project/MICCAI_BraTS2020_TrainingData/BraTS2020_TrainingData
+/root/autodl-tmp/brats_project/MICCAI_BraTS2020_TrainingData/BraTS2020_ValidationData
+/root/autodl-tmp/mri_deep
+/root/autodl-tmp/mri_deep/.ipynb_checkpoints
+/root/autodl-tmp/mri_deep/alpha_sensitivity_test_results
+/root/autodl-tmp/mri_deep/alpha_sensitivity_test_results/.ipynb_checkpoints
+/root/autodl-tmp/mri_deep/boundary_typical_case_multiseed_results
+/root/autodl-tmp/mri_deep/boundary_typical_case_multiseed_results/.ipynb_checkpoints
+/root/autodl-tmp/mri_deep/boundary_typical_case_multiseed_results/seed123
+/root/autodl-tmp/mri_deep/boundary_typical_case_multiseed_results/seed42
+/root/autodl-tmp/mri_deep/boundary_typical_case_multiseed_results/seed55
+/root/autodl-tmp/mri_deep/comprehensive_results
+/root/autodl-tmp/mri_deep/comprehensive_results/confusion_matrices
+/root/autodl-tmp/mri_deep/comprehensive_results/qualitative
+/root/autodl-tmp/mri_deep/data
+/root/autodl-tmp/mri_deep/data/__pycache__
+/root/autodl-tmp/mri_deep/docs
+/root/autodl-tmp/mri_deep/docs/superpowers
+/root/autodl-tmp/mri_deep/et_lesion_stratified_results
+/root/autodl-tmp/mri_deep/et_lesion_stratified_results/.ipynb_checkpoints
+/root/autodl-tmp/mri_deep/et_lesion_stratified_valid_test_results
+/root/autodl-tmp/mri_deep/et_lesion_stratified_valid_test_results/.ipynb_checkpoints
+/root/autodl-tmp/mri_deep/evaluation
+/root/autodl-tmp/mri_deep/evaluation/.ipynb_checkpoints
+/root/autodl-tmp/mri_deep/evaluation/__pycache__
+/root/autodl-tmp/mri_deep/figures
+/root/autodl-tmp/mri_deep/figures/.ipynb_checkpoints
+/root/autodl-tmp/mri_deep/figures/cases
+/root/autodl-tmp/mri_deep/lesion_verification_figures
+/root/autodl-tmp/mri_deep/lesion_verification_figures/.ipynb_checkpoints
+/root/autodl-tmp/mri_deep/losses
+/root/autodl-tmp/mri_deep/losses/__pycache__
+/root/autodl-tmp/mri_deep/models
+/root/autodl-tmp/mri_deep/models/.ipynb_checkpoints
+/root/autodl-tmp/mri_deep/models/__pycache__
+/root/autodl-tmp/mri_deep/notebooks
+/root/autodl-tmp/mri_deep/scripts
+/root/autodl-tmp/mri_deep/scripts/.ipynb_checkpoints
+/root/autodl-tmp/mri_deep/scripts/__pycache__
+/root/autodl-tmp/mri_deep/tests
+/root/autodl-tmp/mri_deep/training
+/root/autodl-tmp/mri_deep/training/__pycache__
+/root/autodl-tmp/mri_deep/training_lesion_distributions
+/root/autodl-tmp/mri_deep/viz_fg_sampling_output
+/root/autodl-tmp/mri_deep/wt_lesion_stratified_results
+/root/autodl-tmp/mri_deep/wt_lesion_stratified_results/.ipynb_checkpoints
+/root/autodl-tmp/mri_deep/wt_lesion_stratified_valid_test_results
+/root/autodl-tmp/mri_deep/wt_lesion_stratified_valid_test_results/.ipynb_checkpoints
+/root/autodl-tmp/nnUnet
+/root/autodl-tmp/stability
+/root/autodl-tmp/stability/seed123
+/root/autodl-tmp/stability/seed123/.ipynb_checkpoints
+/root/autodl-tmp/stability/seed123/baseline
+/root/autodl-tmp/stability/seed123/edge_laplacian_concat
+/root/autodl-tmp/stability/seed123/edge_laplacian_gated_concat
+/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.05
+/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1
+/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale
+/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale_v2
+/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale_v2_alpha_trace
+/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale_v3
+/root/autodl-tmp/stability/seed123/hf_gated_concat_boundary_w0.1
+/root/autodl-tmp/stability/seed42
+/root/autodl-tmp/stability/seed42/.ipynb_checkpoints
+/root/autodl-tmp/stability/seed42/baseline
+/root/autodl-tmp/stability/seed42/edge_laplacian_concat
+/root/autodl-tmp/stability/seed42/edge_laplacian_gated_concat
+/root/autodl-tmp/stability/seed42/hf_concat_boundary_w0.05
+/root/autodl-tmp/stability/seed42/hf_concat_boundary_w0.1
+/root/autodl-tmp/stability/seed42/hf_concat_boundary_w0.1_multiscale
+/root/autodl-tmp/stability/seed42/hf_concat_boundary_w0.1_multiscale_v2
+/root/autodl-tmp/stability/seed42/hf_gated_concat_boundary_w0.1
+/root/autodl-tmp/test_df
+
+===== 实验结果、日志、权重和压缩包 =====
+324 bytes	/root/autodl-tmp/.Trash-0/files/alpha_sensitivity_lesion_results/alpha_checkpoint_summary.json
+460 bytes	/root/autodl-tmp/.Trash-0/files/alpha_sensitivity_lesion_results/alpha_checkpoint_values.csv
+91549 bytes	/root/autodl-tmp/.Trash-0/files/alpha_sensitivity_lesion_results/alpha_sensitivity_per_case.csv
+139755 bytes	/root/autodl-tmp/.Trash-0/files/alpha_sensitivity_lesion_results/alpha_sensitivity_per_lesion.csv
+3361 bytes	/root/autodl-tmp/.Trash-0/files/alpha_sensitivity_lesion_results/alpha_sensitivity_per_seed.csv
+2502 bytes	/root/autodl-tmp/.Trash-0/files/alpha_sensitivity_lesion_results/alpha_sensitivity_report.md
+1001 bytes	/root/autodl-tmp/.Trash-0/files/alpha_sensitivity_lesion_results/alpha_sensitivity_summary.csv
+518 bytes	/root/autodl-tmp/.Trash-0/files/alpha_sensitivity_lesion_results/et_lesion_strata_applied.json
+743 bytes	/root/autodl-tmp/.Trash-0/files/alpha_sensitivity_lesion_results/small_et_validation_lesions.csv
+460 bytes	/root/autodl-tmp/.Trash-0/files/alpha_sensitivity_results/.ipynb_checkpoints/alpha_checkpoint_values-checkpoint.csv
+324 bytes	/root/autodl-tmp/.Trash-0/files/alpha_sensitivity_results/alpha_checkpoint_summary.json
+460 bytes	/root/autodl-tmp/.Trash-0/files/alpha_sensitivity_results/alpha_checkpoint_values.csv
+91549 bytes	/root/autodl-tmp/.Trash-0/files/alpha_sensitivity_results/alpha_sensitivity_per_case.csv
+2796 bytes	/root/autodl-tmp/.Trash-0/files/alpha_sensitivity_results/alpha_sensitivity_per_seed.csv
+1670 bytes	/root/autodl-tmp/.Trash-0/files/alpha_sensitivity_results/alpha_sensitivity_report.md
+996 bytes	/root/autodl-tmp/.Trash-0/files/alpha_sensitivity_results/alpha_sensitivity_summary.csv
+512 bytes	/root/autodl-tmp/.Trash-0/files/alpha_sensitivity_results/small_case_validation_cases.csv
+12537 bytes	/root/autodl-tmp/.Trash-0/files/boundary_typical_case_results/boundary_metrics_per_case.csv
+12789 bytes	/root/autodl-tmp/.Trash-0/files/boundary_typical_case_results/case_selection_ranking.csv
+9586 bytes	/root/autodl-tmp/.Trash-0/files/boundary_typical_case_results/selected_cases.json
+3008 bytes	/root/autodl-tmp/.Trash-0/files/boundary_typical_case_results/selected_typical_cases.csv
+3004 bytes	/root/autodl-tmp/.Trash-0/files/boundary_typical_case_results/small_lesion_comparison.csv
+4788 bytes	/root/autodl-tmp/.Trash-0/files/boundary_typical_case_results/small_lesion_metrics_long.csv
+3279 bytes	/root/autodl-tmp/.Trash-0/files/edge_laplacian_concat 1/.ipynb_checkpoints/train_log-checkpoint.csv
+25210821 bytes	/root/autodl-tmp/.Trash-0/files/edge_laplacian_concat 1/best_model_9.pth
+25211445 bytes	/root/autodl-tmp/.Trash-0/files/edge_laplacian_concat 1/last_epoch_model_1.pth
+25211549 bytes	/root/autodl-tmp/.Trash-0/files/edge_laplacian_concat 1/last_epoch_model_10.pth
+25211549 bytes	/root/autodl-tmp/.Trash-0/files/edge_laplacian_concat 1/last_epoch_model_11.pth
+25211549 bytes	/root/autodl-tmp/.Trash-0/files/edge_laplacian_concat 1/last_epoch_model_12.pth
+25211549 bytes	/root/autodl-tmp/.Trash-0/files/edge_laplacian_concat 1/last_epoch_model_13.pth
+25211549 bytes	/root/autodl-tmp/.Trash-0/files/edge_laplacian_concat 1/last_epoch_model_14.pth
+25211549 bytes	/root/autodl-tmp/.Trash-0/files/edge_laplacian_concat 1/last_epoch_model_15.pth
+25211549 bytes	/root/autodl-tmp/.Trash-0/files/edge_laplacian_concat 1/last_epoch_model_16.pth
+25211549 bytes	/root/autodl-tmp/.Trash-0/files/edge_laplacian_concat 1/last_epoch_model_17.pth
+25211549 bytes	/root/autodl-tmp/.Trash-0/files/edge_laplacian_concat 1/last_epoch_model_18.pth
+25211549 bytes	/root/autodl-tmp/.Trash-0/files/edge_laplacian_concat 1/last_epoch_model_19.pth
+25211445 bytes	/root/autodl-tmp/.Trash-0/files/edge_laplacian_concat 1/last_epoch_model_2.pth
+25211549 bytes	/root/autodl-tmp/.Trash-0/files/edge_laplacian_concat 1/last_epoch_model_20.pth
+25211549 bytes	/root/autodl-tmp/.Trash-0/files/edge_laplacian_concat 1/last_epoch_model_21.pth
+25211549 bytes	/root/autodl-tmp/.Trash-0/files/edge_laplacian_concat 1/last_epoch_model_22.pth
+25211549 bytes	/root/autodl-tmp/.Trash-0/files/edge_laplacian_concat 1/last_epoch_model_23.pth
+25211549 bytes	/root/autodl-tmp/.Trash-0/files/edge_laplacian_concat 1/last_epoch_model_24.pth
+25211549 bytes	/root/autodl-tmp/.Trash-0/files/edge_laplacian_concat 1/last_epoch_model_25.pth
+25211549 bytes	/root/autodl-tmp/.Trash-0/files/edge_laplacian_concat 1/last_epoch_model_26.pth
+25211549 bytes	/root/autodl-tmp/.Trash-0/files/edge_laplacian_concat 1/last_epoch_model_27.pth
+25211549 bytes	/root/autodl-tmp/.Trash-0/files/edge_laplacian_concat 1/last_epoch_model_28.pth
+25211549 bytes	/root/autodl-tmp/.Trash-0/files/edge_laplacian_concat 1/last_epoch_model_29.pth
+25211445 bytes	/root/autodl-tmp/.Trash-0/files/edge_laplacian_concat 1/last_epoch_model_3.pth
+25211549 bytes	/root/autodl-tmp/.Trash-0/files/edge_laplacian_concat 1/last_epoch_model_30.pth
+25211549 bytes	/root/autodl-tmp/.Trash-0/files/edge_laplacian_concat 1/last_epoch_model_31.pth
+25211549 bytes	/root/autodl-tmp/.Trash-0/files/edge_laplacian_concat 1/last_epoch_model_32.pth
+25211549 bytes	/root/autodl-tmp/.Trash-0/files/edge_laplacian_concat 1/last_epoch_model_33.pth
+25211549 bytes	/root/autodl-tmp/.Trash-0/files/edge_laplacian_concat 1/last_epoch_model_34.pth
+25211445 bytes	/root/autodl-tmp/.Trash-0/files/edge_laplacian_concat 1/last_epoch_model_4.pth
+25211445 bytes	/root/autodl-tmp/.Trash-0/files/edge_laplacian_concat 1/last_epoch_model_5.pth
+25211445 bytes	/root/autodl-tmp/.Trash-0/files/edge_laplacian_concat 1/last_epoch_model_6.pth
+25211445 bytes	/root/autodl-tmp/.Trash-0/files/edge_laplacian_concat 1/last_epoch_model_7.pth
+25211445 bytes	/root/autodl-tmp/.Trash-0/files/edge_laplacian_concat 1/last_epoch_model_8.pth
+25211445 bytes	/root/autodl-tmp/.Trash-0/files/edge_laplacian_concat 1/last_epoch_model_9.pth
+3279 bytes	/root/autodl-tmp/.Trash-0/files/edge_laplacian_concat 1/train_log.csv
+25210925 bytes	/root/autodl-tmp/.Trash-0/files/edge_laplacian_concat/best_model_20.pth
+25211445 bytes	/root/autodl-tmp/.Trash-0/files/edge_laplacian_concat/last_epoch_model_1.pth
+25211549 bytes	/root/autodl-tmp/.Trash-0/files/edge_laplacian_concat/last_epoch_model_10.pth
+25211549 bytes	/root/autodl-tmp/.Trash-0/files/edge_laplacian_concat/last_epoch_model_11.pth
+25211549 bytes	/root/autodl-tmp/.Trash-0/files/edge_laplacian_concat/last_epoch_model_12.pth
+25211549 bytes	/root/autodl-tmp/.Trash-0/files/edge_laplacian_concat/last_epoch_model_13.pth
+25211549 bytes	/root/autodl-tmp/.Trash-0/files/edge_laplacian_concat/last_epoch_model_14.pth
+25211549 bytes	/root/autodl-tmp/.Trash-0/files/edge_laplacian_concat/last_epoch_model_15.pth
+25211549 bytes	/root/autodl-tmp/.Trash-0/files/edge_laplacian_concat/last_epoch_model_16.pth
+25211549 bytes	/root/autodl-tmp/.Trash-0/files/edge_laplacian_concat/last_epoch_model_17.pth
+25211549 bytes	/root/autodl-tmp/.Trash-0/files/edge_laplacian_concat/last_epoch_model_18.pth
+25211549 bytes	/root/autodl-tmp/.Trash-0/files/edge_laplacian_concat/last_epoch_model_19.pth
+25211445 bytes	/root/autodl-tmp/.Trash-0/files/edge_laplacian_concat/last_epoch_model_2.pth
+25211549 bytes	/root/autodl-tmp/.Trash-0/files/edge_laplacian_concat/last_epoch_model_20.pth
+25211549 bytes	/root/autodl-tmp/.Trash-0/files/edge_laplacian_concat/last_epoch_model_21.pth
+25211549 bytes	/root/autodl-tmp/.Trash-0/files/edge_laplacian_concat/last_epoch_model_22.pth
+25211549 bytes	/root/autodl-tmp/.Trash-0/files/edge_laplacian_concat/last_epoch_model_23.pth
+25211549 bytes	/root/autodl-tmp/.Trash-0/files/edge_laplacian_concat/last_epoch_model_24.pth
+25211549 bytes	/root/autodl-tmp/.Trash-0/files/edge_laplacian_concat/last_epoch_model_25.pth
+25211549 bytes	/root/autodl-tmp/.Trash-0/files/edge_laplacian_concat/last_epoch_model_26.pth
+25211549 bytes	/root/autodl-tmp/.Trash-0/files/edge_laplacian_concat/last_epoch_model_27.pth
+25211549 bytes	/root/autodl-tmp/.Trash-0/files/edge_laplacian_concat/last_epoch_model_28.pth
+25211549 bytes	/root/autodl-tmp/.Trash-0/files/edge_laplacian_concat/last_epoch_model_29.pth
+25211445 bytes	/root/autodl-tmp/.Trash-0/files/edge_laplacian_concat/last_epoch_model_3.pth
+25211549 bytes	/root/autodl-tmp/.Trash-0/files/edge_laplacian_concat/last_epoch_model_30.pth
+25211549 bytes	/root/autodl-tmp/.Trash-0/files/edge_laplacian_concat/last_epoch_model_31.pth
+25211549 bytes	/root/autodl-tmp/.Trash-0/files/edge_laplacian_concat/last_epoch_model_32.pth
+25211549 bytes	/root/autodl-tmp/.Trash-0/files/edge_laplacian_concat/last_epoch_model_33.pth
+25211549 bytes	/root/autodl-tmp/.Trash-0/files/edge_laplacian_concat/last_epoch_model_34.pth
+25211549 bytes	/root/autodl-tmp/.Trash-0/files/edge_laplacian_concat/last_epoch_model_35.pth
+25211549 bytes	/root/autodl-tmp/.Trash-0/files/edge_laplacian_concat/last_epoch_model_36.pth
+25211549 bytes	/root/autodl-tmp/.Trash-0/files/edge_laplacian_concat/last_epoch_model_37.pth
+25211549 bytes	/root/autodl-tmp/.Trash-0/files/edge_laplacian_concat/last_epoch_model_38.pth
+25211549 bytes	/root/autodl-tmp/.Trash-0/files/edge_laplacian_concat/last_epoch_model_39.pth
+25211445 bytes	/root/autodl-tmp/.Trash-0/files/edge_laplacian_concat/last_epoch_model_4.pth
+25211549 bytes	/root/autodl-tmp/.Trash-0/files/edge_laplacian_concat/last_epoch_model_40.pth
+25211549 bytes	/root/autodl-tmp/.Trash-0/files/edge_laplacian_concat/last_epoch_model_41.pth
+25211549 bytes	/root/autodl-tmp/.Trash-0/files/edge_laplacian_concat/last_epoch_model_42.pth
+25211549 bytes	/root/autodl-tmp/.Trash-0/files/edge_laplacian_concat/last_epoch_model_43.pth
+25211549 bytes	/root/autodl-tmp/.Trash-0/files/edge_laplacian_concat/last_epoch_model_44.pth
+25211549 bytes	/root/autodl-tmp/.Trash-0/files/edge_laplacian_concat/last_epoch_model_45.pth
+25211445 bytes	/root/autodl-tmp/.Trash-0/files/edge_laplacian_concat/last_epoch_model_5.pth
+25211445 bytes	/root/autodl-tmp/.Trash-0/files/edge_laplacian_concat/last_epoch_model_6.pth
+25211445 bytes	/root/autodl-tmp/.Trash-0/files/edge_laplacian_concat/last_epoch_model_7.pth
+25211445 bytes	/root/autodl-tmp/.Trash-0/files/edge_laplacian_concat/last_epoch_model_8.pth
+25211445 bytes	/root/autodl-tmp/.Trash-0/files/edge_laplacian_concat/last_epoch_model_9.pth
+4305 bytes	/root/autodl-tmp/.Trash-0/files/edge_laplacian_concat/train_log.csv
+6459 bytes	/root/autodl-tmp/.Trash-0/files/hf_concat_boundary_w0 1.1/.ipynb_checkpoints/train_log-checkpoint.csv
+25275651 bytes	/root/autodl-tmp/.Trash-0/files/hf_concat_boundary_w0 1.1/best_model_53.pth
+25276201 bytes	/root/autodl-tmp/.Trash-0/files/hf_concat_boundary_w0 1.1/last_epoch_model_1.pth
+25276311 bytes	/root/autodl-tmp/.Trash-0/files/hf_concat_boundary_w0 1.1/last_epoch_model_10.pth
+25276311 bytes	/root/autodl-tmp/.Trash-0/files/hf_concat_boundary_w0 1.1/last_epoch_model_11.pth
+25276311 bytes	/root/autodl-tmp/.Trash-0/files/hf_concat_boundary_w0 1.1/last_epoch_model_12.pth
+25276311 bytes	/root/autodl-tmp/.Trash-0/files/hf_concat_boundary_w0 1.1/last_epoch_model_13.pth
+25276311 bytes	/root/autodl-tmp/.Trash-0/files/hf_concat_boundary_w0 1.1/last_epoch_model_14.pth
+25276311 bytes	/root/autodl-tmp/.Trash-0/files/hf_concat_boundary_w0 1.1/last_epoch_model_15.pth
+25276311 bytes	/root/autodl-tmp/.Trash-0/files/hf_concat_boundary_w0 1.1/last_epoch_model_16.pth
+25276311 bytes	/root/autodl-tmp/.Trash-0/files/hf_concat_boundary_w0 1.1/last_epoch_model_17.pth
+25276311 bytes	/root/autodl-tmp/.Trash-0/files/hf_concat_boundary_w0 1.1/last_epoch_model_18.pth
+25276311 bytes	/root/autodl-tmp/.Trash-0/files/hf_concat_boundary_w0 1.1/last_epoch_model_19.pth
+25276201 bytes	/root/autodl-tmp/.Trash-0/files/hf_concat_boundary_w0 1.1/last_epoch_model_2.pth
+25276311 bytes	/root/autodl-tmp/.Trash-0/files/hf_concat_boundary_w0 1.1/last_epoch_model_20.pth
+25276311 bytes	/root/autodl-tmp/.Trash-0/files/hf_concat_boundary_w0 1.1/last_epoch_model_21.pth
+25276311 bytes	/root/autodl-tmp/.Trash-0/files/hf_concat_boundary_w0 1.1/last_epoch_model_22.pth
+25276311 bytes	/root/autodl-tmp/.Trash-0/files/hf_concat_boundary_w0 1.1/last_epoch_model_23.pth
+25276311 bytes	/root/autodl-tmp/.Trash-0/files/hf_concat_boundary_w0 1.1/last_epoch_model_24.pth
+25276311 bytes	/root/autodl-tmp/.Trash-0/files/hf_concat_boundary_w0 1.1/last_epoch_model_25.pth
+25276311 bytes	/root/autodl-tmp/.Trash-0/files/hf_concat_boundary_w0 1.1/last_epoch_model_26.pth
+25276311 bytes	/root/autodl-tmp/.Trash-0/files/hf_concat_boundary_w0 1.1/last_epoch_model_27.pth
+25276311 bytes	/root/autodl-tmp/.Trash-0/files/hf_concat_boundary_w0 1.1/last_epoch_model_28.pth
+25276311 bytes	/root/autodl-tmp/.Trash-0/files/hf_concat_boundary_w0 1.1/last_epoch_model_29.pth
+25276201 bytes	/root/autodl-tmp/.Trash-0/files/hf_concat_boundary_w0 1.1/last_epoch_model_3.pth
+25276311 bytes	/root/autodl-tmp/.Trash-0/files/hf_concat_boundary_w0 1.1/last_epoch_model_30.pth
+25276311 bytes	/root/autodl-tmp/.Trash-0/files/hf_concat_boundary_w0 1.1/last_epoch_model_31.pth
+25276311 bytes	/root/autodl-tmp/.Trash-0/files/hf_concat_boundary_w0 1.1/last_epoch_model_32.pth
+25276311 bytes	/root/autodl-tmp/.Trash-0/files/hf_concat_boundary_w0 1.1/last_epoch_model_33.pth
+25276311 bytes	/root/autodl-tmp/.Trash-0/files/hf_concat_boundary_w0 1.1/last_epoch_model_34.pth
+25276311 bytes	/root/autodl-tmp/.Trash-0/files/hf_concat_boundary_w0 1.1/last_epoch_model_35.pth
+25276311 bytes	/root/autodl-tmp/.Trash-0/files/hf_concat_boundary_w0 1.1/last_epoch_model_36.pth
+25276311 bytes	/root/autodl-tmp/.Trash-0/files/hf_concat_boundary_w0 1.1/last_epoch_model_37.pth
+25276311 bytes	/root/autodl-tmp/.Trash-0/files/hf_concat_boundary_w0 1.1/last_epoch_model_38.pth
+25276311 bytes	/root/autodl-tmp/.Trash-0/files/hf_concat_boundary_w0 1.1/last_epoch_model_39.pth
+25276201 bytes	/root/autodl-tmp/.Trash-0/files/hf_concat_boundary_w0 1.1/last_epoch_model_4.pth
+25276311 bytes	/root/autodl-tmp/.Trash-0/files/hf_concat_boundary_w0 1.1/last_epoch_model_40.pth
+25276311 bytes	/root/autodl-tmp/.Trash-0/files/hf_concat_boundary_w0 1.1/last_epoch_model_41.pth
+25276311 bytes	/root/autodl-tmp/.Trash-0/files/hf_concat_boundary_w0 1.1/last_epoch_model_42.pth
+25276311 bytes	/root/autodl-tmp/.Trash-0/files/hf_concat_boundary_w0 1.1/last_epoch_model_43.pth
+25276311 bytes	/root/autodl-tmp/.Trash-0/files/hf_concat_boundary_w0 1.1/last_epoch_model_44.pth
+25276311 bytes	/root/autodl-tmp/.Trash-0/files/hf_concat_boundary_w0 1.1/last_epoch_model_45.pth
+25276311 bytes	/root/autodl-tmp/.Trash-0/files/hf_concat_boundary_w0 1.1/last_epoch_model_46.pth
+25276311 bytes	/root/autodl-tmp/.Trash-0/files/hf_concat_boundary_w0 1.1/last_epoch_model_47.pth
+25276311 bytes	/root/autodl-tmp/.Trash-0/files/hf_concat_boundary_w0 1.1/last_epoch_model_48.pth
+25276311 bytes	/root/autodl-tmp/.Trash-0/files/hf_concat_boundary_w0 1.1/last_epoch_model_49.pth
+25276201 bytes	/root/autodl-tmp/.Trash-0/files/hf_concat_boundary_w0 1.1/last_epoch_model_5.pth
+25276311 bytes	/root/autodl-tmp/.Trash-0/files/hf_concat_boundary_w0 1.1/last_epoch_model_50.pth
+25276311 bytes	/root/autodl-tmp/.Trash-0/files/hf_concat_boundary_w0 1.1/last_epoch_model_51.pth
+25276311 bytes	/root/autodl-tmp/.Trash-0/files/hf_concat_boundary_w0 1.1/last_epoch_model_52.pth
+25276311 bytes	/root/autodl-tmp/.Trash-0/files/hf_concat_boundary_w0 1.1/last_epoch_model_53.pth
+25276311 bytes	/root/autodl-tmp/.Trash-0/files/hf_concat_boundary_w0 1.1/last_epoch_model_54.pth
+25276311 bytes	/root/autodl-tmp/.Trash-0/files/hf_concat_boundary_w0 1.1/last_epoch_model_55.pth
+25276311 bytes	/root/autodl-tmp/.Trash-0/files/hf_concat_boundary_w0 1.1/last_epoch_model_56.pth
+25276311 bytes	/root/autodl-tmp/.Trash-0/files/hf_concat_boundary_w0 1.1/last_epoch_model_57.pth
+25276311 bytes	/root/autodl-tmp/.Trash-0/files/hf_concat_boundary_w0 1.1/last_epoch_model_58.pth
+25276311 bytes	/root/autodl-tmp/.Trash-0/files/hf_concat_boundary_w0 1.1/last_epoch_model_59.pth
+25276201 bytes	/root/autodl-tmp/.Trash-0/files/hf_concat_boundary_w0 1.1/last_epoch_model_6.pth
+25276311 bytes	/root/autodl-tmp/.Trash-0/files/hf_concat_boundary_w0 1.1/last_epoch_model_60.pth
+25276311 bytes	/root/autodl-tmp/.Trash-0/files/hf_concat_boundary_w0 1.1/last_epoch_model_61.pth
+25276311 bytes	/root/autodl-tmp/.Trash-0/files/hf_concat_boundary_w0 1.1/last_epoch_model_62.pth
+25276311 bytes	/root/autodl-tmp/.Trash-0/files/hf_concat_boundary_w0 1.1/last_epoch_model_63.pth
+25276311 bytes	/root/autodl-tmp/.Trash-0/files/hf_concat_boundary_w0 1.1/last_epoch_model_64.pth
+25276311 bytes	/root/autodl-tmp/.Trash-0/files/hf_concat_boundary_w0 1.1/last_epoch_model_65.pth
+25276311 bytes	/root/autodl-tmp/.Trash-0/files/hf_concat_boundary_w0 1.1/last_epoch_model_66.pth
+25276311 bytes	/root/autodl-tmp/.Trash-0/files/hf_concat_boundary_w0 1.1/last_epoch_model_67.pth
+25276311 bytes	/root/autodl-tmp/.Trash-0/files/hf_concat_boundary_w0 1.1/last_epoch_model_68.pth
+25276201 bytes	/root/autodl-tmp/.Trash-0/files/hf_concat_boundary_w0 1.1/last_epoch_model_7.pth
+25276201 bytes	/root/autodl-tmp/.Trash-0/files/hf_concat_boundary_w0 1.1/last_epoch_model_8.pth
+25276201 bytes	/root/autodl-tmp/.Trash-0/files/hf_concat_boundary_w0 1.1/last_epoch_model_9.pth
+6459 bytes	/root/autodl-tmp/.Trash-0/files/hf_concat_boundary_w0 1.1/train_log.csv
+3553 bytes	/root/autodl-tmp/.Trash-0/files/hf_concat_boundary_w0.1/.ipynb_checkpoints/train_log-checkpoint.csv
+25275651 bytes	/root/autodl-tmp/.Trash-0/files/hf_concat_boundary_w0.1/best_model_14.pth
+25276201 bytes	/root/autodl-tmp/.Trash-0/files/hf_concat_boundary_w0.1/last_epoch_model_1.pth
+25276311 bytes	/root/autodl-tmp/.Trash-0/files/hf_concat_boundary_w0.1/last_epoch_model_10.pth
+25276311 bytes	/root/autodl-tmp/.Trash-0/files/hf_concat_boundary_w0.1/last_epoch_model_11.pth
+25276311 bytes	/root/autodl-tmp/.Trash-0/files/hf_concat_boundary_w0.1/last_epoch_model_12.pth
+25276311 bytes	/root/autodl-tmp/.Trash-0/files/hf_concat_boundary_w0.1/last_epoch_model_13.pth
+25276311 bytes	/root/autodl-tmp/.Trash-0/files/hf_concat_boundary_w0.1/last_epoch_model_14.pth
+25276311 bytes	/root/autodl-tmp/.Trash-0/files/hf_concat_boundary_w0.1/last_epoch_model_15.pth
+25276311 bytes	/root/autodl-tmp/.Trash-0/files/hf_concat_boundary_w0.1/last_epoch_model_16.pth
+25276311 bytes	/root/autodl-tmp/.Trash-0/files/hf_concat_boundary_w0.1/last_epoch_model_17.pth
+25276311 bytes	/root/autodl-tmp/.Trash-0/files/hf_concat_boundary_w0.1/last_epoch_model_18.pth
+25276311 bytes	/root/autodl-tmp/.Trash-0/files/hf_concat_boundary_w0.1/last_epoch_model_19.pth
+25276201 bytes	/root/autodl-tmp/.Trash-0/files/hf_concat_boundary_w0.1/last_epoch_model_2.pth
+25276311 bytes	/root/autodl-tmp/.Trash-0/files/hf_concat_boundary_w0.1/last_epoch_model_20.pth
+25276311 bytes	/root/autodl-tmp/.Trash-0/files/hf_concat_boundary_w0.1/last_epoch_model_21.pth
+25276311 bytes	/root/autodl-tmp/.Trash-0/files/hf_concat_boundary_w0.1/last_epoch_model_22.pth
+25276311 bytes	/root/autodl-tmp/.Trash-0/files/hf_concat_boundary_w0.1/last_epoch_model_23.pth
+25276311 bytes	/root/autodl-tmp/.Trash-0/files/hf_concat_boundary_w0.1/last_epoch_model_24.pth
+25276311 bytes	/root/autodl-tmp/.Trash-0/files/hf_concat_boundary_w0.1/last_epoch_model_25.pth
+25276311 bytes	/root/autodl-tmp/.Trash-0/files/hf_concat_boundary_w0.1/last_epoch_model_26.pth
+25276311 bytes	/root/autodl-tmp/.Trash-0/files/hf_concat_boundary_w0.1/last_epoch_model_27.pth
+25276311 bytes	/root/autodl-tmp/.Trash-0/files/hf_concat_boundary_w0.1/last_epoch_model_28.pth
+25276311 bytes	/root/autodl-tmp/.Trash-0/files/hf_concat_boundary_w0.1/last_epoch_model_29.pth
+25276201 bytes	/root/autodl-tmp/.Trash-0/files/hf_concat_boundary_w0.1/last_epoch_model_3.pth
+25276311 bytes	/root/autodl-tmp/.Trash-0/files/hf_concat_boundary_w0.1/last_epoch_model_30.pth
+25276311 bytes	/root/autodl-tmp/.Trash-0/files/hf_concat_boundary_w0.1/last_epoch_model_31.pth
+25276311 bytes	/root/autodl-tmp/.Trash-0/files/hf_concat_boundary_w0.1/last_epoch_model_32.pth
+25276311 bytes	/root/autodl-tmp/.Trash-0/files/hf_concat_boundary_w0.1/last_epoch_model_33.pth
+25276311 bytes	/root/autodl-tmp/.Trash-0/files/hf_concat_boundary_w0.1/last_epoch_model_34.pth
+25276311 bytes	/root/autodl-tmp/.Trash-0/files/hf_concat_boundary_w0.1/last_epoch_model_35.pth
+25276311 bytes	/root/autodl-tmp/.Trash-0/files/hf_concat_boundary_w0.1/last_epoch_model_36.pth
+25276311 bytes	/root/autodl-tmp/.Trash-0/files/hf_concat_boundary_w0.1/last_epoch_model_37.pth
+25276201 bytes	/root/autodl-tmp/.Trash-0/files/hf_concat_boundary_w0.1/last_epoch_model_4.pth
+25276201 bytes	/root/autodl-tmp/.Trash-0/files/hf_concat_boundary_w0.1/last_epoch_model_5.pth
+25276201 bytes	/root/autodl-tmp/.Trash-0/files/hf_concat_boundary_w0.1/last_epoch_model_6.pth
+25276201 bytes	/root/autodl-tmp/.Trash-0/files/hf_concat_boundary_w0.1/last_epoch_model_7.pth
+25276201 bytes	/root/autodl-tmp/.Trash-0/files/hf_concat_boundary_w0.1/last_epoch_model_8.pth
+25276201 bytes	/root/autodl-tmp/.Trash-0/files/hf_concat_boundary_w0.1/last_epoch_model_9.pth
+3553 bytes	/root/autodl-tmp/.Trash-0/files/hf_concat_boundary_w0.1/train_log.csv
+24307671 bytes	/root/autodl-tmp/.autodl/attention-unet/best_model_140.pth
+24308607 bytes	/root/autodl-tmp/.autodl/attention-unet/last_epoch_model_140.pth
+22474 bytes	/root/autodl-tmp/.autodl/attention-unet/train_log.csv
+132 bytes	/root/autodl-tmp/.vscode/settings.json
+45408311 bytes	/root/autodl-tmp/FDD_FDCA_UNet_model/best_model_46.pth
+45409529 bytes	/root/autodl-tmp/FDD_FDCA_UNet_model/last_epoch_model_46.pth
+4388 bytes	/root/autodl-tmp/FDD_FDCA_UNet_model/train_log.csv
+23086755 bytes	/root/autodl-tmp/ResUNet_BCECCDice_model/best_model_4.pth
+23087364 bytes	/root/autodl-tmp/ResUNet_BCECCDice_model/last_epoch_model_29.pth
+23087277 bytes	/root/autodl-tmp/ResUNet_BCECCDice_model/last_epoch_model_4.pth
+2849 bytes	/root/autodl-tmp/ResUNet_BCECCDice_model/train_log.csv
+23086842 bytes	/root/autodl-tmp/ResUNet_BCEPMDice_model/best_model_22.pth
+23087364 bytes	/root/autodl-tmp/ResUNet_BCEPMDice_model/last_epoch_model_47.pth
+4397 bytes	/root/autodl-tmp/ResUNet_BCEPMDice_model/train_log.csv
+23086755 bytes	/root/autodl-tmp/ResUNet_CCDice_model/best_model_1.pth
+23087364 bytes	/root/autodl-tmp/ResUNet_CCDice_model/last_epoch_model_26.pth
+2519 bytes	/root/autodl-tmp/ResUNet_CCDice_model/train_log.csv
+23843139 bytes	/root/autodl-tmp/ResUNet_Edge_add_sobel_model/best_model_59.pth
+23843799 bytes	/root/autodl-tmp/ResUNet_Edge_add_sobel_model/last_epoch_model_84.pth
+7967 bytes	/root/autodl-tmp/ResUNet_Edge_add_sobel_model/train_log.csv
+25210925 bytes	/root/autodl-tmp/ResUNet_Edge_concat_laplacian_model/best_model_55.pth
+25211549 bytes	/root/autodl-tmp/ResUNet_Edge_concat_laplacian_model/last_epoch_model_80.pth
+8851 bytes	/root/autodl-tmp/ResUNet_Edge_concat_laplacian_model/train_log.csv
+25211635 bytes	/root/autodl-tmp/ResUNet_Edge_concat_sobel_model/best_model_60.pth
+25212335 bytes	/root/autodl-tmp/ResUNet_Edge_concat_sobel_model/last_epoch_model_85.pth
+8062 bytes	/root/autodl-tmp/ResUNet_Edge_concat_sobel_model/train_log.csv
+23086842 bytes	/root/autodl-tmp/ResUNet_Enhanced_lb0.1_model/best_model_33.pth
+23087364 bytes	/root/autodl-tmp/ResUNet_Enhanced_lb0.1_model/last_epoch_model_58.pth
+7297 bytes	/root/autodl-tmp/ResUNet_Enhanced_lb0.1_model/train_log.csv
+23086842 bytes	/root/autodl-tmp/ResUNet_Enhanced_lb0.3_model/best_model_93.pth
+23087451 bytes	/root/autodl-tmp/ResUNet_Enhanced_lb0.3_model/last_epoch_model_118.pth
+14831 bytes	/root/autodl-tmp/ResUNet_Enhanced_lb0.3_model/train_log.csv
+23086842 bytes	/root/autodl-tmp/ResUNet_Enhanced_lb0.5_model/best_model_29.pth
+23087364 bytes	/root/autodl-tmp/ResUNet_Enhanced_lb0.5_model/last_epoch_model_54.pth
+5148 bytes	/root/autodl-tmp/ResUNet_Enhanced_lb0.5_model/train_log.csv
+23086842 bytes	/root/autodl-tmp/ResUNet_FG_Sampling_model/best_model_10.pth
+23087277 bytes	/root/autodl-tmp/ResUNet_FG_Sampling_model/last_epoch_model_1.pth
+23087364 bytes	/root/autodl-tmp/ResUNet_FG_Sampling_model/last_epoch_model_10.pth
+23087364 bytes	/root/autodl-tmp/ResUNet_FG_Sampling_model/last_epoch_model_11.pth
+23087364 bytes	/root/autodl-tmp/ResUNet_FG_Sampling_model/last_epoch_model_12.pth
+23087364 bytes	/root/autodl-tmp/ResUNet_FG_Sampling_model/last_epoch_model_13.pth
+23087364 bytes	/root/autodl-tmp/ResUNet_FG_Sampling_model/last_epoch_model_14.pth
+23087364 bytes	/root/autodl-tmp/ResUNet_FG_Sampling_model/last_epoch_model_15.pth
+23087364 bytes	/root/autodl-tmp/ResUNet_FG_Sampling_model/last_epoch_model_16.pth
+23087364 bytes	/root/autodl-tmp/ResUNet_FG_Sampling_model/last_epoch_model_17.pth
+23087364 bytes	/root/autodl-tmp/ResUNet_FG_Sampling_model/last_epoch_model_18.pth
+23087364 bytes	/root/autodl-tmp/ResUNet_FG_Sampling_model/last_epoch_model_19.pth
+23087277 bytes	/root/autodl-tmp/ResUNet_FG_Sampling_model/last_epoch_model_2.pth
+23087364 bytes	/root/autodl-tmp/ResUNet_FG_Sampling_model/last_epoch_model_20.pth
+23087364 bytes	/root/autodl-tmp/ResUNet_FG_Sampling_model/last_epoch_model_21.pth
+23087364 bytes	/root/autodl-tmp/ResUNet_FG_Sampling_model/last_epoch_model_22.pth
+23087364 bytes	/root/autodl-tmp/ResUNet_FG_Sampling_model/last_epoch_model_23.pth
+23087364 bytes	/root/autodl-tmp/ResUNet_FG_Sampling_model/last_epoch_model_24.pth
+23087364 bytes	/root/autodl-tmp/ResUNet_FG_Sampling_model/last_epoch_model_25.pth
+23087364 bytes	/root/autodl-tmp/ResUNet_FG_Sampling_model/last_epoch_model_26.pth
+23087364 bytes	/root/autodl-tmp/ResUNet_FG_Sampling_model/last_epoch_model_27.pth
+23087364 bytes	/root/autodl-tmp/ResUNet_FG_Sampling_model/last_epoch_model_28.pth
+23087364 bytes	/root/autodl-tmp/ResUNet_FG_Sampling_model/last_epoch_model_29.pth
+23087277 bytes	/root/autodl-tmp/ResUNet_FG_Sampling_model/last_epoch_model_3.pth
+23087364 bytes	/root/autodl-tmp/ResUNet_FG_Sampling_model/last_epoch_model_30.pth
+23087364 bytes	/root/autodl-tmp/ResUNet_FG_Sampling_model/last_epoch_model_31.pth
+23087364 bytes	/root/autodl-tmp/ResUNet_FG_Sampling_model/last_epoch_model_32.pth
+23087364 bytes	/root/autodl-tmp/ResUNet_FG_Sampling_model/last_epoch_model_33.pth
+23087364 bytes	/root/autodl-tmp/ResUNet_FG_Sampling_model/last_epoch_model_34.pth
+23087364 bytes	/root/autodl-tmp/ResUNet_FG_Sampling_model/last_epoch_model_35.pth
+23087277 bytes	/root/autodl-tmp/ResUNet_FG_Sampling_model/last_epoch_model_4.pth
+23087277 bytes	/root/autodl-tmp/ResUNet_FG_Sampling_model/last_epoch_model_5.pth
+23087277 bytes	/root/autodl-tmp/ResUNet_FG_Sampling_model/last_epoch_model_6.pth
+23087277 bytes	/root/autodl-tmp/ResUNet_FG_Sampling_model/last_epoch_model_7.pth
+23087277 bytes	/root/autodl-tmp/ResUNet_FG_Sampling_model/last_epoch_model_8.pth
+23087277 bytes	/root/autodl-tmp/ResUNet_FG_Sampling_model/last_epoch_model_9.pth
+3940 bytes	/root/autodl-tmp/ResUNet_FG_Sampling_model/train_log.csv
+23086842 bytes	/root/autodl-tmp/ResUNet_FullCombined_model/best_model_11.pth
+23087277 bytes	/root/autodl-tmp/ResUNet_FullCombined_model/last_epoch_model_1.pth
+23087364 bytes	/root/autodl-tmp/ResUNet_FullCombined_model/last_epoch_model_10.pth
+23087364 bytes	/root/autodl-tmp/ResUNet_FullCombined_model/last_epoch_model_11.pth
+23087364 bytes	/root/autodl-tmp/ResUNet_FullCombined_model/last_epoch_model_12.pth
+23087364 bytes	/root/autodl-tmp/ResUNet_FullCombined_model/last_epoch_model_13.pth
+23087364 bytes	/root/autodl-tmp/ResUNet_FullCombined_model/last_epoch_model_14.pth
+23087364 bytes	/root/autodl-tmp/ResUNet_FullCombined_model/last_epoch_model_15.pth
+23087364 bytes	/root/autodl-tmp/ResUNet_FullCombined_model/last_epoch_model_16.pth
+23087364 bytes	/root/autodl-tmp/ResUNet_FullCombined_model/last_epoch_model_17.pth
+23087364 bytes	/root/autodl-tmp/ResUNet_FullCombined_model/last_epoch_model_18.pth
+23087364 bytes	/root/autodl-tmp/ResUNet_FullCombined_model/last_epoch_model_19.pth
+23087277 bytes	/root/autodl-tmp/ResUNet_FullCombined_model/last_epoch_model_2.pth
+23087364 bytes	/root/autodl-tmp/ResUNet_FullCombined_model/last_epoch_model_20.pth
+23087364 bytes	/root/autodl-tmp/ResUNet_FullCombined_model/last_epoch_model_21.pth
+23087364 bytes	/root/autodl-tmp/ResUNet_FullCombined_model/last_epoch_model_22.pth
+23087364 bytes	/root/autodl-tmp/ResUNet_FullCombined_model/last_epoch_model_23.pth
+23087364 bytes	/root/autodl-tmp/ResUNet_FullCombined_model/last_epoch_model_24.pth
+23087364 bytes	/root/autodl-tmp/ResUNet_FullCombined_model/last_epoch_model_25.pth
+23087364 bytes	/root/autodl-tmp/ResUNet_FullCombined_model/last_epoch_model_26.pth
+23087364 bytes	/root/autodl-tmp/ResUNet_FullCombined_model/last_epoch_model_27.pth
+23087364 bytes	/root/autodl-tmp/ResUNet_FullCombined_model/last_epoch_model_28.pth
+23087364 bytes	/root/autodl-tmp/ResUNet_FullCombined_model/last_epoch_model_29.pth
+23087277 bytes	/root/autodl-tmp/ResUNet_FullCombined_model/last_epoch_model_3.pth
+23087364 bytes	/root/autodl-tmp/ResUNet_FullCombined_model/last_epoch_model_30.pth
+23087364 bytes	/root/autodl-tmp/ResUNet_FullCombined_model/last_epoch_model_31.pth
+23087364 bytes	/root/autodl-tmp/ResUNet_FullCombined_model/last_epoch_model_32.pth
+23087364 bytes	/root/autodl-tmp/ResUNet_FullCombined_model/last_epoch_model_33.pth
+23087364 bytes	/root/autodl-tmp/ResUNet_FullCombined_model/last_epoch_model_34.pth
+23087364 bytes	/root/autodl-tmp/ResUNet_FullCombined_model/last_epoch_model_35.pth
+23087364 bytes	/root/autodl-tmp/ResUNet_FullCombined_model/last_epoch_model_36.pth
+23087277 bytes	/root/autodl-tmp/ResUNet_FullCombined_model/last_epoch_model_4.pth
+23087277 bytes	/root/autodl-tmp/ResUNet_FullCombined_model/last_epoch_model_5.pth
+23087277 bytes	/root/autodl-tmp/ResUNet_FullCombined_model/last_epoch_model_6.pth
+23087277 bytes	/root/autodl-tmp/ResUNet_FullCombined_model/last_epoch_model_7.pth
+23087277 bytes	/root/autodl-tmp/ResUNet_FullCombined_model/last_epoch_model_8.pth
+23087277 bytes	/root/autodl-tmp/ResUNet_FullCombined_model/last_epoch_model_9.pth
+3398 bytes	/root/autodl-tmp/ResUNet_FullCombined_model/train_log.csv
+23152786 bytes	/root/autodl-tmp/ResUNet_HFBoundary_Plus_model/best_model_10.pth
+23153261 bytes	/root/autodl-tmp/ResUNet_HFBoundary_Plus_model/last_epoch_model_1.pth
+23153356 bytes	/root/autodl-tmp/ResUNet_HFBoundary_Plus_model/last_epoch_model_10.pth
+23153356 bytes	/root/autodl-tmp/ResUNet_HFBoundary_Plus_model/last_epoch_model_11.pth
+23153356 bytes	/root/autodl-tmp/ResUNet_HFBoundary_Plus_model/last_epoch_model_12.pth
+23153356 bytes	/root/autodl-tmp/ResUNet_HFBoundary_Plus_model/last_epoch_model_13.pth
+23153356 bytes	/root/autodl-tmp/ResUNet_HFBoundary_Plus_model/last_epoch_model_14.pth
+23153356 bytes	/root/autodl-tmp/ResUNet_HFBoundary_Plus_model/last_epoch_model_15.pth
+23153356 bytes	/root/autodl-tmp/ResUNet_HFBoundary_Plus_model/last_epoch_model_16.pth
+23153356 bytes	/root/autodl-tmp/ResUNet_HFBoundary_Plus_model/last_epoch_model_17.pth
+23153356 bytes	/root/autodl-tmp/ResUNet_HFBoundary_Plus_model/last_epoch_model_18.pth
+23153356 bytes	/root/autodl-tmp/ResUNet_HFBoundary_Plus_model/last_epoch_model_19.pth
+23153261 bytes	/root/autodl-tmp/ResUNet_HFBoundary_Plus_model/last_epoch_model_2.pth
+23153356 bytes	/root/autodl-tmp/ResUNet_HFBoundary_Plus_model/last_epoch_model_20.pth
+23153356 bytes	/root/autodl-tmp/ResUNet_HFBoundary_Plus_model/last_epoch_model_21.pth
+23153356 bytes	/root/autodl-tmp/ResUNet_HFBoundary_Plus_model/last_epoch_model_22.pth
+23153356 bytes	/root/autodl-tmp/ResUNet_HFBoundary_Plus_model/last_epoch_model_23.pth
+23153356 bytes	/root/autodl-tmp/ResUNet_HFBoundary_Plus_model/last_epoch_model_24.pth
+23153356 bytes	/root/autodl-tmp/ResUNet_HFBoundary_Plus_model/last_epoch_model_25.pth
+23153356 bytes	/root/autodl-tmp/ResUNet_HFBoundary_Plus_model/last_epoch_model_26.pth
+23153356 bytes	/root/autodl-tmp/ResUNet_HFBoundary_Plus_model/last_epoch_model_27.pth
+23153356 bytes	/root/autodl-tmp/ResUNet_HFBoundary_Plus_model/last_epoch_model_28.pth
+23153356 bytes	/root/autodl-tmp/ResUNet_HFBoundary_Plus_model/last_epoch_model_29.pth
+23153261 bytes	/root/autodl-tmp/ResUNet_HFBoundary_Plus_model/last_epoch_model_3.pth
+23153356 bytes	/root/autodl-tmp/ResUNet_HFBoundary_Plus_model/last_epoch_model_30.pth
+23153356 bytes	/root/autodl-tmp/ResUNet_HFBoundary_Plus_model/last_epoch_model_31.pth
+23153356 bytes	/root/autodl-tmp/ResUNet_HFBoundary_Plus_model/last_epoch_model_32.pth
+23153356 bytes	/root/autodl-tmp/ResUNet_HFBoundary_Plus_model/last_epoch_model_33.pth
+23153356 bytes	/root/autodl-tmp/ResUNet_HFBoundary_Plus_model/last_epoch_model_34.pth
+23153356 bytes	/root/autodl-tmp/ResUNet_HFBoundary_Plus_model/last_epoch_model_35.pth
+23153261 bytes	/root/autodl-tmp/ResUNet_HFBoundary_Plus_model/last_epoch_model_4.pth
+23153261 bytes	/root/autodl-tmp/ResUNet_HFBoundary_Plus_model/last_epoch_model_5.pth
+23153261 bytes	/root/autodl-tmp/ResUNet_HFBoundary_Plus_model/last_epoch_model_6.pth
+23153261 bytes	/root/autodl-tmp/ResUNet_HFBoundary_Plus_model/last_epoch_model_7.pth
+23153261 bytes	/root/autodl-tmp/ResUNet_HFBoundary_Plus_model/last_epoch_model_8.pth
+23153261 bytes	/root/autodl-tmp/ResUNet_HFBoundary_Plus_model/last_epoch_model_9.pth
+3365 bytes	/root/autodl-tmp/ResUNet_HFBoundary_Plus_model/train_log.csv
+23152786 bytes	/root/autodl-tmp/ResUNet_HFBoundary_model/best_model_53.pth
+23153261 bytes	/root/autodl-tmp/ResUNet_HFBoundary_model/last_epoch_model_1.pth
+23153356 bytes	/root/autodl-tmp/ResUNet_HFBoundary_model/last_epoch_model_10.pth
+23153356 bytes	/root/autodl-tmp/ResUNet_HFBoundary_model/last_epoch_model_11.pth
+23153356 bytes	/root/autodl-tmp/ResUNet_HFBoundary_model/last_epoch_model_12.pth
+23153356 bytes	/root/autodl-tmp/ResUNet_HFBoundary_model/last_epoch_model_13.pth
+23153356 bytes	/root/autodl-tmp/ResUNet_HFBoundary_model/last_epoch_model_14.pth
+23153356 bytes	/root/autodl-tmp/ResUNet_HFBoundary_model/last_epoch_model_15.pth
+23153356 bytes	/root/autodl-tmp/ResUNet_HFBoundary_model/last_epoch_model_16.pth
+23153356 bytes	/root/autodl-tmp/ResUNet_HFBoundary_model/last_epoch_model_17.pth
+23153356 bytes	/root/autodl-tmp/ResUNet_HFBoundary_model/last_epoch_model_18.pth
+23153356 bytes	/root/autodl-tmp/ResUNet_HFBoundary_model/last_epoch_model_19.pth
+23153261 bytes	/root/autodl-tmp/ResUNet_HFBoundary_model/last_epoch_model_2.pth
+23153356 bytes	/root/autodl-tmp/ResUNet_HFBoundary_model/last_epoch_model_20.pth
+23153356 bytes	/root/autodl-tmp/ResUNet_HFBoundary_model/last_epoch_model_21.pth
+23153356 bytes	/root/autodl-tmp/ResUNet_HFBoundary_model/last_epoch_model_22.pth
+23153356 bytes	/root/autodl-tmp/ResUNet_HFBoundary_model/last_epoch_model_23.pth
+23153356 bytes	/root/autodl-tmp/ResUNet_HFBoundary_model/last_epoch_model_24.pth
+23153356 bytes	/root/autodl-tmp/ResUNet_HFBoundary_model/last_epoch_model_25.pth
+23153356 bytes	/root/autodl-tmp/ResUNet_HFBoundary_model/last_epoch_model_26.pth
+23153356 bytes	/root/autodl-tmp/ResUNet_HFBoundary_model/last_epoch_model_27.pth
+23153356 bytes	/root/autodl-tmp/ResUNet_HFBoundary_model/last_epoch_model_28.pth
+23153356 bytes	/root/autodl-tmp/ResUNet_HFBoundary_model/last_epoch_model_29.pth
+23153261 bytes	/root/autodl-tmp/ResUNet_HFBoundary_model/last_epoch_model_3.pth
+23153356 bytes	/root/autodl-tmp/ResUNet_HFBoundary_model/last_epoch_model_30.pth
+23153356 bytes	/root/autodl-tmp/ResUNet_HFBoundary_model/last_epoch_model_31.pth
+23153356 bytes	/root/autodl-tmp/ResUNet_HFBoundary_model/last_epoch_model_32.pth
+23153356 bytes	/root/autodl-tmp/ResUNet_HFBoundary_model/last_epoch_model_33.pth
+23153356 bytes	/root/autodl-tmp/ResUNet_HFBoundary_model/last_epoch_model_34.pth
+23153356 bytes	/root/autodl-tmp/ResUNet_HFBoundary_model/last_epoch_model_35.pth
+23153356 bytes	/root/autodl-tmp/ResUNet_HFBoundary_model/last_epoch_model_36.pth
+23153356 bytes	/root/autodl-tmp/ResUNet_HFBoundary_model/last_epoch_model_37.pth
+23153356 bytes	/root/autodl-tmp/ResUNet_HFBoundary_model/last_epoch_model_38.pth
+23153356 bytes	/root/autodl-tmp/ResUNet_HFBoundary_model/last_epoch_model_39.pth
+23153261 bytes	/root/autodl-tmp/ResUNet_HFBoundary_model/last_epoch_model_4.pth
+23153356 bytes	/root/autodl-tmp/ResUNet_HFBoundary_model/last_epoch_model_40.pth
+23153356 bytes	/root/autodl-tmp/ResUNet_HFBoundary_model/last_epoch_model_41.pth
+23153356 bytes	/root/autodl-tmp/ResUNet_HFBoundary_model/last_epoch_model_42.pth
+23153356 bytes	/root/autodl-tmp/ResUNet_HFBoundary_model/last_epoch_model_43.pth
+23153356 bytes	/root/autodl-tmp/ResUNet_HFBoundary_model/last_epoch_model_44.pth
+23153356 bytes	/root/autodl-tmp/ResUNet_HFBoundary_model/last_epoch_model_45.pth
+23153356 bytes	/root/autodl-tmp/ResUNet_HFBoundary_model/last_epoch_model_46.pth
+23153356 bytes	/root/autodl-tmp/ResUNet_HFBoundary_model/last_epoch_model_47.pth
+23153356 bytes	/root/autodl-tmp/ResUNet_HFBoundary_model/last_epoch_model_48.pth
+23153356 bytes	/root/autodl-tmp/ResUNet_HFBoundary_model/last_epoch_model_49.pth
+23153261 bytes	/root/autodl-tmp/ResUNet_HFBoundary_model/last_epoch_model_5.pth
+23153356 bytes	/root/autodl-tmp/ResUNet_HFBoundary_model/last_epoch_model_50.pth
+23153356 bytes	/root/autodl-tmp/ResUNet_HFBoundary_model/last_epoch_model_51.pth
+23153356 bytes	/root/autodl-tmp/ResUNet_HFBoundary_model/last_epoch_model_52.pth
+23153356 bytes	/root/autodl-tmp/ResUNet_HFBoundary_model/last_epoch_model_53.pth
+23153356 bytes	/root/autodl-tmp/ResUNet_HFBoundary_model/last_epoch_model_54.pth
+23153356 bytes	/root/autodl-tmp/ResUNet_HFBoundary_model/last_epoch_model_55.pth
+23153356 bytes	/root/autodl-tmp/ResUNet_HFBoundary_model/last_epoch_model_56.pth
+23153356 bytes	/root/autodl-tmp/ResUNet_HFBoundary_model/last_epoch_model_57.pth
+23153356 bytes	/root/autodl-tmp/ResUNet_HFBoundary_model/last_epoch_model_58.pth
+23153356 bytes	/root/autodl-tmp/ResUNet_HFBoundary_model/last_epoch_model_59.pth
+23153261 bytes	/root/autodl-tmp/ResUNet_HFBoundary_model/last_epoch_model_6.pth
+23153356 bytes	/root/autodl-tmp/ResUNet_HFBoundary_model/last_epoch_model_60.pth
+23153356 bytes	/root/autodl-tmp/ResUNet_HFBoundary_model/last_epoch_model_61.pth
+23153356 bytes	/root/autodl-tmp/ResUNet_HFBoundary_model/last_epoch_model_62.pth
+23153356 bytes	/root/autodl-tmp/ResUNet_HFBoundary_model/last_epoch_model_63.pth
+23153356 bytes	/root/autodl-tmp/ResUNet_HFBoundary_model/last_epoch_model_64.pth
+23153356 bytes	/root/autodl-tmp/ResUNet_HFBoundary_model/last_epoch_model_65.pth
+23153356 bytes	/root/autodl-tmp/ResUNet_HFBoundary_model/last_epoch_model_66.pth
+23153356 bytes	/root/autodl-tmp/ResUNet_HFBoundary_model/last_epoch_model_67.pth
+23153356 bytes	/root/autodl-tmp/ResUNet_HFBoundary_model/last_epoch_model_68.pth
+23153356 bytes	/root/autodl-tmp/ResUNet_HFBoundary_model/last_epoch_model_69.pth
+23153261 bytes	/root/autodl-tmp/ResUNet_HFBoundary_model/last_epoch_model_7.pth
+23153356 bytes	/root/autodl-tmp/ResUNet_HFBoundary_model/last_epoch_model_70.pth
+23153356 bytes	/root/autodl-tmp/ResUNet_HFBoundary_model/last_epoch_model_71.pth
+23153356 bytes	/root/autodl-tmp/ResUNet_HFBoundary_model/last_epoch_model_72.pth
+23153356 bytes	/root/autodl-tmp/ResUNet_HFBoundary_model/last_epoch_model_73.pth
+23153356 bytes	/root/autodl-tmp/ResUNet_HFBoundary_model/last_epoch_model_74.pth
+23153356 bytes	/root/autodl-tmp/ResUNet_HFBoundary_model/last_epoch_model_75.pth
+23153356 bytes	/root/autodl-tmp/ResUNet_HFBoundary_model/last_epoch_model_76.pth
+23153356 bytes	/root/autodl-tmp/ResUNet_HFBoundary_model/last_epoch_model_77.pth
+23153356 bytes	/root/autodl-tmp/ResUNet_HFBoundary_model/last_epoch_model_78.pth
+23153261 bytes	/root/autodl-tmp/ResUNet_HFBoundary_model/last_epoch_model_8.pth
+23153261 bytes	/root/autodl-tmp/ResUNet_HFBoundary_model/last_epoch_model_9.pth
+8984 bytes	/root/autodl-tmp/ResUNet_HFBoundary_model/train_log.csv
+25275651 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_model/best_model_86.pth
+25276421 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_model/last_epoch_model_111.pth
+12176 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_model/train_log.csv
+25275651 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.05_model/best_model_44.pth
+25276201 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.05_model/last_epoch_model_1.pth
+25276311 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.05_model/last_epoch_model_10.pth
+25276311 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.05_model/last_epoch_model_11.pth
+25276311 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.05_model/last_epoch_model_12.pth
+25276311 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.05_model/last_epoch_model_13.pth
+25276311 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.05_model/last_epoch_model_14.pth
+25276311 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.05_model/last_epoch_model_15.pth
+25276311 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.05_model/last_epoch_model_16.pth
+25276311 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.05_model/last_epoch_model_17.pth
+25276311 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.05_model/last_epoch_model_18.pth
+25276311 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.05_model/last_epoch_model_19.pth
+25276201 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.05_model/last_epoch_model_2.pth
+25276311 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.05_model/last_epoch_model_20.pth
+25276311 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.05_model/last_epoch_model_21.pth
+25276311 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.05_model/last_epoch_model_22.pth
+25276311 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.05_model/last_epoch_model_23.pth
+25276311 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.05_model/last_epoch_model_24.pth
+25276311 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.05_model/last_epoch_model_25.pth
+25276311 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.05_model/last_epoch_model_26.pth
+25276311 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.05_model/last_epoch_model_27.pth
+25276311 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.05_model/last_epoch_model_28.pth
+25276311 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.05_model/last_epoch_model_29.pth
+25276201 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.05_model/last_epoch_model_3.pth
+25276311 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.05_model/last_epoch_model_30.pth
+25276311 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.05_model/last_epoch_model_31.pth
+25276311 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.05_model/last_epoch_model_32.pth
+25276311 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.05_model/last_epoch_model_33.pth
+25276311 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.05_model/last_epoch_model_34.pth
+25276311 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.05_model/last_epoch_model_35.pth
+25276311 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.05_model/last_epoch_model_36.pth
+25276311 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.05_model/last_epoch_model_37.pth
+25276311 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.05_model/last_epoch_model_38.pth
+25276311 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.05_model/last_epoch_model_39.pth
+25276201 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.05_model/last_epoch_model_4.pth
+25276311 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.05_model/last_epoch_model_40.pth
+25276311 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.05_model/last_epoch_model_41.pth
+25276311 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.05_model/last_epoch_model_42.pth
+25276311 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.05_model/last_epoch_model_43.pth
+25276311 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.05_model/last_epoch_model_44.pth
+25276311 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.05_model/last_epoch_model_45.pth
+25276311 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.05_model/last_epoch_model_46.pth
+25276311 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.05_model/last_epoch_model_47.pth
+25276311 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.05_model/last_epoch_model_48.pth
+25276311 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.05_model/last_epoch_model_49.pth
+25276201 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.05_model/last_epoch_model_5.pth
+25276311 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.05_model/last_epoch_model_50.pth
+25276311 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.05_model/last_epoch_model_51.pth
+25276311 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.05_model/last_epoch_model_52.pth
+25276311 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.05_model/last_epoch_model_53.pth
+25276311 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.05_model/last_epoch_model_54.pth
+25276311 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.05_model/last_epoch_model_55.pth
+25276311 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.05_model/last_epoch_model_56.pth
+25276311 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.05_model/last_epoch_model_57.pth
+25276311 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.05_model/last_epoch_model_58.pth
+25276311 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.05_model/last_epoch_model_59.pth
+25276201 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.05_model/last_epoch_model_6.pth
+25276311 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.05_model/last_epoch_model_60.pth
+25276311 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.05_model/last_epoch_model_61.pth
+25276311 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.05_model/last_epoch_model_62.pth
+25276311 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.05_model/last_epoch_model_63.pth
+25276311 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.05_model/last_epoch_model_64.pth
+25276311 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.05_model/last_epoch_model_65.pth
+25276311 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.05_model/last_epoch_model_66.pth
+25276311 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.05_model/last_epoch_model_67.pth
+25276311 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.05_model/last_epoch_model_68.pth
+25276311 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.05_model/last_epoch_model_69.pth
+25276201 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.05_model/last_epoch_model_7.pth
+25276201 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.05_model/last_epoch_model_8.pth
+25276201 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.05_model/last_epoch_model_9.pth
+6535 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.05_model/train_log.csv
+25275651 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.15_model/best_model_40.pth
+25276201 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.15_model/last_epoch_model_1.pth
+25276311 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.15_model/last_epoch_model_10.pth
+25276311 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.15_model/last_epoch_model_11.pth
+25276311 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.15_model/last_epoch_model_12.pth
+25276311 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.15_model/last_epoch_model_13.pth
+25276311 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.15_model/last_epoch_model_14.pth
+25276311 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.15_model/last_epoch_model_15.pth
+25276311 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.15_model/last_epoch_model_16.pth
+25276311 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.15_model/last_epoch_model_17.pth
+25276311 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.15_model/last_epoch_model_18.pth
+25276311 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.15_model/last_epoch_model_19.pth
+25276201 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.15_model/last_epoch_model_2.pth
+25276311 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.15_model/last_epoch_model_20.pth
+25276311 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.15_model/last_epoch_model_21.pth
+25276311 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.15_model/last_epoch_model_22.pth
+25276311 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.15_model/last_epoch_model_23.pth
+25276311 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.15_model/last_epoch_model_24.pth
+25276311 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.15_model/last_epoch_model_25.pth
+25276311 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.15_model/last_epoch_model_26.pth
+25276311 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.15_model/last_epoch_model_27.pth
+25276311 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.15_model/last_epoch_model_28.pth
+25276311 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.15_model/last_epoch_model_29.pth
+25276201 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.15_model/last_epoch_model_3.pth
+25276311 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.15_model/last_epoch_model_30.pth
+25276311 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.15_model/last_epoch_model_31.pth
+25276311 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.15_model/last_epoch_model_32.pth
+25276311 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.15_model/last_epoch_model_33.pth
+25276311 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.15_model/last_epoch_model_34.pth
+25276311 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.15_model/last_epoch_model_35.pth
+25276311 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.15_model/last_epoch_model_36.pth
+25276311 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.15_model/last_epoch_model_37.pth
+25276311 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.15_model/last_epoch_model_38.pth
+25276311 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.15_model/last_epoch_model_39.pth
+25276201 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.15_model/last_epoch_model_4.pth
+25276311 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.15_model/last_epoch_model_40.pth
+25276311 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.15_model/last_epoch_model_41.pth
+25276311 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.15_model/last_epoch_model_42.pth
+25276311 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.15_model/last_epoch_model_43.pth
+25276311 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.15_model/last_epoch_model_44.pth
+25276311 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.15_model/last_epoch_model_45.pth
+25276311 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.15_model/last_epoch_model_46.pth
+25276311 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.15_model/last_epoch_model_47.pth
+25276311 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.15_model/last_epoch_model_48.pth
+25276311 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.15_model/last_epoch_model_49.pth
+25276201 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.15_model/last_epoch_model_5.pth
+25276311 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.15_model/last_epoch_model_50.pth
+25276311 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.15_model/last_epoch_model_51.pth
+25276311 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.15_model/last_epoch_model_52.pth
+25276311 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.15_model/last_epoch_model_53.pth
+25276311 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.15_model/last_epoch_model_54.pth
+25276311 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.15_model/last_epoch_model_55.pth
+25276311 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.15_model/last_epoch_model_56.pth
+25276311 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.15_model/last_epoch_model_57.pth
+25276311 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.15_model/last_epoch_model_58.pth
+25276311 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.15_model/last_epoch_model_59.pth
+25276201 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.15_model/last_epoch_model_6.pth
+25276311 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.15_model/last_epoch_model_60.pth
+25276311 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.15_model/last_epoch_model_61.pth
+25276311 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.15_model/last_epoch_model_62.pth
+25276311 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.15_model/last_epoch_model_63.pth
+25276311 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.15_model/last_epoch_model_64.pth
+25276311 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.15_model/last_epoch_model_65.pth
+25276201 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.15_model/last_epoch_model_7.pth
+25276201 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.15_model/last_epoch_model_8.pth
+25276201 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.15_model/last_epoch_model_9.pth
+6169 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.15_model/train_log.csv
+25275651 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_model/best_model_38.pth
+25276201 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_model/last_epoch_model_1.pth
+25276311 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_model/last_epoch_model_10.pth
+25276311 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_model/last_epoch_model_11.pth
+25276311 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_model/last_epoch_model_12.pth
+25276311 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_model/last_epoch_model_13.pth
+25276311 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_model/last_epoch_model_14.pth
+25276311 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_model/last_epoch_model_15.pth
+25276311 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_model/last_epoch_model_16.pth
+25276311 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_model/last_epoch_model_17.pth
+25276311 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_model/last_epoch_model_18.pth
+25276311 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_model/last_epoch_model_19.pth
+25276201 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_model/last_epoch_model_2.pth
+25276311 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_model/last_epoch_model_20.pth
+25276311 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_model/last_epoch_model_21.pth
+25276311 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_model/last_epoch_model_22.pth
+25276311 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_model/last_epoch_model_23.pth
+25276311 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_model/last_epoch_model_24.pth
+25276311 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_model/last_epoch_model_25.pth
+25276311 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_model/last_epoch_model_26.pth
+25276311 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_model/last_epoch_model_27.pth
+25276311 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_model/last_epoch_model_28.pth
+25276311 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_model/last_epoch_model_29.pth
+25276201 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_model/last_epoch_model_3.pth
+25276311 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_model/last_epoch_model_30.pth
+25276311 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_model/last_epoch_model_31.pth
+25276311 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_model/last_epoch_model_32.pth
+25276311 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_model/last_epoch_model_33.pth
+25276311 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_model/last_epoch_model_34.pth
+25276311 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_model/last_epoch_model_35.pth
+25276311 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_model/last_epoch_model_36.pth
+25276311 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_model/last_epoch_model_37.pth
+25276311 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_model/last_epoch_model_38.pth
+25276311 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_model/last_epoch_model_39.pth
+25276201 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_model/last_epoch_model_4.pth
+25276311 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_model/last_epoch_model_40.pth
+25276311 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_model/last_epoch_model_41.pth
+25276311 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_model/last_epoch_model_42.pth
+25276311 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_model/last_epoch_model_43.pth
+25276311 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_model/last_epoch_model_44.pth
+25276311 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_model/last_epoch_model_45.pth
+25276311 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_model/last_epoch_model_46.pth
+25276311 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_model/last_epoch_model_47.pth
+25276311 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_model/last_epoch_model_48.pth
+25276311 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_model/last_epoch_model_49.pth
+25276201 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_model/last_epoch_model_5.pth
+25276311 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_model/last_epoch_model_50.pth
+25276311 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_model/last_epoch_model_51.pth
+25276311 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_model/last_epoch_model_52.pth
+25276311 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_model/last_epoch_model_53.pth
+25276311 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_model/last_epoch_model_54.pth
+25276311 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_model/last_epoch_model_55.pth
+25276311 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_model/last_epoch_model_56.pth
+25276311 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_model/last_epoch_model_57.pth
+25276311 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_model/last_epoch_model_58.pth
+25276311 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_model/last_epoch_model_59.pth
+25276201 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_model/last_epoch_model_6.pth
+25276311 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_model/last_epoch_model_60.pth
+25276311 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_model/last_epoch_model_61.pth
+25276311 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_model/last_epoch_model_62.pth
+25276311 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_model/last_epoch_model_63.pth
+25276201 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_model/last_epoch_model_7.pth
+25276201 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_model/last_epoch_model_8.pth
+25276201 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_model/last_epoch_model_9.pth
+5971 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_model/train_log.csv
+28458647 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_multiscale_v2_model/best_model_90.pth
+28459366 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_multiscale_v2_model/last_epoch_model_1.pth
+28459497 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_multiscale_v2_model/last_epoch_model_10.pth
+28459628 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_multiscale_v2_model/last_epoch_model_100.pth
+28459628 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_multiscale_v2_model/last_epoch_model_101.pth
+28459628 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_multiscale_v2_model/last_epoch_model_102.pth
+28459628 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_multiscale_v2_model/last_epoch_model_103.pth
+28459628 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_multiscale_v2_model/last_epoch_model_104.pth
+28459628 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_multiscale_v2_model/last_epoch_model_105.pth
+28459628 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_multiscale_v2_model/last_epoch_model_106.pth
+28459628 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_multiscale_v2_model/last_epoch_model_107.pth
+28459628 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_multiscale_v2_model/last_epoch_model_108.pth
+28459628 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_multiscale_v2_model/last_epoch_model_109.pth
+28459497 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_multiscale_v2_model/last_epoch_model_11.pth
+28459628 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_multiscale_v2_model/last_epoch_model_110.pth
+28459628 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_multiscale_v2_model/last_epoch_model_111.pth
+28459628 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_multiscale_v2_model/last_epoch_model_112.pth
+28459628 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_multiscale_v2_model/last_epoch_model_113.pth
+28459628 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_multiscale_v2_model/last_epoch_model_114.pth
+28459628 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_multiscale_v2_model/last_epoch_model_115.pth
+28459497 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_multiscale_v2_model/last_epoch_model_12.pth
+28459497 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_multiscale_v2_model/last_epoch_model_13.pth
+28459497 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_multiscale_v2_model/last_epoch_model_14.pth
+28459497 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_multiscale_v2_model/last_epoch_model_15.pth
+28459497 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_multiscale_v2_model/last_epoch_model_16.pth
+28459497 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_multiscale_v2_model/last_epoch_model_17.pth
+28459497 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_multiscale_v2_model/last_epoch_model_18.pth
+28459497 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_multiscale_v2_model/last_epoch_model_19.pth
+28459366 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_multiscale_v2_model/last_epoch_model_2.pth
+28459497 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_multiscale_v2_model/last_epoch_model_20.pth
+28459497 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_multiscale_v2_model/last_epoch_model_21.pth
+28459497 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_multiscale_v2_model/last_epoch_model_22.pth
+28459497 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_multiscale_v2_model/last_epoch_model_23.pth
+28459497 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_multiscale_v2_model/last_epoch_model_24.pth
+28459497 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_multiscale_v2_model/last_epoch_model_25.pth
+28459497 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_multiscale_v2_model/last_epoch_model_26.pth
+28459497 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_multiscale_v2_model/last_epoch_model_27.pth
+28459497 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_multiscale_v2_model/last_epoch_model_28.pth
+28459497 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_multiscale_v2_model/last_epoch_model_29.pth
+28459366 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_multiscale_v2_model/last_epoch_model_3.pth
+28459497 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_multiscale_v2_model/last_epoch_model_30.pth
+28459497 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_multiscale_v2_model/last_epoch_model_31.pth
+28459497 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_multiscale_v2_model/last_epoch_model_32.pth
+28459497 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_multiscale_v2_model/last_epoch_model_33.pth
+28459497 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_multiscale_v2_model/last_epoch_model_34.pth
+28459497 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_multiscale_v2_model/last_epoch_model_35.pth
+28459497 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_multiscale_v2_model/last_epoch_model_36.pth
+28459497 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_multiscale_v2_model/last_epoch_model_37.pth
+28459497 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_multiscale_v2_model/last_epoch_model_38.pth
+28459497 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_multiscale_v2_model/last_epoch_model_39.pth
+28459366 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_multiscale_v2_model/last_epoch_model_4.pth
+28459497 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_multiscale_v2_model/last_epoch_model_40.pth
+28459497 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_multiscale_v2_model/last_epoch_model_41.pth
+28459497 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_multiscale_v2_model/last_epoch_model_42.pth
+28459497 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_multiscale_v2_model/last_epoch_model_43.pth
+28459497 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_multiscale_v2_model/last_epoch_model_44.pth
+28459497 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_multiscale_v2_model/last_epoch_model_45.pth
+28459497 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_multiscale_v2_model/last_epoch_model_46.pth
+28459497 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_multiscale_v2_model/last_epoch_model_47.pth
+28459497 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_multiscale_v2_model/last_epoch_model_48.pth
+28459497 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_multiscale_v2_model/last_epoch_model_49.pth
+28459366 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_multiscale_v2_model/last_epoch_model_5.pth
+28459497 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_multiscale_v2_model/last_epoch_model_50.pth
+28459497 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_multiscale_v2_model/last_epoch_model_51.pth
+28459497 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_multiscale_v2_model/last_epoch_model_52.pth
+28459497 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_multiscale_v2_model/last_epoch_model_53.pth
+28459497 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_multiscale_v2_model/last_epoch_model_54.pth
+28459497 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_multiscale_v2_model/last_epoch_model_55.pth
+28459497 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_multiscale_v2_model/last_epoch_model_56.pth
+28459497 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_multiscale_v2_model/last_epoch_model_57.pth
+28459497 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_multiscale_v2_model/last_epoch_model_58.pth
+28459497 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_multiscale_v2_model/last_epoch_model_59.pth
+28459366 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_multiscale_v2_model/last_epoch_model_6.pth
+28459497 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_multiscale_v2_model/last_epoch_model_60.pth
+28459497 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_multiscale_v2_model/last_epoch_model_61.pth
+28459497 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_multiscale_v2_model/last_epoch_model_62.pth
+28459497 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_multiscale_v2_model/last_epoch_model_63.pth
+28459497 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_multiscale_v2_model/last_epoch_model_64.pth
+28459497 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_multiscale_v2_model/last_epoch_model_65.pth
+28459497 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_multiscale_v2_model/last_epoch_model_66.pth
+28459497 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_multiscale_v2_model/last_epoch_model_67.pth
+28459497 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_multiscale_v2_model/last_epoch_model_68.pth
+28459497 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_multiscale_v2_model/last_epoch_model_69.pth
+28459366 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_multiscale_v2_model/last_epoch_model_7.pth
+28459497 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_multiscale_v2_model/last_epoch_model_70.pth
+28459497 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_multiscale_v2_model/last_epoch_model_71.pth
+28459497 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_multiscale_v2_model/last_epoch_model_72.pth
+28459497 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_multiscale_v2_model/last_epoch_model_73.pth
+28459497 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_multiscale_v2_model/last_epoch_model_74.pth
+28459497 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_multiscale_v2_model/last_epoch_model_75.pth
+28459497 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_multiscale_v2_model/last_epoch_model_76.pth
+28459497 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_multiscale_v2_model/last_epoch_model_77.pth
+28459497 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_multiscale_v2_model/last_epoch_model_78.pth
+28459497 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_multiscale_v2_model/last_epoch_model_79.pth
+28459366 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_multiscale_v2_model/last_epoch_model_8.pth
+28459497 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_multiscale_v2_model/last_epoch_model_80.pth
+28459497 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_multiscale_v2_model/last_epoch_model_81.pth
+28459497 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_multiscale_v2_model/last_epoch_model_82.pth
+28459497 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_multiscale_v2_model/last_epoch_model_83.pth
+28459497 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_multiscale_v2_model/last_epoch_model_84.pth
+28459497 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_multiscale_v2_model/last_epoch_model_85.pth
+28459497 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_multiscale_v2_model/last_epoch_model_86.pth
+28459497 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_multiscale_v2_model/last_epoch_model_87.pth
+28459497 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_multiscale_v2_model/last_epoch_model_88.pth
+28459497 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_multiscale_v2_model/last_epoch_model_89.pth
+28459366 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_multiscale_v2_model/last_epoch_model_9.pth
+28459497 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_multiscale_v2_model/last_epoch_model_90.pth
+28459497 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_multiscale_v2_model/last_epoch_model_91.pth
+28459497 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_multiscale_v2_model/last_epoch_model_92.pth
+28459497 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_multiscale_v2_model/last_epoch_model_93.pth
+28459497 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_multiscale_v2_model/last_epoch_model_94.pth
+28459497 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_multiscale_v2_model/last_epoch_model_95.pth
+28459497 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_multiscale_v2_model/last_epoch_model_96.pth
+28459497 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_multiscale_v2_model/last_epoch_model_97.pth
+28459497 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_multiscale_v2_model/last_epoch_model_98.pth
+28459497 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_multiscale_v2_model/last_epoch_model_99.pth
+20 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_multiscale_v2_model/multiscale_gates.txt
+10838 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.1_multiscale_v2_model/train_log.csv
+25275761 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.2_model/best_model_197.pth
+25276421 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.2_model/last_epoch_model_199.pth
+19944 bytes	/root/autodl-tmp/ResUNet_HFConcatBoundary_w0.2_model/train_log.csv
+23086755 bytes	/root/autodl-tmp/ResUNet_PMDice_model/best_model_2.pth
+23087277 bytes	/root/autodl-tmp/ResUNet_PMDice_model/last_epoch_model_1.pth
+23087364 bytes	/root/autodl-tmp/ResUNet_PMDice_model/last_epoch_model_10.pth
+23087364 bytes	/root/autodl-tmp/ResUNet_PMDice_model/last_epoch_model_11.pth
+23087364 bytes	/root/autodl-tmp/ResUNet_PMDice_model/last_epoch_model_12.pth
+23087364 bytes	/root/autodl-tmp/ResUNet_PMDice_model/last_epoch_model_13.pth
+23087364 bytes	/root/autodl-tmp/ResUNet_PMDice_model/last_epoch_model_14.pth
+23087364 bytes	/root/autodl-tmp/ResUNet_PMDice_model/last_epoch_model_15.pth
+23087364 bytes	/root/autodl-tmp/ResUNet_PMDice_model/last_epoch_model_16.pth
+23087364 bytes	/root/autodl-tmp/ResUNet_PMDice_model/last_epoch_model_17.pth
+23087364 bytes	/root/autodl-tmp/ResUNet_PMDice_model/last_epoch_model_18.pth
+23087364 bytes	/root/autodl-tmp/ResUNet_PMDice_model/last_epoch_model_19.pth
+23087277 bytes	/root/autodl-tmp/ResUNet_PMDice_model/last_epoch_model_2.pth
+23087364 bytes	/root/autodl-tmp/ResUNet_PMDice_model/last_epoch_model_20.pth
+23087364 bytes	/root/autodl-tmp/ResUNet_PMDice_model/last_epoch_model_21.pth
+23087364 bytes	/root/autodl-tmp/ResUNet_PMDice_model/last_epoch_model_22.pth
+23087364 bytes	/root/autodl-tmp/ResUNet_PMDice_model/last_epoch_model_23.pth
+23087364 bytes	/root/autodl-tmp/ResUNet_PMDice_model/last_epoch_model_24.pth
+23087364 bytes	/root/autodl-tmp/ResUNet_PMDice_model/last_epoch_model_25.pth
+23087364 bytes	/root/autodl-tmp/ResUNet_PMDice_model/last_epoch_model_26.pth
+23087364 bytes	/root/autodl-tmp/ResUNet_PMDice_model/last_epoch_model_27.pth
+23087277 bytes	/root/autodl-tmp/ResUNet_PMDice_model/last_epoch_model_3.pth
+23087277 bytes	/root/autodl-tmp/ResUNet_PMDice_model/last_epoch_model_4.pth
+23087277 bytes	/root/autodl-tmp/ResUNet_PMDice_model/last_epoch_model_5.pth
+23087277 bytes	/root/autodl-tmp/ResUNet_PMDice_model/last_epoch_model_6.pth
+23087277 bytes	/root/autodl-tmp/ResUNet_PMDice_model/last_epoch_model_7.pth
+23087277 bytes	/root/autodl-tmp/ResUNet_PMDice_model/last_epoch_model_8.pth
+23087277 bytes	/root/autodl-tmp/ResUNet_PMDice_model/last_epoch_model_9.pth
+2563 bytes	/root/autodl-tmp/ResUNet_PMDice_model/train_log.csv
+23086929 bytes	/root/autodl-tmp/ResUNet_model/best_model_132.pth
+23087451 bytes	/root/autodl-tmp/ResUNet_model/last_epoch_model_199.pth
+24121 bytes	/root/autodl-tmp/ResUNet_model/train_log.csv
+22638245 bytes	/root/autodl-tmp/Unet/best_model_98.pth
+22638725 bytes	/root/autodl-tmp/Unet/last_epoch_model_98.pth
+20850 bytes	/root/autodl-tmp/Unet/train_log.csv
+22003708 bytes	/root/autodl-tmp/brats2020_full_report.tar.gz
+23106 bytes	/root/autodl-tmp/brats2020_results.tar.gz
+30780 bytes	/root/autodl-tmp/brats_project/MICCAI_BraTS2020_TrainingData/BraTS2020_TrainingData/MICCAI_BraTS2020_TrainingData/name_mapping.csv
+8351 bytes	/root/autodl-tmp/brats_project/MICCAI_BraTS2020_TrainingData/BraTS2020_TrainingData/MICCAI_BraTS2020_TrainingData/survival_info.csv
+11135 bytes	/root/autodl-tmp/brats_project/MICCAI_BraTS2020_TrainingData/BraTS2020_ValidationData/MICCAI_BraTS2020_ValidationData/name_mapping_validation_data.csv
+1016 bytes	/root/autodl-tmp/brats_project/MICCAI_BraTS2020_TrainingData/BraTS2020_ValidationData/MICCAI_BraTS2020_ValidationData/survival_evaluation.csv
+42820 bytes	/root/autodl-tmp/et_components_detail.csv
+38522 bytes	/root/autodl-tmp/et_statistics.csv
+17585 bytes	/root/autodl-tmp/mri_deep/.ipynb_checkpoints/key_comparison_cache-checkpoint.json
+12751 bytes	/root/autodl-tmp/mri_deep/.ipynb_checkpoints/key_comparison_results-checkpoint.json
+1084 bytes	/root/autodl-tmp/mri_deep/.ipynb_checkpoints/key_comparison_table-checkpoint.md
+4346 bytes	/root/autodl-tmp/mri_deep/.ipynb_checkpoints/paper_table-checkpoint.md
+21061 bytes	/root/autodl-tmp/mri_deep/CHANGELOG.md
+1604 bytes	/root/autodl-tmp/mri_deep/CODE_REVIEW_GUIDE.md
+8577 bytes	/root/autodl-tmp/mri_deep/PROJECT_STRUCTURE.md
+11519 bytes	/root/autodl-tmp/mri_deep/README.md
+550 bytes	/root/autodl-tmp/mri_deep/all_experiments_results.csv
+2169 bytes	/root/autodl-tmp/mri_deep/all_experiments_results.json
+324 bytes	/root/autodl-tmp/mri_deep/alpha_sensitivity_test_results/alpha_checkpoint_summary.json
+460 bytes	/root/autodl-tmp/mri_deep/alpha_sensitivity_test_results/alpha_checkpoint_values.csv
+46545 bytes	/root/autodl-tmp/mri_deep/alpha_sensitivity_test_results/alpha_sensitivity_per_case.csv
+107388 bytes	/root/autodl-tmp/mri_deep/alpha_sensitivity_test_results/alpha_sensitivity_per_lesion.csv
+3411 bytes	/root/autodl-tmp/mri_deep/alpha_sensitivity_test_results/alpha_sensitivity_per_seed.csv
+2499 bytes	/root/autodl-tmp/mri_deep/alpha_sensitivity_test_results/alpha_sensitivity_report.md
+1045 bytes	/root/autodl-tmp/mri_deep/alpha_sensitivity_test_results/alpha_sensitivity_summary.csv
+517 bytes	/root/autodl-tmp/mri_deep/alpha_sensitivity_test_results/et_lesion_strata_applied.json
+1033 bytes	/root/autodl-tmp/mri_deep/alpha_sensitivity_test_results/small_et_test_lesions.csv
+154380 bytes	/root/autodl-tmp/mri_deep/autodl_inventory.txt
+8033 bytes	/root/autodl-tmp/mri_deep/autodl_overview.txt
+38824 bytes	/root/autodl-tmp/mri_deep/boundary_typical_case_multiseed_results/.ipynb_checkpoints/all_seed_boundary_cases_long-checkpoint.csv
+38824 bytes	/root/autodl-tmp/mri_deep/boundary_typical_case_multiseed_results/all_seed_boundary_cases_long.csv
+10857 bytes	/root/autodl-tmp/mri_deep/boundary_typical_case_multiseed_results/all_seed_small_lesions_long.csv
+9279 bytes	/root/autodl-tmp/mri_deep/boundary_typical_case_multiseed_results/cross_seed_boundary_case_ranking.csv
+5302 bytes	/root/autodl-tmp/mri_deep/boundary_typical_case_multiseed_results/cross_seed_small_lesion_ranking.csv
+12623 bytes	/root/autodl-tmp/mri_deep/boundary_typical_case_multiseed_results/seed123/boundary_metrics_per_case.csv
+12925 bytes	/root/autodl-tmp/mri_deep/boundary_typical_case_multiseed_results/seed123/case_selection_ranking.csv
+9647 bytes	/root/autodl-tmp/mri_deep/boundary_typical_case_multiseed_results/seed123/selected_cases.json
+3047 bytes	/root/autodl-tmp/mri_deep/boundary_typical_case_multiseed_results/seed123/selected_typical_cases.csv
+3430 bytes	/root/autodl-tmp/mri_deep/boundary_typical_case_multiseed_results/seed123/small_lesion_comparison.csv
+5021 bytes	/root/autodl-tmp/mri_deep/boundary_typical_case_multiseed_results/seed123/small_lesion_metrics_long.csv
+12849 bytes	/root/autodl-tmp/mri_deep/boundary_typical_case_multiseed_results/seed42/.ipynb_checkpoints/case_selection_ranking-checkpoint.csv
+12552 bytes	/root/autodl-tmp/mri_deep/boundary_typical_case_multiseed_results/seed42/boundary_metrics_per_case.csv
+12849 bytes	/root/autodl-tmp/mri_deep/boundary_typical_case_multiseed_results/seed42/case_selection_ranking.csv
+9510 bytes	/root/autodl-tmp/mri_deep/boundary_typical_case_multiseed_results/seed42/selected_cases.json
+2900 bytes	/root/autodl-tmp/mri_deep/boundary_typical_case_multiseed_results/seed42/selected_typical_cases.csv
+3188 bytes	/root/autodl-tmp/mri_deep/boundary_typical_case_multiseed_results/seed42/small_lesion_comparison.csv
+4891 bytes	/root/autodl-tmp/mri_deep/boundary_typical_case_multiseed_results/seed42/small_lesion_metrics_long.csv
+12537 bytes	/root/autodl-tmp/mri_deep/boundary_typical_case_multiseed_results/seed55/boundary_metrics_per_case.csv
+12789 bytes	/root/autodl-tmp/mri_deep/boundary_typical_case_multiseed_results/seed55/case_selection_ranking.csv
+9586 bytes	/root/autodl-tmp/mri_deep/boundary_typical_case_multiseed_results/seed55/selected_cases.json
+3008 bytes	/root/autodl-tmp/mri_deep/boundary_typical_case_multiseed_results/seed55/selected_typical_cases.csv
+3004 bytes	/root/autodl-tmp/mri_deep/boundary_typical_case_multiseed_results/seed55/small_lesion_comparison.csv
+4788 bytes	/root/autodl-tmp/mri_deep/boundary_typical_case_multiseed_results/seed55/small_lesion_metrics_long.csv
+9534120 bytes	/root/autodl-tmp/mri_deep/comprehensive_results.tar.gz
+5531 bytes	/root/autodl-tmp/mri_deep/comprehensive_results/comprehensive_results.csv
+41272 bytes	/root/autodl-tmp/mri_deep/comprehensive_results/comprehensive_results.json
+12036 bytes	/root/autodl-tmp/mri_deep/comprehensive_results/paper_table_comprehensive.md
+2419 bytes	/root/autodl-tmp/mri_deep/docs/superpowers/plans/2026-08-19-seed-stability-training.md
+8008 bytes	/root/autodl-tmp/mri_deep/docs/superpowers/plans/2026-08-20-gated-edge-integration.md
+3955 bytes	/root/autodl-tmp/mri_deep/docs/superpowers/plans/2026-08-25-multiscale-context-paired-evaluation.md
+4969 bytes	/root/autodl-tmp/mri_deep/docs/superpowers/specs/2026-08-20-gated-edge-integration-design.md
+5978 bytes	/root/autodl-tmp/mri_deep/docs/superpowers/specs/2026-08-25-multiscale-context-paired-evaluation-design.md
+26462 bytes	/root/autodl-tmp/mri_deep/et_components_detail.csv
+15810 bytes	/root/autodl-tmp/mri_deep/et_lesion_size_distribution.csv
+461 bytes	/root/autodl-tmp/mri_deep/et_lesion_stratified_results/et_lesion_strata.json
+43922 bytes	/root/autodl-tmp/mri_deep/et_lesion_stratified_results/et_lesion_stratified_detail.csv
+2910 bytes	/root/autodl-tmp/mri_deep/et_lesion_stratified_results/et_lesion_stratified_summary.csv
+25338 bytes	/root/autodl-tmp/mri_deep/et_lesion_stratified_results/et_lesion_stratified_summary.json
+13713 bytes	/root/autodl-tmp/mri_deep/et_lesion_stratified_results/et_training_lesion_size_distribution.csv
+2974 bytes	/root/autodl-tmp/mri_deep/et_lesion_stratified_valid_test_results/et_evaluated_cases.csv
+548 bytes	/root/autodl-tmp/mri_deep/et_lesion_stratified_valid_test_results/et_lesion_strata.json
+101979 bytes	/root/autodl-tmp/mri_deep/et_lesion_stratified_valid_test_results/et_lesion_stratified_detail.csv
+2906 bytes	/root/autodl-tmp/mri_deep/et_lesion_stratified_valid_test_results/et_lesion_stratified_summary.csv
+47672 bytes	/root/autodl-tmp/mri_deep/et_lesion_stratified_valid_test_results/et_lesion_stratified_summary.json
+13713 bytes	/root/autodl-tmp/mri_deep/et_lesion_stratified_valid_test_results/et_training_lesion_size_distribution.csv
+32458 bytes	/root/autodl-tmp/mri_deep/et_statistics.csv
+32938 bytes	/root/autodl-tmp/mri_deep/key_comparison_cache.json
+10669 bytes	/root/autodl-tmp/mri_deep/key_comparison_results.json
+1093 bytes	/root/autodl-tmp/mri_deep/key_comparison_table.md
+344 bytes	/root/autodl-tmp/mri_deep/lambda_results.csv
+1215 bytes	/root/autodl-tmp/mri_deep/paper_table.md
+3766 bytes	/root/autodl-tmp/mri_deep/requirements.txt
+1020 bytes	/root/autodl-tmp/mri_deep/requirements_clean.txt
+1489177 bytes	/root/autodl-tmp/mri_deep/results.tar.gz
+21520 bytes	/root/autodl-tmp/mri_deep/train_all.log
+13775 bytes	/root/autodl-tmp/mri_deep/training_lesion_distributions/et_training_lesion_size_distribution.csv
+411 bytes	/root/autodl-tmp/mri_deep/training_lesion_distributions/et_training_lesion_strata.json
+14370 bytes	/root/autodl-tmp/mri_deep/training_lesion_distributions/wt_training_lesion_size_distribution.csv
+413 bytes	/root/autodl-tmp/mri_deep/training_lesion_distributions/wt_training_lesion_strata.json
+84554 bytes	/root/autodl-tmp/mri_deep/tumourCSV.csv
+344 bytes	/root/autodl-tmp/mri_deep/v2_edge_results.csv
+27647 bytes	/root/autodl-tmp/mri_deep/wt_components_detail.csv
+16362 bytes	/root/autodl-tmp/mri_deep/wt_lesion_size_distribution.csv
+31176 bytes	/root/autodl-tmp/mri_deep/wt_lesion_stratified_results/.ipynb_checkpoints/wt_lesion_stratified_detail-checkpoint.csv
+2769 bytes	/root/autodl-tmp/mri_deep/wt_lesion_stratified_results/.ipynb_checkpoints/wt_lesion_stratified_summary-checkpoint.csv
+463 bytes	/root/autodl-tmp/mri_deep/wt_lesion_stratified_results/wt_lesion_strata.json
+31176 bytes	/root/autodl-tmp/mri_deep/wt_lesion_stratified_results/wt_lesion_stratified_detail.csv
+2769 bytes	/root/autodl-tmp/mri_deep/wt_lesion_stratified_results/wt_lesion_stratified_summary.csv
+22677 bytes	/root/autodl-tmp/mri_deep/wt_lesion_stratified_results/wt_lesion_stratified_summary.json
+14293 bytes	/root/autodl-tmp/mri_deep/wt_lesion_stratified_results/wt_training_lesion_size_distribution.csv
+2974 bytes	/root/autodl-tmp/mri_deep/wt_lesion_stratified_valid_test_results/wt_evaluated_cases.csv
+550 bytes	/root/autodl-tmp/mri_deep/wt_lesion_stratified_valid_test_results/wt_lesion_strata.json
+102014 bytes	/root/autodl-tmp/mri_deep/wt_lesion_stratified_valid_test_results/wt_lesion_stratified_detail.csv
+2819 bytes	/root/autodl-tmp/mri_deep/wt_lesion_stratified_valid_test_results/wt_lesion_stratified_summary.csv
+46979 bytes	/root/autodl-tmp/mri_deep/wt_lesion_stratified_valid_test_results/wt_lesion_stratified_summary.json
+14293 bytes	/root/autodl-tmp/mri_deep/wt_lesion_stratified_valid_test_results/wt_training_lesion_size_distribution.csv
+40821 bytes	/root/autodl-tmp/mri_deep/wt_statistics.csv
+33427413 bytes	/root/autodl-tmp/nnUnet/best_model_188.pth
+21735 bytes	/root/autodl-tmp/nnUnet/train_log.csv
+7565 bytes	/root/autodl-tmp/stability/seed123/baseline/.ipynb_checkpoints/train_log-checkpoint.csv
+23086842 bytes	/root/autodl-tmp/stability/seed123/baseline/best_model_79.pth
+23087277 bytes	/root/autodl-tmp/stability/seed123/baseline/last_epoch_model_1.pth
+23087364 bytes	/root/autodl-tmp/stability/seed123/baseline/last_epoch_model_10.pth
+23087451 bytes	/root/autodl-tmp/stability/seed123/baseline/last_epoch_model_100.pth
+23087451 bytes	/root/autodl-tmp/stability/seed123/baseline/last_epoch_model_101.pth
+23087451 bytes	/root/autodl-tmp/stability/seed123/baseline/last_epoch_model_102.pth
+23087451 bytes	/root/autodl-tmp/stability/seed123/baseline/last_epoch_model_103.pth
+23087451 bytes	/root/autodl-tmp/stability/seed123/baseline/last_epoch_model_104.pth
+23087364 bytes	/root/autodl-tmp/stability/seed123/baseline/last_epoch_model_11.pth
+23087364 bytes	/root/autodl-tmp/stability/seed123/baseline/last_epoch_model_12.pth
+23087364 bytes	/root/autodl-tmp/stability/seed123/baseline/last_epoch_model_13.pth
+23087364 bytes	/root/autodl-tmp/stability/seed123/baseline/last_epoch_model_14.pth
+23087364 bytes	/root/autodl-tmp/stability/seed123/baseline/last_epoch_model_15.pth
+23087364 bytes	/root/autodl-tmp/stability/seed123/baseline/last_epoch_model_16.pth
+23087364 bytes	/root/autodl-tmp/stability/seed123/baseline/last_epoch_model_17.pth
+23087364 bytes	/root/autodl-tmp/stability/seed123/baseline/last_epoch_model_18.pth
+23087364 bytes	/root/autodl-tmp/stability/seed123/baseline/last_epoch_model_19.pth
+23087277 bytes	/root/autodl-tmp/stability/seed123/baseline/last_epoch_model_2.pth
+23087364 bytes	/root/autodl-tmp/stability/seed123/baseline/last_epoch_model_20.pth
+23087364 bytes	/root/autodl-tmp/stability/seed123/baseline/last_epoch_model_21.pth
+23087364 bytes	/root/autodl-tmp/stability/seed123/baseline/last_epoch_model_22.pth
+23087364 bytes	/root/autodl-tmp/stability/seed123/baseline/last_epoch_model_23.pth
+23087364 bytes	/root/autodl-tmp/stability/seed123/baseline/last_epoch_model_24.pth
+23087364 bytes	/root/autodl-tmp/stability/seed123/baseline/last_epoch_model_25.pth
+23087364 bytes	/root/autodl-tmp/stability/seed123/baseline/last_epoch_model_26.pth
+23087364 bytes	/root/autodl-tmp/stability/seed123/baseline/last_epoch_model_27.pth
+23087364 bytes	/root/autodl-tmp/stability/seed123/baseline/last_epoch_model_28.pth
+23087364 bytes	/root/autodl-tmp/stability/seed123/baseline/last_epoch_model_29.pth
+23087277 bytes	/root/autodl-tmp/stability/seed123/baseline/last_epoch_model_3.pth
+23087364 bytes	/root/autodl-tmp/stability/seed123/baseline/last_epoch_model_30.pth
+23087364 bytes	/root/autodl-tmp/stability/seed123/baseline/last_epoch_model_31.pth
+23087364 bytes	/root/autodl-tmp/stability/seed123/baseline/last_epoch_model_32.pth
+23087364 bytes	/root/autodl-tmp/stability/seed123/baseline/last_epoch_model_33.pth
+23087364 bytes	/root/autodl-tmp/stability/seed123/baseline/last_epoch_model_34.pth
+23087364 bytes	/root/autodl-tmp/stability/seed123/baseline/last_epoch_model_35.pth
+23087364 bytes	/root/autodl-tmp/stability/seed123/baseline/last_epoch_model_36.pth
+23087364 bytes	/root/autodl-tmp/stability/seed123/baseline/last_epoch_model_37.pth
+23087364 bytes	/root/autodl-tmp/stability/seed123/baseline/last_epoch_model_38.pth
+23087364 bytes	/root/autodl-tmp/stability/seed123/baseline/last_epoch_model_39.pth
+23087277 bytes	/root/autodl-tmp/stability/seed123/baseline/last_epoch_model_4.pth
+23087364 bytes	/root/autodl-tmp/stability/seed123/baseline/last_epoch_model_40.pth
+23087364 bytes	/root/autodl-tmp/stability/seed123/baseline/last_epoch_model_41.pth
+23087364 bytes	/root/autodl-tmp/stability/seed123/baseline/last_epoch_model_42.pth
+23087364 bytes	/root/autodl-tmp/stability/seed123/baseline/last_epoch_model_43.pth
+23087364 bytes	/root/autodl-tmp/stability/seed123/baseline/last_epoch_model_44.pth
+23087364 bytes	/root/autodl-tmp/stability/seed123/baseline/last_epoch_model_45.pth
+23087364 bytes	/root/autodl-tmp/stability/seed123/baseline/last_epoch_model_46.pth
+23087364 bytes	/root/autodl-tmp/stability/seed123/baseline/last_epoch_model_47.pth
+23087364 bytes	/root/autodl-tmp/stability/seed123/baseline/last_epoch_model_48.pth
+23087364 bytes	/root/autodl-tmp/stability/seed123/baseline/last_epoch_model_49.pth
+23087277 bytes	/root/autodl-tmp/stability/seed123/baseline/last_epoch_model_5.pth
+23087364 bytes	/root/autodl-tmp/stability/seed123/baseline/last_epoch_model_50.pth
+23087364 bytes	/root/autodl-tmp/stability/seed123/baseline/last_epoch_model_51.pth
+23087364 bytes	/root/autodl-tmp/stability/seed123/baseline/last_epoch_model_52.pth
+23087364 bytes	/root/autodl-tmp/stability/seed123/baseline/last_epoch_model_53.pth
+23087364 bytes	/root/autodl-tmp/stability/seed123/baseline/last_epoch_model_54.pth
+23087364 bytes	/root/autodl-tmp/stability/seed123/baseline/last_epoch_model_55.pth
+23087364 bytes	/root/autodl-tmp/stability/seed123/baseline/last_epoch_model_56.pth
+23087364 bytes	/root/autodl-tmp/stability/seed123/baseline/last_epoch_model_57.pth
+23087364 bytes	/root/autodl-tmp/stability/seed123/baseline/last_epoch_model_58.pth
+23087364 bytes	/root/autodl-tmp/stability/seed123/baseline/last_epoch_model_59.pth
+23087277 bytes	/root/autodl-tmp/stability/seed123/baseline/last_epoch_model_6.pth
+23087364 bytes	/root/autodl-tmp/stability/seed123/baseline/last_epoch_model_60.pth
+23087364 bytes	/root/autodl-tmp/stability/seed123/baseline/last_epoch_model_61.pth
+23087364 bytes	/root/autodl-tmp/stability/seed123/baseline/last_epoch_model_62.pth
+23087364 bytes	/root/autodl-tmp/stability/seed123/baseline/last_epoch_model_63.pth
+23087364 bytes	/root/autodl-tmp/stability/seed123/baseline/last_epoch_model_64.pth
+23087364 bytes	/root/autodl-tmp/stability/seed123/baseline/last_epoch_model_65.pth
+23087364 bytes	/root/autodl-tmp/stability/seed123/baseline/last_epoch_model_66.pth
+23087364 bytes	/root/autodl-tmp/stability/seed123/baseline/last_epoch_model_67.pth
+23087364 bytes	/root/autodl-tmp/stability/seed123/baseline/last_epoch_model_68.pth
+23087364 bytes	/root/autodl-tmp/stability/seed123/baseline/last_epoch_model_69.pth
+23087277 bytes	/root/autodl-tmp/stability/seed123/baseline/last_epoch_model_7.pth
+23087364 bytes	/root/autodl-tmp/stability/seed123/baseline/last_epoch_model_70.pth
+23087364 bytes	/root/autodl-tmp/stability/seed123/baseline/last_epoch_model_71.pth
+23087364 bytes	/root/autodl-tmp/stability/seed123/baseline/last_epoch_model_72.pth
+23087364 bytes	/root/autodl-tmp/stability/seed123/baseline/last_epoch_model_73.pth
+23087364 bytes	/root/autodl-tmp/stability/seed123/baseline/last_epoch_model_74.pth
+23087364 bytes	/root/autodl-tmp/stability/seed123/baseline/last_epoch_model_75.pth
+23087364 bytes	/root/autodl-tmp/stability/seed123/baseline/last_epoch_model_76.pth
+23087364 bytes	/root/autodl-tmp/stability/seed123/baseline/last_epoch_model_77.pth
+23087364 bytes	/root/autodl-tmp/stability/seed123/baseline/last_epoch_model_78.pth
+23087364 bytes	/root/autodl-tmp/stability/seed123/baseline/last_epoch_model_79.pth
+23087277 bytes	/root/autodl-tmp/stability/seed123/baseline/last_epoch_model_8.pth
+23087364 bytes	/root/autodl-tmp/stability/seed123/baseline/last_epoch_model_80.pth
+23087364 bytes	/root/autodl-tmp/stability/seed123/baseline/last_epoch_model_81.pth
+23087364 bytes	/root/autodl-tmp/stability/seed123/baseline/last_epoch_model_82.pth
+23087364 bytes	/root/autodl-tmp/stability/seed123/baseline/last_epoch_model_83.pth
+23087364 bytes	/root/autodl-tmp/stability/seed123/baseline/last_epoch_model_84.pth
+23087364 bytes	/root/autodl-tmp/stability/seed123/baseline/last_epoch_model_85.pth
+23087364 bytes	/root/autodl-tmp/stability/seed123/baseline/last_epoch_model_86.pth
+23087364 bytes	/root/autodl-tmp/stability/seed123/baseline/last_epoch_model_87.pth
+23087364 bytes	/root/autodl-tmp/stability/seed123/baseline/last_epoch_model_88.pth
+23087364 bytes	/root/autodl-tmp/stability/seed123/baseline/last_epoch_model_89.pth
+23087277 bytes	/root/autodl-tmp/stability/seed123/baseline/last_epoch_model_9.pth
+23087364 bytes	/root/autodl-tmp/stability/seed123/baseline/last_epoch_model_90.pth
+23087364 bytes	/root/autodl-tmp/stability/seed123/baseline/last_epoch_model_91.pth
+23087364 bytes	/root/autodl-tmp/stability/seed123/baseline/last_epoch_model_92.pth
+23087364 bytes	/root/autodl-tmp/stability/seed123/baseline/last_epoch_model_93.pth
+23087364 bytes	/root/autodl-tmp/stability/seed123/baseline/last_epoch_model_94.pth
+23087364 bytes	/root/autodl-tmp/stability/seed123/baseline/last_epoch_model_95.pth
+23087364 bytes	/root/autodl-tmp/stability/seed123/baseline/last_epoch_model_96.pth
+23087364 bytes	/root/autodl-tmp/stability/seed123/baseline/last_epoch_model_97.pth
+23087364 bytes	/root/autodl-tmp/stability/seed123/baseline/last_epoch_model_98.pth
+23087364 bytes	/root/autodl-tmp/stability/seed123/baseline/last_epoch_model_99.pth
+10744 bytes	/root/autodl-tmp/stability/seed123/baseline/train_log.csv
+203 bytes	/root/autodl-tmp/stability/seed123/baseline/training_complete.json
+3357 bytes	/root/autodl-tmp/stability/seed123/edge_laplacian_concat/.ipynb_checkpoints/train_log-checkpoint.csv
+25210925 bytes	/root/autodl-tmp/stability/seed123/edge_laplacian_concat/best_model_10.pth
+25211445 bytes	/root/autodl-tmp/stability/seed123/edge_laplacian_concat/last_epoch_model_1.pth
+25211549 bytes	/root/autodl-tmp/stability/seed123/edge_laplacian_concat/last_epoch_model_10.pth
+25211549 bytes	/root/autodl-tmp/stability/seed123/edge_laplacian_concat/last_epoch_model_11.pth
+25211549 bytes	/root/autodl-tmp/stability/seed123/edge_laplacian_concat/last_epoch_model_12.pth
+25211549 bytes	/root/autodl-tmp/stability/seed123/edge_laplacian_concat/last_epoch_model_13.pth
+25211549 bytes	/root/autodl-tmp/stability/seed123/edge_laplacian_concat/last_epoch_model_14.pth
+25211549 bytes	/root/autodl-tmp/stability/seed123/edge_laplacian_concat/last_epoch_model_15.pth
+25211549 bytes	/root/autodl-tmp/stability/seed123/edge_laplacian_concat/last_epoch_model_16.pth
+25211549 bytes	/root/autodl-tmp/stability/seed123/edge_laplacian_concat/last_epoch_model_17.pth
+25211549 bytes	/root/autodl-tmp/stability/seed123/edge_laplacian_concat/last_epoch_model_18.pth
+25211549 bytes	/root/autodl-tmp/stability/seed123/edge_laplacian_concat/last_epoch_model_19.pth
+25211445 bytes	/root/autodl-tmp/stability/seed123/edge_laplacian_concat/last_epoch_model_2.pth
+25211549 bytes	/root/autodl-tmp/stability/seed123/edge_laplacian_concat/last_epoch_model_20.pth
+25211549 bytes	/root/autodl-tmp/stability/seed123/edge_laplacian_concat/last_epoch_model_21.pth
+25211549 bytes	/root/autodl-tmp/stability/seed123/edge_laplacian_concat/last_epoch_model_22.pth
+25211549 bytes	/root/autodl-tmp/stability/seed123/edge_laplacian_concat/last_epoch_model_23.pth
+25211549 bytes	/root/autodl-tmp/stability/seed123/edge_laplacian_concat/last_epoch_model_24.pth
+25211549 bytes	/root/autodl-tmp/stability/seed123/edge_laplacian_concat/last_epoch_model_25.pth
+25211549 bytes	/root/autodl-tmp/stability/seed123/edge_laplacian_concat/last_epoch_model_26.pth
+25211549 bytes	/root/autodl-tmp/stability/seed123/edge_laplacian_concat/last_epoch_model_27.pth
+25211549 bytes	/root/autodl-tmp/stability/seed123/edge_laplacian_concat/last_epoch_model_28.pth
+25211549 bytes	/root/autodl-tmp/stability/seed123/edge_laplacian_concat/last_epoch_model_29.pth
+25211445 bytes	/root/autodl-tmp/stability/seed123/edge_laplacian_concat/last_epoch_model_3.pth
+25211549 bytes	/root/autodl-tmp/stability/seed123/edge_laplacian_concat/last_epoch_model_30.pth
+25211549 bytes	/root/autodl-tmp/stability/seed123/edge_laplacian_concat/last_epoch_model_31.pth
+25211549 bytes	/root/autodl-tmp/stability/seed123/edge_laplacian_concat/last_epoch_model_32.pth
+25211549 bytes	/root/autodl-tmp/stability/seed123/edge_laplacian_concat/last_epoch_model_33.pth
+25211549 bytes	/root/autodl-tmp/stability/seed123/edge_laplacian_concat/last_epoch_model_34.pth
+25211549 bytes	/root/autodl-tmp/stability/seed123/edge_laplacian_concat/last_epoch_model_35.pth
+25211445 bytes	/root/autodl-tmp/stability/seed123/edge_laplacian_concat/last_epoch_model_4.pth
+25211445 bytes	/root/autodl-tmp/stability/seed123/edge_laplacian_concat/last_epoch_model_5.pth
+25211445 bytes	/root/autodl-tmp/stability/seed123/edge_laplacian_concat/last_epoch_model_6.pth
+25211445 bytes	/root/autodl-tmp/stability/seed123/edge_laplacian_concat/last_epoch_model_7.pth
+25211445 bytes	/root/autodl-tmp/stability/seed123/edge_laplacian_concat/last_epoch_model_8.pth
+25211445 bytes	/root/autodl-tmp/stability/seed123/edge_laplacian_concat/last_epoch_model_9.pth
+3357 bytes	/root/autodl-tmp/stability/seed123/edge_laplacian_concat/train_log.csv
+4486 bytes	/root/autodl-tmp/stability/seed123/edge_laplacian_gated_concat/.ipynb_checkpoints/train_log-checkpoint.csv
+25463179 bytes	/root/autodl-tmp/stability/seed123/edge_laplacian_gated_concat/best_model_45.pth
+25463739 bytes	/root/autodl-tmp/stability/seed123/edge_laplacian_gated_concat/last_epoch_model_1.pth
+25463851 bytes	/root/autodl-tmp/stability/seed123/edge_laplacian_gated_concat/last_epoch_model_10.pth
+25463851 bytes	/root/autodl-tmp/stability/seed123/edge_laplacian_gated_concat/last_epoch_model_11.pth
+25463851 bytes	/root/autodl-tmp/stability/seed123/edge_laplacian_gated_concat/last_epoch_model_12.pth
+25463851 bytes	/root/autodl-tmp/stability/seed123/edge_laplacian_gated_concat/last_epoch_model_13.pth
+25463851 bytes	/root/autodl-tmp/stability/seed123/edge_laplacian_gated_concat/last_epoch_model_14.pth
+25463851 bytes	/root/autodl-tmp/stability/seed123/edge_laplacian_gated_concat/last_epoch_model_15.pth
+25463851 bytes	/root/autodl-tmp/stability/seed123/edge_laplacian_gated_concat/last_epoch_model_16.pth
+25463851 bytes	/root/autodl-tmp/stability/seed123/edge_laplacian_gated_concat/last_epoch_model_17.pth
+25463851 bytes	/root/autodl-tmp/stability/seed123/edge_laplacian_gated_concat/last_epoch_model_18.pth
+25463851 bytes	/root/autodl-tmp/stability/seed123/edge_laplacian_gated_concat/last_epoch_model_19.pth
+25463739 bytes	/root/autodl-tmp/stability/seed123/edge_laplacian_gated_concat/last_epoch_model_2.pth
+25463851 bytes	/root/autodl-tmp/stability/seed123/edge_laplacian_gated_concat/last_epoch_model_20.pth
+25463851 bytes	/root/autodl-tmp/stability/seed123/edge_laplacian_gated_concat/last_epoch_model_21.pth
+25463851 bytes	/root/autodl-tmp/stability/seed123/edge_laplacian_gated_concat/last_epoch_model_22.pth
+25463851 bytes	/root/autodl-tmp/stability/seed123/edge_laplacian_gated_concat/last_epoch_model_23.pth
+25463851 bytes	/root/autodl-tmp/stability/seed123/edge_laplacian_gated_concat/last_epoch_model_24.pth
+25463851 bytes	/root/autodl-tmp/stability/seed123/edge_laplacian_gated_concat/last_epoch_model_25.pth
+25463851 bytes	/root/autodl-tmp/stability/seed123/edge_laplacian_gated_concat/last_epoch_model_26.pth
+25463851 bytes	/root/autodl-tmp/stability/seed123/edge_laplacian_gated_concat/last_epoch_model_27.pth
+25463851 bytes	/root/autodl-tmp/stability/seed123/edge_laplacian_gated_concat/last_epoch_model_28.pth
+25463851 bytes	/root/autodl-tmp/stability/seed123/edge_laplacian_gated_concat/last_epoch_model_29.pth
+25463739 bytes	/root/autodl-tmp/stability/seed123/edge_laplacian_gated_concat/last_epoch_model_3.pth
+25463851 bytes	/root/autodl-tmp/stability/seed123/edge_laplacian_gated_concat/last_epoch_model_30.pth
+25463851 bytes	/root/autodl-tmp/stability/seed123/edge_laplacian_gated_concat/last_epoch_model_31.pth
+25463851 bytes	/root/autodl-tmp/stability/seed123/edge_laplacian_gated_concat/last_epoch_model_32.pth
+25463851 bytes	/root/autodl-tmp/stability/seed123/edge_laplacian_gated_concat/last_epoch_model_33.pth
+25463851 bytes	/root/autodl-tmp/stability/seed123/edge_laplacian_gated_concat/last_epoch_model_34.pth
+25463851 bytes	/root/autodl-tmp/stability/seed123/edge_laplacian_gated_concat/last_epoch_model_35.pth
+25463851 bytes	/root/autodl-tmp/stability/seed123/edge_laplacian_gated_concat/last_epoch_model_36.pth
+25463851 bytes	/root/autodl-tmp/stability/seed123/edge_laplacian_gated_concat/last_epoch_model_37.pth
+25463851 bytes	/root/autodl-tmp/stability/seed123/edge_laplacian_gated_concat/last_epoch_model_38.pth
+25463851 bytes	/root/autodl-tmp/stability/seed123/edge_laplacian_gated_concat/last_epoch_model_39.pth
+25463739 bytes	/root/autodl-tmp/stability/seed123/edge_laplacian_gated_concat/last_epoch_model_4.pth
+25463851 bytes	/root/autodl-tmp/stability/seed123/edge_laplacian_gated_concat/last_epoch_model_40.pth
+25463851 bytes	/root/autodl-tmp/stability/seed123/edge_laplacian_gated_concat/last_epoch_model_41.pth
+25463851 bytes	/root/autodl-tmp/stability/seed123/edge_laplacian_gated_concat/last_epoch_model_42.pth
+25463851 bytes	/root/autodl-tmp/stability/seed123/edge_laplacian_gated_concat/last_epoch_model_43.pth
+25463851 bytes	/root/autodl-tmp/stability/seed123/edge_laplacian_gated_concat/last_epoch_model_44.pth
+25463851 bytes	/root/autodl-tmp/stability/seed123/edge_laplacian_gated_concat/last_epoch_model_45.pth
+25463851 bytes	/root/autodl-tmp/stability/seed123/edge_laplacian_gated_concat/last_epoch_model_46.pth
+25463851 bytes	/root/autodl-tmp/stability/seed123/edge_laplacian_gated_concat/last_epoch_model_47.pth
+25463851 bytes	/root/autodl-tmp/stability/seed123/edge_laplacian_gated_concat/last_epoch_model_48.pth
+25463851 bytes	/root/autodl-tmp/stability/seed123/edge_laplacian_gated_concat/last_epoch_model_49.pth
+25463739 bytes	/root/autodl-tmp/stability/seed123/edge_laplacian_gated_concat/last_epoch_model_5.pth
+25463851 bytes	/root/autodl-tmp/stability/seed123/edge_laplacian_gated_concat/last_epoch_model_50.pth
+25463851 bytes	/root/autodl-tmp/stability/seed123/edge_laplacian_gated_concat/last_epoch_model_51.pth
+25463851 bytes	/root/autodl-tmp/stability/seed123/edge_laplacian_gated_concat/last_epoch_model_52.pth
+25463851 bytes	/root/autodl-tmp/stability/seed123/edge_laplacian_gated_concat/last_epoch_model_53.pth
+25463851 bytes	/root/autodl-tmp/stability/seed123/edge_laplacian_gated_concat/last_epoch_model_54.pth
+25463851 bytes	/root/autodl-tmp/stability/seed123/edge_laplacian_gated_concat/last_epoch_model_55.pth
+25463851 bytes	/root/autodl-tmp/stability/seed123/edge_laplacian_gated_concat/last_epoch_model_56.pth
+25463851 bytes	/root/autodl-tmp/stability/seed123/edge_laplacian_gated_concat/last_epoch_model_57.pth
+25463851 bytes	/root/autodl-tmp/stability/seed123/edge_laplacian_gated_concat/last_epoch_model_58.pth
+25463851 bytes	/root/autodl-tmp/stability/seed123/edge_laplacian_gated_concat/last_epoch_model_59.pth
+25463739 bytes	/root/autodl-tmp/stability/seed123/edge_laplacian_gated_concat/last_epoch_model_6.pth
+25463851 bytes	/root/autodl-tmp/stability/seed123/edge_laplacian_gated_concat/last_epoch_model_60.pth
+25463851 bytes	/root/autodl-tmp/stability/seed123/edge_laplacian_gated_concat/last_epoch_model_61.pth
+25463851 bytes	/root/autodl-tmp/stability/seed123/edge_laplacian_gated_concat/last_epoch_model_62.pth
+25463851 bytes	/root/autodl-tmp/stability/seed123/edge_laplacian_gated_concat/last_epoch_model_63.pth
+25463851 bytes	/root/autodl-tmp/stability/seed123/edge_laplacian_gated_concat/last_epoch_model_64.pth
+25463851 bytes	/root/autodl-tmp/stability/seed123/edge_laplacian_gated_concat/last_epoch_model_65.pth
+25463851 bytes	/root/autodl-tmp/stability/seed123/edge_laplacian_gated_concat/last_epoch_model_66.pth
+25463851 bytes	/root/autodl-tmp/stability/seed123/edge_laplacian_gated_concat/last_epoch_model_67.pth
+25463851 bytes	/root/autodl-tmp/stability/seed123/edge_laplacian_gated_concat/last_epoch_model_68.pth
+25463851 bytes	/root/autodl-tmp/stability/seed123/edge_laplacian_gated_concat/last_epoch_model_69.pth
+25463739 bytes	/root/autodl-tmp/stability/seed123/edge_laplacian_gated_concat/last_epoch_model_7.pth
+25463851 bytes	/root/autodl-tmp/stability/seed123/edge_laplacian_gated_concat/last_epoch_model_70.pth
+25463739 bytes	/root/autodl-tmp/stability/seed123/edge_laplacian_gated_concat/last_epoch_model_8.pth
+25463739 bytes	/root/autodl-tmp/stability/seed123/edge_laplacian_gated_concat/last_epoch_model_9.pth
+7673 bytes	/root/autodl-tmp/stability/seed123/edge_laplacian_gated_concat/train_log.csv
+25275651 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.05/best_model_14.pth
+25276201 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.05/last_epoch_model_1.pth
+25276311 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.05/last_epoch_model_10.pth
+25276311 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.05/last_epoch_model_11.pth
+25276311 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.05/last_epoch_model_12.pth
+25276311 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.05/last_epoch_model_13.pth
+25276311 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.05/last_epoch_model_14.pth
+25276311 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.05/last_epoch_model_15.pth
+25276311 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.05/last_epoch_model_16.pth
+25276311 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.05/last_epoch_model_17.pth
+25276311 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.05/last_epoch_model_18.pth
+25276311 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.05/last_epoch_model_19.pth
+25276201 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.05/last_epoch_model_2.pth
+25276311 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.05/last_epoch_model_20.pth
+25276311 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.05/last_epoch_model_21.pth
+25276311 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.05/last_epoch_model_22.pth
+25276311 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.05/last_epoch_model_23.pth
+25276311 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.05/last_epoch_model_24.pth
+25276311 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.05/last_epoch_model_25.pth
+25276311 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.05/last_epoch_model_26.pth
+25276311 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.05/last_epoch_model_27.pth
+25276311 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.05/last_epoch_model_28.pth
+25276311 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.05/last_epoch_model_29.pth
+25276201 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.05/last_epoch_model_3.pth
+25276311 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.05/last_epoch_model_30.pth
+25276311 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.05/last_epoch_model_31.pth
+25276311 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.05/last_epoch_model_32.pth
+25276311 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.05/last_epoch_model_33.pth
+25276311 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.05/last_epoch_model_34.pth
+25276311 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.05/last_epoch_model_35.pth
+25276311 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.05/last_epoch_model_36.pth
+25276311 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.05/last_epoch_model_37.pth
+25276311 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.05/last_epoch_model_38.pth
+25276311 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.05/last_epoch_model_39.pth
+25276201 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.05/last_epoch_model_4.pth
+25276201 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.05/last_epoch_model_5.pth
+25276201 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.05/last_epoch_model_6.pth
+25276201 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.05/last_epoch_model_7.pth
+25276201 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.05/last_epoch_model_8.pth
+25276201 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.05/last_epoch_model_9.pth
+3735 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.05/train_log.csv
+25275651 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1/best_model_44.pth
+25276201 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1/last_epoch_model_1.pth
+25276311 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1/last_epoch_model_10.pth
+25276311 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1/last_epoch_model_11.pth
+25276311 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1/last_epoch_model_12.pth
+25276311 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1/last_epoch_model_13.pth
+25276311 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1/last_epoch_model_14.pth
+25276311 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1/last_epoch_model_15.pth
+25276311 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1/last_epoch_model_16.pth
+25276311 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1/last_epoch_model_17.pth
+25276311 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1/last_epoch_model_18.pth
+25276311 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1/last_epoch_model_19.pth
+25276201 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1/last_epoch_model_2.pth
+25276311 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1/last_epoch_model_20.pth
+25276311 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1/last_epoch_model_21.pth
+25276311 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1/last_epoch_model_22.pth
+25276311 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1/last_epoch_model_23.pth
+25276311 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1/last_epoch_model_24.pth
+25276311 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1/last_epoch_model_25.pth
+25276311 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1/last_epoch_model_26.pth
+25276311 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1/last_epoch_model_27.pth
+25276311 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1/last_epoch_model_28.pth
+25276311 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1/last_epoch_model_29.pth
+25276201 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1/last_epoch_model_3.pth
+25276311 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1/last_epoch_model_30.pth
+25276311 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1/last_epoch_model_31.pth
+25276311 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1/last_epoch_model_32.pth
+25276311 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1/last_epoch_model_33.pth
+25276311 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1/last_epoch_model_34.pth
+25276311 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1/last_epoch_model_35.pth
+25276311 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1/last_epoch_model_36.pth
+25276311 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1/last_epoch_model_37.pth
+25276311 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1/last_epoch_model_38.pth
+25276311 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1/last_epoch_model_39.pth
+25276201 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1/last_epoch_model_4.pth
+25276311 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1/last_epoch_model_40.pth
+25276311 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1/last_epoch_model_41.pth
+25276311 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1/last_epoch_model_42.pth
+25276311 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1/last_epoch_model_43.pth
+25276311 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1/last_epoch_model_44.pth
+25276311 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1/last_epoch_model_45.pth
+25276311 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1/last_epoch_model_46.pth
+25276311 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1/last_epoch_model_47.pth
+25276311 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1/last_epoch_model_48.pth
+25276311 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1/last_epoch_model_49.pth
+25276201 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1/last_epoch_model_5.pth
+25276311 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1/last_epoch_model_50.pth
+25276311 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1/last_epoch_model_51.pth
+25276311 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1/last_epoch_model_52.pth
+25276311 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1/last_epoch_model_53.pth
+25276311 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1/last_epoch_model_54.pth
+25276311 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1/last_epoch_model_55.pth
+25276311 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1/last_epoch_model_56.pth
+25276311 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1/last_epoch_model_57.pth
+25276311 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1/last_epoch_model_58.pth
+25276311 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1/last_epoch_model_59.pth
+25276201 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1/last_epoch_model_6.pth
+25276311 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1/last_epoch_model_60.pth
+25276311 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1/last_epoch_model_61.pth
+25276311 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1/last_epoch_model_62.pth
+25276311 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1/last_epoch_model_63.pth
+25276311 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1/last_epoch_model_64.pth
+25276311 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1/last_epoch_model_65.pth
+25276311 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1/last_epoch_model_66.pth
+25276311 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1/last_epoch_model_67.pth
+25276311 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1/last_epoch_model_68.pth
+25276311 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1/last_epoch_model_69.pth
+25276201 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1/last_epoch_model_7.pth
+25276201 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1/last_epoch_model_8.pth
+25276201 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1/last_epoch_model_9.pth
+6564 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1/train_log.csv
+28458387 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale/best_model_11.pth
+28459037 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale/last_epoch_model_1.pth
+28459167 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale/last_epoch_model_10.pth
+28459167 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale/last_epoch_model_11.pth
+28459167 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale/last_epoch_model_12.pth
+28459167 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale/last_epoch_model_13.pth
+28459167 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale/last_epoch_model_14.pth
+28459167 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale/last_epoch_model_15.pth
+28459167 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale/last_epoch_model_16.pth
+28459167 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale/last_epoch_model_17.pth
+28459167 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale/last_epoch_model_18.pth
+28459167 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale/last_epoch_model_19.pth
+28459037 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale/last_epoch_model_2.pth
+28459167 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale/last_epoch_model_20.pth
+28459167 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale/last_epoch_model_21.pth
+28459167 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale/last_epoch_model_22.pth
+28459167 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale/last_epoch_model_23.pth
+28459167 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale/last_epoch_model_24.pth
+28459167 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale/last_epoch_model_25.pth
+28459167 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale/last_epoch_model_26.pth
+28459167 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale/last_epoch_model_27.pth
+28459167 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale/last_epoch_model_28.pth
+28459167 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale/last_epoch_model_29.pth
+28459037 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale/last_epoch_model_3.pth
+28459167 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale/last_epoch_model_30.pth
+28459167 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale/last_epoch_model_31.pth
+28459167 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale/last_epoch_model_32.pth
+28459167 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale/last_epoch_model_33.pth
+28459167 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale/last_epoch_model_34.pth
+28459167 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale/last_epoch_model_35.pth
+28459167 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale/last_epoch_model_36.pth
+28459037 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale/last_epoch_model_4.pth
+28459037 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale/last_epoch_model_5.pth
+28459037 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale/last_epoch_model_6.pth
+28459037 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale/last_epoch_model_7.pth
+28459037 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale/last_epoch_model_8.pth
+28459037 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale/last_epoch_model_9.pth
+3459 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale/train_log.csv
+28458647 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale_v2/best_model_33.pth
+28459366 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale_v2/last_epoch_model_1.pth
+28459497 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale_v2/last_epoch_model_10.pth
+28459497 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale_v2/last_epoch_model_11.pth
+28459497 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale_v2/last_epoch_model_12.pth
+28459497 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale_v2/last_epoch_model_13.pth
+28459497 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale_v2/last_epoch_model_14.pth
+28459497 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale_v2/last_epoch_model_15.pth
+28459497 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale_v2/last_epoch_model_16.pth
+28459497 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale_v2/last_epoch_model_17.pth
+28459497 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale_v2/last_epoch_model_18.pth
+28459497 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale_v2/last_epoch_model_19.pth
+28459366 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale_v2/last_epoch_model_2.pth
+28459497 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale_v2/last_epoch_model_20.pth
+28459497 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale_v2/last_epoch_model_21.pth
+28459497 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale_v2/last_epoch_model_22.pth
+28459497 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale_v2/last_epoch_model_23.pth
+28459497 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale_v2/last_epoch_model_24.pth
+28459497 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale_v2/last_epoch_model_25.pth
+28459497 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale_v2/last_epoch_model_26.pth
+28459497 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale_v2/last_epoch_model_27.pth
+28459497 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale_v2/last_epoch_model_28.pth
+28459497 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale_v2/last_epoch_model_29.pth
+28459366 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale_v2/last_epoch_model_3.pth
+28459497 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale_v2/last_epoch_model_30.pth
+28459497 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale_v2/last_epoch_model_31.pth
+28459497 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale_v2/last_epoch_model_32.pth
+28459497 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale_v2/last_epoch_model_33.pth
+28459497 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale_v2/last_epoch_model_34.pth
+28459497 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale_v2/last_epoch_model_35.pth
+28459497 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale_v2/last_epoch_model_36.pth
+28459497 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale_v2/last_epoch_model_37.pth
+28459497 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale_v2/last_epoch_model_38.pth
+28459497 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale_v2/last_epoch_model_39.pth
+28459366 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale_v2/last_epoch_model_4.pth
+28459497 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale_v2/last_epoch_model_40.pth
+28459497 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale_v2/last_epoch_model_41.pth
+28459497 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale_v2/last_epoch_model_42.pth
+28459497 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale_v2/last_epoch_model_43.pth
+28459497 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale_v2/last_epoch_model_44.pth
+28459497 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale_v2/last_epoch_model_45.pth
+28459497 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale_v2/last_epoch_model_46.pth
+28459497 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale_v2/last_epoch_model_47.pth
+28459497 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale_v2/last_epoch_model_48.pth
+28459497 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale_v2/last_epoch_model_49.pth
+28459366 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale_v2/last_epoch_model_5.pth
+28459497 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale_v2/last_epoch_model_50.pth
+28459497 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale_v2/last_epoch_model_51.pth
+28459497 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale_v2/last_epoch_model_52.pth
+28459497 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale_v2/last_epoch_model_53.pth
+28459497 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale_v2/last_epoch_model_54.pth
+28459497 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale_v2/last_epoch_model_55.pth
+28459497 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale_v2/last_epoch_model_56.pth
+28459497 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale_v2/last_epoch_model_57.pth
+28459497 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale_v2/last_epoch_model_58.pth
+28459366 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale_v2/last_epoch_model_6.pth
+28459366 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale_v2/last_epoch_model_7.pth
+28459366 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale_v2/last_epoch_model_8.pth
+28459366 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale_v2/last_epoch_model_9.pth
+5521 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale_v2/train_log.csv
+3094 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale_v2_alpha_trace/alpha_history.csv
+28458647 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale_v2_alpha_trace/best_model_13.pth
+28459366 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale_v2_alpha_trace/last_epoch_model_1.pth
+28459497 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale_v2_alpha_trace/last_epoch_model_10.pth
+28459497 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale_v2_alpha_trace/last_epoch_model_11.pth
+28459497 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale_v2_alpha_trace/last_epoch_model_12.pth
+28459497 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale_v2_alpha_trace/last_epoch_model_13.pth
+28459497 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale_v2_alpha_trace/last_epoch_model_14.pth
+28459497 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale_v2_alpha_trace/last_epoch_model_15.pth
+28459497 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale_v2_alpha_trace/last_epoch_model_16.pth
+28459497 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale_v2_alpha_trace/last_epoch_model_17.pth
+28459497 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale_v2_alpha_trace/last_epoch_model_18.pth
+28459497 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale_v2_alpha_trace/last_epoch_model_19.pth
+28459366 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale_v2_alpha_trace/last_epoch_model_2.pth
+28459497 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale_v2_alpha_trace/last_epoch_model_20.pth
+28459497 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale_v2_alpha_trace/last_epoch_model_21.pth
+28459497 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale_v2_alpha_trace/last_epoch_model_22.pth
+28459497 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale_v2_alpha_trace/last_epoch_model_23.pth
+28459497 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale_v2_alpha_trace/last_epoch_model_24.pth
+28459497 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale_v2_alpha_trace/last_epoch_model_25.pth
+28459497 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale_v2_alpha_trace/last_epoch_model_26.pth
+28459497 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale_v2_alpha_trace/last_epoch_model_27.pth
+28459497 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale_v2_alpha_trace/last_epoch_model_28.pth
+28459497 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale_v2_alpha_trace/last_epoch_model_29.pth
+28459366 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale_v2_alpha_trace/last_epoch_model_3.pth
+28459497 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale_v2_alpha_trace/last_epoch_model_30.pth
+28459497 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale_v2_alpha_trace/last_epoch_model_31.pth
+28459497 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale_v2_alpha_trace/last_epoch_model_32.pth
+28459497 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale_v2_alpha_trace/last_epoch_model_33.pth
+28459497 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale_v2_alpha_trace/last_epoch_model_34.pth
+28459497 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale_v2_alpha_trace/last_epoch_model_35.pth
+28459497 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale_v2_alpha_trace/last_epoch_model_36.pth
+28459497 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale_v2_alpha_trace/last_epoch_model_37.pth
+28459497 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale_v2_alpha_trace/last_epoch_model_38.pth
+28459366 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale_v2_alpha_trace/last_epoch_model_4.pth
+28459366 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale_v2_alpha_trace/last_epoch_model_5.pth
+28459366 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale_v2_alpha_trace/last_epoch_model_6.pth
+28459366 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale_v2_alpha_trace/last_epoch_model_7.pth
+28459366 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale_v2_alpha_trace/last_epoch_model_8.pth
+28459366 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale_v2_alpha_trace/last_epoch_model_9.pth
+22 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale_v2_alpha_trace/multiscale_gates.txt
+3652 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale_v2_alpha_trace/train_log.csv
+28458647 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale_v3/best_model_29.pth
+28459366 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale_v3/last_epoch_model_1.pth
+28459497 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale_v3/last_epoch_model_10.pth
+28459497 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale_v3/last_epoch_model_11.pth
+28459497 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale_v3/last_epoch_model_12.pth
+28459497 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale_v3/last_epoch_model_13.pth
+28459497 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale_v3/last_epoch_model_14.pth
+28459497 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale_v3/last_epoch_model_15.pth
+28459497 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale_v3/last_epoch_model_16.pth
+28459497 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale_v3/last_epoch_model_17.pth
+28459497 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale_v3/last_epoch_model_18.pth
+28459497 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale_v3/last_epoch_model_19.pth
+28459366 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale_v3/last_epoch_model_2.pth
+28459497 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale_v3/last_epoch_model_20.pth
+28459497 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale_v3/last_epoch_model_21.pth
+28459497 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale_v3/last_epoch_model_22.pth
+28459497 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale_v3/last_epoch_model_23.pth
+28459497 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale_v3/last_epoch_model_24.pth
+28459497 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale_v3/last_epoch_model_25.pth
+28459497 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale_v3/last_epoch_model_26.pth
+28459497 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale_v3/last_epoch_model_27.pth
+28459497 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale_v3/last_epoch_model_28.pth
+28459497 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale_v3/last_epoch_model_29.pth
+28459366 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale_v3/last_epoch_model_3.pth
+28459497 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale_v3/last_epoch_model_30.pth
+28459497 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale_v3/last_epoch_model_31.pth
+28459497 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale_v3/last_epoch_model_32.pth
+28459497 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale_v3/last_epoch_model_33.pth
+28459497 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale_v3/last_epoch_model_34.pth
+28459497 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale_v3/last_epoch_model_35.pth
+28459497 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale_v3/last_epoch_model_36.pth
+28459497 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale_v3/last_epoch_model_37.pth
+28459497 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale_v3/last_epoch_model_38.pth
+28459497 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale_v3/last_epoch_model_39.pth
+28459366 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale_v3/last_epoch_model_4.pth
+28459497 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale_v3/last_epoch_model_40.pth
+28459497 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale_v3/last_epoch_model_41.pth
+28459497 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale_v3/last_epoch_model_42.pth
+28459497 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale_v3/last_epoch_model_43.pth
+28459497 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale_v3/last_epoch_model_44.pth
+28459497 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale_v3/last_epoch_model_45.pth
+28459497 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale_v3/last_epoch_model_46.pth
+28459497 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale_v3/last_epoch_model_47.pth
+28459497 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale_v3/last_epoch_model_48.pth
+28459497 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale_v3/last_epoch_model_49.pth
+28459366 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale_v3/last_epoch_model_5.pth
+28459497 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale_v3/last_epoch_model_50.pth
+28459497 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale_v3/last_epoch_model_51.pth
+28459497 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale_v3/last_epoch_model_52.pth
+28459497 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale_v3/last_epoch_model_53.pth
+28459497 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale_v3/last_epoch_model_54.pth
+28459366 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale_v3/last_epoch_model_6.pth
+28459366 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale_v3/last_epoch_model_7.pth
+28459366 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale_v3/last_epoch_model_8.pth
+28459366 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale_v3/last_epoch_model_9.pth
+102 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale_v3/multiscale_gates.txt
+5148 bytes	/root/autodl-tmp/stability/seed123/hf_concat_boundary_w0.1_multiscale_v3/train_log.csv
+2995 bytes	/root/autodl-tmp/stability/seed123/hf_gated_concat_boundary_w0.1/.ipynb_checkpoints/train_log-checkpoint.csv
+25527907 bytes	/root/autodl-tmp/stability/seed123/hf_gated_concat_boundary_w0.1/best_model_70.pth
+25528497 bytes	/root/autodl-tmp/stability/seed123/hf_gated_concat_boundary_w0.1/last_epoch_model_1.pth
+25528615 bytes	/root/autodl-tmp/stability/seed123/hf_gated_concat_boundary_w0.1/last_epoch_model_10.pth
+25528615 bytes	/root/autodl-tmp/stability/seed123/hf_gated_concat_boundary_w0.1/last_epoch_model_11.pth
+25528615 bytes	/root/autodl-tmp/stability/seed123/hf_gated_concat_boundary_w0.1/last_epoch_model_12.pth
+25528615 bytes	/root/autodl-tmp/stability/seed123/hf_gated_concat_boundary_w0.1/last_epoch_model_13.pth
+25528615 bytes	/root/autodl-tmp/stability/seed123/hf_gated_concat_boundary_w0.1/last_epoch_model_14.pth
+25528615 bytes	/root/autodl-tmp/stability/seed123/hf_gated_concat_boundary_w0.1/last_epoch_model_15.pth
+25528615 bytes	/root/autodl-tmp/stability/seed123/hf_gated_concat_boundary_w0.1/last_epoch_model_16.pth
+25528615 bytes	/root/autodl-tmp/stability/seed123/hf_gated_concat_boundary_w0.1/last_epoch_model_17.pth
+25528615 bytes	/root/autodl-tmp/stability/seed123/hf_gated_concat_boundary_w0.1/last_epoch_model_18.pth
+25528615 bytes	/root/autodl-tmp/stability/seed123/hf_gated_concat_boundary_w0.1/last_epoch_model_19.pth
+25528497 bytes	/root/autodl-tmp/stability/seed123/hf_gated_concat_boundary_w0.1/last_epoch_model_2.pth
+25528615 bytes	/root/autodl-tmp/stability/seed123/hf_gated_concat_boundary_w0.1/last_epoch_model_20.pth
+25528615 bytes	/root/autodl-tmp/stability/seed123/hf_gated_concat_boundary_w0.1/last_epoch_model_21.pth
+25528615 bytes	/root/autodl-tmp/stability/seed123/hf_gated_concat_boundary_w0.1/last_epoch_model_22.pth
+25528615 bytes	/root/autodl-tmp/stability/seed123/hf_gated_concat_boundary_w0.1/last_epoch_model_23.pth
+25528615 bytes	/root/autodl-tmp/stability/seed123/hf_gated_concat_boundary_w0.1/last_epoch_model_24.pth
+25528615 bytes	/root/autodl-tmp/stability/seed123/hf_gated_concat_boundary_w0.1/last_epoch_model_25.pth
+25528615 bytes	/root/autodl-tmp/stability/seed123/hf_gated_concat_boundary_w0.1/last_epoch_model_26.pth
+25528615 bytes	/root/autodl-tmp/stability/seed123/hf_gated_concat_boundary_w0.1/last_epoch_model_27.pth
+25528615 bytes	/root/autodl-tmp/stability/seed123/hf_gated_concat_boundary_w0.1/last_epoch_model_28.pth
+25528615 bytes	/root/autodl-tmp/stability/seed123/hf_gated_concat_boundary_w0.1/last_epoch_model_29.pth
+25528497 bytes	/root/autodl-tmp/stability/seed123/hf_gated_concat_boundary_w0.1/last_epoch_model_3.pth
+25528615 bytes	/root/autodl-tmp/stability/seed123/hf_gated_concat_boundary_w0.1/last_epoch_model_30.pth
+25528615 bytes	/root/autodl-tmp/stability/seed123/hf_gated_concat_boundary_w0.1/last_epoch_model_31.pth
+25528615 bytes	/root/autodl-tmp/stability/seed123/hf_gated_concat_boundary_w0.1/last_epoch_model_32.pth
+25528615 bytes	/root/autodl-tmp/stability/seed123/hf_gated_concat_boundary_w0.1/last_epoch_model_33.pth
+25528615 bytes	/root/autodl-tmp/stability/seed123/hf_gated_concat_boundary_w0.1/last_epoch_model_34.pth
+25528615 bytes	/root/autodl-tmp/stability/seed123/hf_gated_concat_boundary_w0.1/last_epoch_model_35.pth
+25528615 bytes	/root/autodl-tmp/stability/seed123/hf_gated_concat_boundary_w0.1/last_epoch_model_36.pth
+25528615 bytes	/root/autodl-tmp/stability/seed123/hf_gated_concat_boundary_w0.1/last_epoch_model_37.pth
+25528615 bytes	/root/autodl-tmp/stability/seed123/hf_gated_concat_boundary_w0.1/last_epoch_model_38.pth
+25528615 bytes	/root/autodl-tmp/stability/seed123/hf_gated_concat_boundary_w0.1/last_epoch_model_39.pth
+25528497 bytes	/root/autodl-tmp/stability/seed123/hf_gated_concat_boundary_w0.1/last_epoch_model_4.pth
+25528615 bytes	/root/autodl-tmp/stability/seed123/hf_gated_concat_boundary_w0.1/last_epoch_model_40.pth
+25528615 bytes	/root/autodl-tmp/stability/seed123/hf_gated_concat_boundary_w0.1/last_epoch_model_41.pth
+25528615 bytes	/root/autodl-tmp/stability/seed123/hf_gated_concat_boundary_w0.1/last_epoch_model_42.pth
+25528615 bytes	/root/autodl-tmp/stability/seed123/hf_gated_concat_boundary_w0.1/last_epoch_model_43.pth
+25528615 bytes	/root/autodl-tmp/stability/seed123/hf_gated_concat_boundary_w0.1/last_epoch_model_44.pth
+25528615 bytes	/root/autodl-tmp/stability/seed123/hf_gated_concat_boundary_w0.1/last_epoch_model_45.pth
+25528615 bytes	/root/autodl-tmp/stability/seed123/hf_gated_concat_boundary_w0.1/last_epoch_model_46.pth
+25528615 bytes	/root/autodl-tmp/stability/seed123/hf_gated_concat_boundary_w0.1/last_epoch_model_47.pth
+25528615 bytes	/root/autodl-tmp/stability/seed123/hf_gated_concat_boundary_w0.1/last_epoch_model_48.pth
+25528615 bytes	/root/autodl-tmp/stability/seed123/hf_gated_concat_boundary_w0.1/last_epoch_model_49.pth
+25528497 bytes	/root/autodl-tmp/stability/seed123/hf_gated_concat_boundary_w0.1/last_epoch_model_5.pth
+25528615 bytes	/root/autodl-tmp/stability/seed123/hf_gated_concat_boundary_w0.1/last_epoch_model_50.pth
+25528615 bytes	/root/autodl-tmp/stability/seed123/hf_gated_concat_boundary_w0.1/last_epoch_model_51.pth
+25528615 bytes	/root/autodl-tmp/stability/seed123/hf_gated_concat_boundary_w0.1/last_epoch_model_52.pth
+25528615 bytes	/root/autodl-tmp/stability/seed123/hf_gated_concat_boundary_w0.1/last_epoch_model_53.pth
+25528615 bytes	/root/autodl-tmp/stability/seed123/hf_gated_concat_boundary_w0.1/last_epoch_model_54.pth
+25528615 bytes	/root/autodl-tmp/stability/seed123/hf_gated_concat_boundary_w0.1/last_epoch_model_55.pth
+25528615 bytes	/root/autodl-tmp/stability/seed123/hf_gated_concat_boundary_w0.1/last_epoch_model_56.pth
+25528615 bytes	/root/autodl-tmp/stability/seed123/hf_gated_concat_boundary_w0.1/last_epoch_model_57.pth
+25528615 bytes	/root/autodl-tmp/stability/seed123/hf_gated_concat_boundary_w0.1/last_epoch_model_58.pth
+25528615 bytes	/root/autodl-tmp/stability/seed123/hf_gated_concat_boundary_w0.1/last_epoch_model_59.pth
+25528497 bytes	/root/autodl-tmp/stability/seed123/hf_gated_concat_boundary_w0.1/last_epoch_model_6.pth
+25528615 bytes	/root/autodl-tmp/stability/seed123/hf_gated_concat_boundary_w0.1/last_epoch_model_60.pth
+25528615 bytes	/root/autodl-tmp/stability/seed123/hf_gated_concat_boundary_w0.1/last_epoch_model_61.pth
+25528615 bytes	/root/autodl-tmp/stability/seed123/hf_gated_concat_boundary_w0.1/last_epoch_model_62.pth
+25528615 bytes	/root/autodl-tmp/stability/seed123/hf_gated_concat_boundary_w0.1/last_epoch_model_63.pth
+25528615 bytes	/root/autodl-tmp/stability/seed123/hf_gated_concat_boundary_w0.1/last_epoch_model_64.pth
+25528615 bytes	/root/autodl-tmp/stability/seed123/hf_gated_concat_boundary_w0.1/last_epoch_model_65.pth
+25528615 bytes	/root/autodl-tmp/stability/seed123/hf_gated_concat_boundary_w0.1/last_epoch_model_66.pth
+25528615 bytes	/root/autodl-tmp/stability/seed123/hf_gated_concat_boundary_w0.1/last_epoch_model_67.pth
+25528615 bytes	/root/autodl-tmp/stability/seed123/hf_gated_concat_boundary_w0.1/last_epoch_model_68.pth
+25528615 bytes	/root/autodl-tmp/stability/seed123/hf_gated_concat_boundary_w0.1/last_epoch_model_69.pth
+25528497 bytes	/root/autodl-tmp/stability/seed123/hf_gated_concat_boundary_w0.1/last_epoch_model_7.pth
+25528615 bytes	/root/autodl-tmp/stability/seed123/hf_gated_concat_boundary_w0.1/last_epoch_model_70.pth
+25528615 bytes	/root/autodl-tmp/stability/seed123/hf_gated_concat_boundary_w0.1/last_epoch_model_71.pth
+25528615 bytes	/root/autodl-tmp/stability/seed123/hf_gated_concat_boundary_w0.1/last_epoch_model_72.pth
+25528615 bytes	/root/autodl-tmp/stability/seed123/hf_gated_concat_boundary_w0.1/last_epoch_model_73.pth
+25528615 bytes	/root/autodl-tmp/stability/seed123/hf_gated_concat_boundary_w0.1/last_epoch_model_74.pth
+25528615 bytes	/root/autodl-tmp/stability/seed123/hf_gated_concat_boundary_w0.1/last_epoch_model_75.pth
+25528615 bytes	/root/autodl-tmp/stability/seed123/hf_gated_concat_boundary_w0.1/last_epoch_model_76.pth
+25528615 bytes	/root/autodl-tmp/stability/seed123/hf_gated_concat_boundary_w0.1/last_epoch_model_77.pth
+25528615 bytes	/root/autodl-tmp/stability/seed123/hf_gated_concat_boundary_w0.1/last_epoch_model_78.pth
+25528615 bytes	/root/autodl-tmp/stability/seed123/hf_gated_concat_boundary_w0.1/last_epoch_model_79.pth
+25528497 bytes	/root/autodl-tmp/stability/seed123/hf_gated_concat_boundary_w0.1/last_epoch_model_8.pth
+25528615 bytes	/root/autodl-tmp/stability/seed123/hf_gated_concat_boundary_w0.1/last_epoch_model_80.pth
+25528615 bytes	/root/autodl-tmp/stability/seed123/hf_gated_concat_boundary_w0.1/last_epoch_model_81.pth
+25528615 bytes	/root/autodl-tmp/stability/seed123/hf_gated_concat_boundary_w0.1/last_epoch_model_82.pth
+25528615 bytes	/root/autodl-tmp/stability/seed123/hf_gated_concat_boundary_w0.1/last_epoch_model_83.pth
+25528615 bytes	/root/autodl-tmp/stability/seed123/hf_gated_concat_boundary_w0.1/last_epoch_model_84.pth
+25528615 bytes	/root/autodl-tmp/stability/seed123/hf_gated_concat_boundary_w0.1/last_epoch_model_85.pth
+25528615 bytes	/root/autodl-tmp/stability/seed123/hf_gated_concat_boundary_w0.1/last_epoch_model_86.pth
+25528615 bytes	/root/autodl-tmp/stability/seed123/hf_gated_concat_boundary_w0.1/last_epoch_model_87.pth
+25528615 bytes	/root/autodl-tmp/stability/seed123/hf_gated_concat_boundary_w0.1/last_epoch_model_88.pth
+25528615 bytes	/root/autodl-tmp/stability/seed123/hf_gated_concat_boundary_w0.1/last_epoch_model_89.pth
+25528497 bytes	/root/autodl-tmp/stability/seed123/hf_gated_concat_boundary_w0.1/last_epoch_model_9.pth
+25528615 bytes	/root/autodl-tmp/stability/seed123/hf_gated_concat_boundary_w0.1/last_epoch_model_90.pth
+25528615 bytes	/root/autodl-tmp/stability/seed123/hf_gated_concat_boundary_w0.1/last_epoch_model_91.pth
+25528615 bytes	/root/autodl-tmp/stability/seed123/hf_gated_concat_boundary_w0.1/last_epoch_model_92.pth
+25528615 bytes	/root/autodl-tmp/stability/seed123/hf_gated_concat_boundary_w0.1/last_epoch_model_93.pth
+25528615 bytes	/root/autodl-tmp/stability/seed123/hf_gated_concat_boundary_w0.1/last_epoch_model_94.pth
+25528615 bytes	/root/autodl-tmp/stability/seed123/hf_gated_concat_boundary_w0.1/last_epoch_model_95.pth
+11138 bytes	/root/autodl-tmp/stability/seed123/hf_gated_concat_boundary_w0.1/train_log.csv
+12668 bytes	/root/autodl-tmp/stability/seed42/baseline/.ipynb_checkpoints/train_log-checkpoint.csv
+23086929 bytes	/root/autodl-tmp/stability/seed42/baseline/best_model_149.pth
+23087451 bytes	/root/autodl-tmp/stability/seed42/baseline/last_epoch_model_174.pth
+20461 bytes	/root/autodl-tmp/stability/seed42/baseline/train_log.csv
+202 bytes	/root/autodl-tmp/stability/seed42/baseline/training_complete.json
+25210925 bytes	/root/autodl-tmp/stability/seed42/edge_laplacian_concat/best_model_35.pth
+25211549 bytes	/root/autodl-tmp/stability/seed42/edge_laplacian_concat/last_epoch_model_60.pth
+5727 bytes	/root/autodl-tmp/stability/seed42/edge_laplacian_concat/train_log.csv
+8538 bytes	/root/autodl-tmp/stability/seed42/edge_laplacian_gated_concat/.ipynb_checkpoints/train_log-checkpoint.csv
+25463179 bytes	/root/autodl-tmp/stability/seed42/edge_laplacian_gated_concat/best_model_82.pth
+25463963 bytes	/root/autodl-tmp/stability/seed42/edge_laplacian_gated_concat/last_epoch_model_107.pth
+11222 bytes	/root/autodl-tmp/stability/seed42/edge_laplacian_gated_concat/train_log.csv
+5350 bytes	/root/autodl-tmp/stability/seed42/hf_concat_boundary_w0.05/.ipynb_checkpoints/train_log-checkpoint.csv
+25275651 bytes	/root/autodl-tmp/stability/seed42/hf_concat_boundary_w0.05/best_model_41.pth
+25276311 bytes	/root/autodl-tmp/stability/seed42/hf_concat_boundary_w0.05/last_epoch_model_66.pth
+6290 bytes	/root/autodl-tmp/stability/seed42/hf_concat_boundary_w0.05/train_log.csv
+4757 bytes	/root/autodl-tmp/stability/seed42/hf_concat_boundary_w0.1/.ipynb_checkpoints/train_log-checkpoint.csv
+25275651 bytes	/root/autodl-tmp/stability/seed42/hf_concat_boundary_w0.1/best_model_25.pth
+25276311 bytes	/root/autodl-tmp/stability/seed42/hf_concat_boundary_w0.1/last_epoch_model_50.pth
+4757 bytes	/root/autodl-tmp/stability/seed42/hf_concat_boundary_w0.1/train_log.csv
+5247 bytes	/root/autodl-tmp/stability/seed42/hf_concat_boundary_w0.1_multiscale/.ipynb_checkpoints/train_log-checkpoint.csv
+28458387 bytes	/root/autodl-tmp/stability/seed42/hf_concat_boundary_w0.1_multiscale/best_model_30.pth
+28459167 bytes	/root/autodl-tmp/stability/seed42/hf_concat_boundary_w0.1_multiscale/last_epoch_model_55.pth
+5247 bytes	/root/autodl-tmp/stability/seed42/hf_concat_boundary_w0.1_multiscale/train_log.csv
+28458647 bytes	/root/autodl-tmp/stability/seed42/hf_concat_boundary_w0.1_multiscale_v2/best_model_51.pth
+28459497 bytes	/root/autodl-tmp/stability/seed42/hf_concat_boundary_w0.1_multiscale_v2/last_epoch_model_76.pth
+7228 bytes	/root/autodl-tmp/stability/seed42/hf_concat_boundary_w0.1_multiscale_v2/train_log.csv
+25527907 bytes	/root/autodl-tmp/stability/seed42/hf_gated_concat_boundary_w0.1/best_model_28.pth
+25528615 bytes	/root/autodl-tmp/stability/seed42/hf_gated_concat_boundary_w0.1/last_epoch_model_53.pth
+5068 bytes	/root/autodl-tmp/stability/seed42/hf_gated_concat_boundary_w0.1/train_log.csv
+8350 bytes	/root/autodl-tmp/test_df.csv
+58405 bytes	/root/autodl-tmp/train_df.csv
+84554 bytes	/root/autodl-tmp/tumourCSV.csv
+16728 bytes	/root/autodl-tmp/val_df.csv

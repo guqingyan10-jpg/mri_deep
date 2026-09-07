@@ -1,0 +1,3 @@
+Model,ET_Dice,TC_Dice,WT_Dice,ET_Recall,ET_Precision,ET_HD95_mm,TC_HD95_mm,Lesion_Recall,Lesion_Precision,Overall_Lesion_Recall,Small_case_ET_Dice
+"V2 Edge (Sobel, concat)",0.7726,0.8221,0.8882,0.7769,0.8213,7.73,8.85,0.7346,0.7581,0.5763,0.6642
+"V2 Edge (Sobel, add)",0.7584,0.7954,0.8698,0.7761,0.7793,11.50,10.22,0.7440,0.9380,0.5847,0.6323

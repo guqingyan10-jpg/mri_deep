@@ -1,0 +1,2 @@
+Model,Category,Macro_Dice,Checkpoint_Epoch,ET_Dice,ET_Recall,ET_Precision,ET_HD95_mm,ET_NSD,TC_Dice,TC_HD95_mm,TC_NSD,WT_Dice,Lesion_Recall,Lesion_Precision,Lesion_F1,Lesion_TP,Lesion_FP,Lesion_FN,Overall_Lesion_Precision,Overall_Lesion_Recall,Overall_Lesion_F1,Small_case_ET_Dice,n_params,Inference_time_s
+"HF Concat Boundary + Multi-scale V2 (w=0.1, seed55)",Final Combination,0.8252,90,0.7764 ± 0.2219,0.7937,0.8120,8.29,0.7871,0.8053 ± 0.1566,8.92,0.6352,0.8939 ± 0.0733,0.6613,0.7281,0.6302,53,46,65,0.5354,0.4492,0.4885,0.6697,7102735,0.145
