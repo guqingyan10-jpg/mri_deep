@@ -285,3 +285,16 @@ Dice 增益，脚本会保留完整统计并将该 seed 的图明确标为“最
 `boundary_typical_case_multiseed_results/seed{42,55,123}/`；跨 seed 排名为
 `cross_seed_small_lesion_ranking.csv` 和
 `cross_seed_boundary_case_ranking.csv`。
+
+### 交接工程审核材料
+
+在 AutoDL 上统一收集指定基线、LHFC/ABS/MSC/AR-MSC 模型的正式 best
+checkpoint、训练记录和结果数据：
+
+```bash
+python scripts/stage_handoff_review.py
+```
+
+输出目录为 `handoff_review_data/`。模型统一命名及源目录映射记录在
+`manifests/model_manifest.csv`；正式、探索性 valid+test 和旧结果分别存放。
+脚本不收集成图、绘图脚本、原始 BraTS 影像、last-epoch 权重或缓存。
