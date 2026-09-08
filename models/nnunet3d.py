@@ -1,6 +1,11 @@
 """
-nnUNet3d Model Architecture for BraTS2020.
+Legacy nnU-Net-inspired 3D U-Net surrogate for BraTS2020.
 Extracted from: nnunet_model.py
+
+This is NOT the official self-configuring nnU-Net implementation. It is kept
+only so historical checkpoints remain loadable. New strong-baseline runs must
+use ``models/nnunet_plainconv3d.py`` with
+``scripts/train_nnunet_plainconv_unified.py``.
 
 Pure model module — no Dataset, Trainer, or training script.
 Import into your Jupyter notebook and use with the existing Trainer.

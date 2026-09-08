@@ -13,7 +13,8 @@ enhance_resu/
 │   ├── resunet3d.py            ★ 基线 ResUNet3d
 │   ├── unet3d.py               UNet3d（基线对照）
 │   ├── attunet3d.py            AttUNet3d（CBAM + 注意力门控）
-│   ├── nnunet3d.py             nnUNet3d（InstanceNorm + LeakyReLU）
+│   ├── nnunet3d.py             旧版 nnU-Net-inspired surrogate（仅兼容旧权重）
+│   ├── nnunet_plainconv3d.py   nnU-Net v2 PlainConvUNet（统一训练协议）
 │   ├── resunet_edge.py         V2 边缘分支（Sobel/Laplacian，concat/add）
 │   ├── resunet_hf_boundary.py  V2 HF 边界双头
 │   ├── resunet_hf_concat_boundary.py  最终组合：多尺度 Laplacian concat + 边界双头
@@ -61,9 +62,15 @@ Boundary 相同的边界辅助头。训练损失固定为
 |---|---|
 | UNet3d | 无残差（DoubleConv） |
 | AttUNet3d | CBAM + 注意力门控 |
-| nnUNet3d | InstanceNorm + LeakyReLU + 步长卷积 |
+| Legacy nnUNet3d surrogate | InstanceNorm + LeakyReLU + 步长卷积；不是官方 nnU-Net |
+| nnU-Net v2 PlainConvUNet | 官方架构后端；使用本工程统一训练协议 |
 
-> 4 个基线模型代码与原始 notebook `MultiModel XAI Brats2020.ipynb` 逐层一致，仅做了模块化拆分。
+> 原有 4 个基线模型代码与 notebook 一致；其中旧 `nnUNet3d` 仅为历史权重兼容，不再作为论文强基线。
+
+新的 nnU-Net 对照直接使用官方 `dynamic-network-architectures` 提供的
+`PlainConvUNet`，但与 U-Net/ResUNet 一样使用当前工程的输入、BCE-Dice、
+Adam (`5e-4`)、200 epochs 设置及固定 257/74/37 划分。运行方法见
+[`docs/NNUNET_PLAINCONV_UNIFIED_BASELINE.md`](docs/NNUNET_PLAINCONV_UNIFIED_BASELINE.md)。
 
 ## 损失函数
 

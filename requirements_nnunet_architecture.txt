@@ -1,0 +1,2 @@
+# Official nnU-Net v2 architecture backend only; training stays in this repo.
+dynamic-network-architectures==0.4.4
