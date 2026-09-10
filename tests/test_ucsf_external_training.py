@@ -15,6 +15,7 @@ from losses.basics import BCEDiceLoss
 from losses.enhanced import BCEDiceWithBoundaryLoss
 from models.resunet3d import ResUNet3d
 from models.resunet_hf_concat_boundary import ResUNetHFConcatBoundary
+from scripts.eval_ucsf_baseline_full import classify_volume, derive_volume_strata
 from training.trainer import Trainer
 from training.ucsf_trainer import UCSFTrainer
 
@@ -109,6 +110,18 @@ def test_ucsf_trainer_keeps_only_latest_recovery_checkpoint(tmp_path, monkeypatc
     assert sorted(path.name for path in tmp_path.glob("last_epoch_model_*.pth")) == [
         "last_epoch_model_3.pth"
     ]
+
+
+def test_ucsf_volume_strata_are_fitted_from_training_values():
+    strata = derive_volume_strata([10.0, 20.0, 30.0, 40.0, 50.0, 60.0])
+    assert strata == {
+        "small": (0.0, 20.0),
+        "medium": (20.0, 40.0),
+        "large": (40.0, None),
+    }
+    assert classify_volume(20.0, strata) == "small"
+    assert classify_volume(21.0, strata) == "medium"
+    assert classify_volume(41.0, strata) == "large"
 
 
 def test_ucsf_documentation_disables_five_fold_and_pins_formal_full():

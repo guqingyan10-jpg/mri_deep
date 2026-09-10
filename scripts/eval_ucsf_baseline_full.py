@@ -64,6 +64,55 @@ def safe_std(values: list[float]) -> float:
     return float(np.std(finite)) if finite else float("nan")
 
 
+def derive_volume_strata(volumes_mm3: list[float]) -> dict[str, tuple[float, float | None]]:
+    """Fit approximately balanced lesion-volume strata without test data."""
+    values, counts = np.unique(np.asarray(volumes_mm3, dtype=np.float64), return_counts=True)
+    if len(values) < 3:
+        raise ValueError("At least three distinct training lesion volumes are required")
+    cumulative = np.cumsum(counts)
+    first = int(np.argmin(np.abs(cumulative[:-2] - cumulative[-1] / 3.0)))
+    candidates = np.arange(first + 1, len(values) - 1)
+    second = int(candidates[np.argmin(np.abs(cumulative[candidates] - 2.0 * cumulative[-1] / 3.0))])
+    return {
+        "small": (0.0, float(values[first])),
+        "medium": (float(values[first]), float(values[second])),
+        "large": (float(values[second]), None),
+    }
+
+
+def classify_volume(
+    volume_mm3: float, strata: dict[str, tuple[float, float | None]],
+) -> str:
+    if volume_mm3 <= strata["small"][1]:
+        return "small"
+    if volume_mm3 <= strata["medium"][1]:
+        return "medium"
+    return "large"
+
+
+def collect_training_lesions(dataloader, min_component_size: int) -> list[dict]:
+    """Measure GT components from the fixed training split in physical units."""
+    rows = []
+    for batch in dataloader:
+        subject_id = str(batch["Id"][0])
+        target = batch["mask"][0, 0].numpy() > 0.5
+        spacing = tuple(float(value) for value in batch["spacing_dhw"][0].numpy())
+        matching = match_wt_components(
+            np.zeros_like(target), target, min_component_size=min_component_size,
+        )
+        voxel_volume = float(np.prod(spacing))
+        for component_index, component in enumerate(matching["gt_components"]):
+            rows.append({
+                "subject_id": subject_id,
+                "gt_component_index": component_index,
+                "gt_voxels": component["size"],
+                "gt_volume_mm3": component["size"] * voxel_volume,
+            })
+    if not rows:
+        raise ValueError("No training lesions survived component filtering")
+    return rows
+
+
 def evaluate_model(
     model_name: str,
     checkpoint: Path,
@@ -72,6 +121,7 @@ def evaluate_model(
     threshold: float,
     min_component_size: int,
     boundary_tolerance_mm: float,
+    volume_strata: dict[str, tuple[float, float | None]],
 ):
     model = build_model(model_name).to(device)
     state = torch.load(checkpoint, map_location=device, weights_only=False)
@@ -124,17 +174,41 @@ def evaluate_model(
             voxel_volume = float(np.prod(spacing))
             for gt_index, component in enumerate(matching["gt_components"]):
                 match = matches.get(gt_index)
+                volume_mm3 = component["size"] * voxel_volume
                 lesion_rows.append({
                     "model": model_name,
                     "subject_id": subject_id,
                     "gt_component_index": gt_index,
                     "gt_voxels": component["size"],
-                    "gt_volume_mm3": component["size"] * voxel_volume,
+                    "gt_volume_mm3": volume_mm3,
+                    "volume_stratum": classify_volume(volume_mm3, volume_strata),
                     "detected": match is not None,
                     "matched_dice": float(match["dice"]) if match is not None else float("nan"),
                     "gt_anchored_dice": float(match["dice"]) if match is not None else 0.0,
                 })
     return case_rows, lesion_rows
+
+
+def summarize_lesion_strata(lesion_frame: pd.DataFrame) -> pd.DataFrame:
+    rows = []
+    for (model_name, stratum), subset in lesion_frame.groupby(
+        ["model", "volume_stratum"], sort=False,
+    ):
+        detected = subset["detected"].astype(bool)
+        rows.append({
+            "model": model_name,
+            "volume_stratum": stratum,
+            "gt_lesions": len(subset),
+            "detected_lesions": int(detected.sum()),
+            "missed_lesions": int((~detected).sum()),
+            "lesion_recall": float(detected.mean()),
+            "matched_lesion_dice": safe_mean(subset.loc[detected, "matched_dice"].tolist()),
+            "gt_anchored_lesion_dice": safe_mean(subset["gt_anchored_dice"].tolist()),
+        })
+    order = {"small": 0, "medium": 1, "large": 2}
+    result = pd.DataFrame(rows)
+    result["_order"] = result["volume_stratum"].map(order)
+    return result.sort_values(["model", "_order"]).drop(columns="_order")
 
 
 def summarize(model_name: str, checkpoint: Path, cases: list[dict]) -> dict:
@@ -188,6 +262,24 @@ def main() -> None:
 
     output_dir = args.output_dir or args.training_root / f"seed{args.seed}" / "evaluation"
     output_dir.mkdir(parents=True, exist_ok=True)
+    training_loader = get_ucsf_dataloader(
+        UCSFPreparedDataset,
+        str(args.manifest),
+        "train",
+        batch_size=1,
+        num_workers=0,
+    )
+    training_lesions = collect_training_lesions(
+        training_loader, args.min_component_size,
+    )
+    volume_strata = derive_volume_strata(
+        [row["gt_volume_mm3"] for row in training_lesions]
+    )
+    for row in training_lesions:
+        row["volume_stratum"] = classify_volume(row["gt_volume_mm3"], volume_strata)
+    pd.DataFrame(training_lesions).to_csv(
+        output_dir / "training_lesion_size_distribution.csv", index=False,
+    )
     dataloader = get_ucsf_dataloader(
         UCSFPreparedDataset,
         str(args.manifest),
@@ -211,6 +303,7 @@ def main() -> None:
             args.threshold,
             args.min_component_size,
             args.boundary_tolerance_mm,
+            volume_strata,
         )
         all_cases.extend(cases)
         all_lesions.extend(lesions)
@@ -219,9 +312,11 @@ def main() -> None:
     case_frame = pd.DataFrame(all_cases)
     lesion_frame = pd.DataFrame(all_lesions)
     summary_frame = pd.DataFrame(summaries)
+    lesion_strata_frame = summarize_lesion_strata(lesion_frame)
     case_frame.to_csv(output_dir / "per_case.csv", index=False)
     lesion_frame.to_csv(output_dir / "per_gt_lesion.csv", index=False)
     summary_frame.to_csv(output_dir / "summary.csv", index=False)
+    lesion_strata_frame.to_csv(output_dir / "summary_by_lesion_size.csv", index=False)
     paired = case_frame.pivot(index="subject_id", columns="model", values="dice")
     paired["full_minus_baseline_dice"] = paired["full"] - paired["baseline"]
     paired.reset_index().to_csv(output_dir / "paired_case_dice.csv", index=False)
@@ -231,10 +326,13 @@ def main() -> None:
         "threshold": args.threshold,
         "min_component_size": args.min_component_size,
         "boundary_tolerance_mm": args.boundary_tolerance_mm,
+        "lesion_size_definition": "individual GT connected-component physical volume; thresholds fitted on training split only",
+        "lesion_volume_strata_mm3": volume_strata,
         "notes": [
             "The fixed test split is evaluated once; no five-fold averaging.",
             "A GT lesion is detected when one retained predicted component overlaps it after one-to-one Dice matching.",
             "Missed GT lesions receive zero GT-anchored Dice.",
+            "Small/medium/large thresholds are never fitted on validation or test data.",
             "Surface metrics remain NaN for empty GT or prediction and valid counts are reported.",
         ],
     }
