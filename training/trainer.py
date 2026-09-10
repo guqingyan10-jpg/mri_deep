@@ -65,6 +65,7 @@ class Trainer():
                  display_plot: bool = True,
                  early_stopping_patience: int = 25,
                  min_delta: float = 1e-4,
+                 dataloader_factory=None,
                 ):
 
         """Initialization."""
@@ -86,11 +87,12 @@ class Trainer():
         # Early stopping
         self.early_stopping_patience = early_stopping_patience
         self.min_delta = min_delta
+        self.dataloader_factory = dataloader_factory or get_dataloader
         self.epochs_without_improvement = 0
         self.best_epoch = 0
 
         self.dataloaders = {
-            phase: get_dataloader(
+            phase: self.dataloader_factory(
                 dataset = dataset,
                 path_to_csv = path_to_csv,
                 phase = phase,

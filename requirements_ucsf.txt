@@ -1,0 +1,13 @@
+# Minimal tested dependency set for UCSF Baseline/Full training.
+# NumPy stays below 2 because the pinned PyTorch 2.1 wheel uses the NumPy 1.x ABI.
+torch==2.1.2
+numpy==1.26.4
+pandas==2.2.3
+scipy==1.15.3
+scikit-learn==1.6.1
+nibabel==5.3.2
+albumentations==1.4.24
+opencv-python-headless==4.10.0.84
+matplotlib==3.9.4
+tqdm==4.67.1
+ipython==8.32.0

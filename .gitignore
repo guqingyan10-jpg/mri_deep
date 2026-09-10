@@ -20,6 +20,11 @@ res_best_model_*
 *.nii
 *.nii.gz
 MICCAI_BraTS2020_TrainingData/
+UCSF_BrainMetastases_v1.3/
+UCSF_BrainMetastases_v1.3.zip
+UCSF-BMSR-benchmarks-main/
+ucsf_bmsr_prepared/
+ucsf_baseline_full/
 
 # CSV data snapshots (regenerated from tumourCSV.csv)
 train_df.csv

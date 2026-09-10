@@ -114,6 +114,12 @@ python scripts/eval_all_experiments.py
 
 > `training/config.py` 中数据 / checkpoint 路径硬编码为 AutoDL `/root/autodl-tmp/...`，换环境需自行修改。
 
+## UCSF-BMSR 外部数据集复训
+
+UCSF-BMSR上的二值脑转移瘤Baseline/Full配对训练使用固定患者分组的
+70%/20%/10%划分，不采用五折。准备数据、训练、恢复和统一评价命令见
+[`docs/UCSF_EXTERNAL_BASELINE_FULL.md`](docs/UCSF_EXTERNAL_BASELINE_FULL.md)。
+
 ## Seed123 门控配对实验
 
 门控实验只改变四级 Laplacian 特征进入 decoder concat 前的融合：
