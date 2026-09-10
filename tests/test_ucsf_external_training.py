@@ -15,6 +15,8 @@ from losses.basics import BCEDiceLoss
 from losses.enhanced import BCEDiceWithBoundaryLoss
 from models.resunet3d import ResUNet3d
 from models.resunet_hf_concat_boundary import ResUNetHFConcatBoundary
+from training.trainer import Trainer
+from training.ucsf_trainer import UCSFTrainer
 
 
 def test_grouped_split_is_deterministic_and_has_no_longitudinal_leakage():
@@ -90,6 +92,23 @@ def test_binary_baseline_and_full_have_matching_task_shapes_and_losses():
             (full_logits, boundary_logits), target
         )
     )
+
+
+def test_ucsf_trainer_keeps_only_latest_recovery_checkpoint(tmp_path, monkeypatch):
+    for epoch in (1, 2):
+        (tmp_path / f"last_epoch_model_{epoch}.pth").write_bytes(b"old")
+
+    def fake_save_train_history(self, epoch):
+        (Path(self.model_type) / f"last_epoch_model_{epoch}.pth").write_bytes(b"new")
+
+    monkeypatch.setattr(Trainer, "_save_train_history", fake_save_train_history)
+    trainer = object.__new__(UCSFTrainer)
+    trainer.model_type = str(tmp_path)
+    trainer._save_train_history(3)
+
+    assert sorted(path.name for path in tmp_path.glob("last_epoch_model_*.pth")) == [
+        "last_epoch_model_3.pth"
+    ]
 
 
 def test_ucsf_documentation_disables_five_fold_and_pins_formal_full():

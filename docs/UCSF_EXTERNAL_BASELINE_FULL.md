@@ -66,7 +66,8 @@ python scripts/train_ucsf_baseline_full.py --dry-run
 python scripts/train_ucsf_baseline_full.py
 ```
 
-中断后重复同一命令会从各自目录的last checkpoint恢复；已经完成的模型默认跳过。只继续Full：
+中断后重复同一命令会从各自目录的last checkpoint恢复；为控制数据盘占用，
+每个模型只保留最新的恢复checkpoint和验证集最佳checkpoint，已经完成的模型默认跳过。只继续Full：
 
 ```bash
 python scripts/train_ucsf_baseline_full.py --models full

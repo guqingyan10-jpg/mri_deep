@@ -26,8 +26,7 @@ from losses.enhanced import BCEDiceWithBoundaryLoss
 from models.resunet3d import ResUNet3d
 from models.resunet_hf_concat_boundary import ResUNetHFConcatBoundary
 from training.config import check_exist_last, seed_everything
-from training.trainer import Trainer
-from training.ucsf_trainer import UCSFBoundaryTrainer
+from training.ucsf_trainer import UCSFBoundaryTrainer, UCSFTrainer
 
 
 def checkpoint_epoch(path: Path) -> int:
@@ -99,7 +98,7 @@ def make_trainer(
     *, model, criterion, manifest: Path, checkpoint_dir: Path,
     epochs: int, lr: float, boundary: bool,
 ):
-    trainer_type = UCSFBoundaryTrainer if boundary else Trainer
+    trainer_type = UCSFBoundaryTrainer if boundary else UCSFTrainer
     return trainer_type(
         net=model,
         dataset=UCSFPreparedDataset,
