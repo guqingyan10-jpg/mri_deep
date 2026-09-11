@@ -205,8 +205,14 @@ def summarize_core(
 ) -> dict:
     """Return the compact UCSF endpoints corresponding to the final BraTS analysis."""
     tp = sum(row["tp_lesions"] for row in cases)
+    fp = sum(row["fp_lesions"] for row in cases)
     fn = sum(row["fn_lesions"] for row in cases)
     recall = tp / (tp + fn) if tp + fn else float("nan")
+    precision = tp / (tp + fp) if tp + fp else float("nan")
+    lesion_f1 = (
+        2 * recall * precision / (recall + precision)
+        if recall + precision else 0.0
+    )
     hd95 = [row["hd95_mm"] for row in cases]
     dice = [row["dice"] for row in cases]
     small = [row for row in lesions if row["volume_stratum"] == "small"]
@@ -218,13 +224,13 @@ def summarize_core(
         "dice_std": safe_std(dice),
         "hd95_mm_mean": safe_mean(hd95),
         "hd95_mm_std": safe_std(hd95),
-        "lesion_recall": recall,
         "lesion_gt_anchored_dice": safe_mean(
             [row["gt_anchored_dice"] for row in lesions]
         ),
         "small_lesion_gt_anchored_dice": safe_mean(
             [row["gt_anchored_dice"] for row in small]
         ),
+        "lesion_f1": lesion_f1,
         "small_gt_lesions": len(small),
     }
 
@@ -320,7 +326,7 @@ def main() -> None:
             "A GT lesion is detected when one retained predicted component overlaps it after one-to-one Dice matching.",
             "Missed GT lesions receive zero GT-anchored Dice.",
             "Small/medium/large thresholds are never fitted on validation or test data.",
-            "The primary table is restricted to Dice, HD95, lesion recall, overall GT-anchored lesion Dice, and small-lesion GT-anchored Dice.",
+            "The primary table is restricted to Dice, HD95, overall GT-anchored lesion Dice, small-lesion GT-anchored Dice, and lesion F1.",
         ],
     }
     (output_dir / "evaluation.json").write_text(

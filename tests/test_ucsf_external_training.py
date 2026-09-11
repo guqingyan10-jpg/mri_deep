@@ -133,6 +133,7 @@ def test_ucsf_primary_summary_is_limited_to_brats_aligned_metrics(tmp_path):
         "dice": 0.8,
         "hd95_mm": 2.0,
         "tp_lesions": 2,
+        "fp_lesions": 1,
         "fn_lesions": 1,
     }]
     lesions = [
@@ -144,14 +145,14 @@ def test_ucsf_primary_summary_is_limited_to_brats_aligned_metrics(tmp_path):
     metric_keys = {
         "dice_mean",
         "hd95_mm_mean",
-        "lesion_recall",
         "lesion_gt_anchored_dice",
         "small_lesion_gt_anchored_dice",
+        "lesion_f1",
     }
     assert metric_keys.issubset(summary)
     assert summary["lesion_gt_anchored_dice"] == 0.5
     assert summary["small_lesion_gt_anchored_dice"] == 0.3
-    assert not {"surface_dice", "lesion_precision", "lesion_f1"}.intersection(summary)
+    assert not {"surface_dice", "lesion_precision", "lesion_recall"}.intersection(summary)
 
 
 def test_ucsf_documentation_disables_five_fold_and_pins_formal_full():

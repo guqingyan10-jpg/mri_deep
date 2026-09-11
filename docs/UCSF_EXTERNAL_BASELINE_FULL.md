@@ -92,7 +92,7 @@ python scripts/eval_ucsf_baseline_full.py
     └── paired_case_dice.csv
 ```
 
-评价默认沿用原项目概率阈值0.33、26连通、一对一最大Dice匹配、预测和GT组件最小10体素。主结果`summary.csv`只保留五项与BraTS最终分析对应的指标：整体Dice、HD95、病灶级Recall、全部真实病灶漏检记0的GT-anchored Dice，以及小病灶漏检记0的GT-anchored Dice。UCSF是单类二值任务，因此Macro Dice与ET Dice合并为同一个整体Dice，不重复报告。小/中/大病灶仍采用原实验的“训练集拟合、测试集冻结”原则，但考虑UCSF扫描的物理间距不统一，主划分依据单个GT连通病灶的物理体积（mm³），而不复用BraTS的固定体素界值。脚本会从固定训练集拟合近似三等分界值并输出`training_lesion_size_distribution.csv`和`summary_by_lesion_size.csv`。测试集阈值不得根据最终结果再调；如需调概率阈值，应只在固定验证集完成，然后把选定阈值用于一次测试。
+评价默认沿用原项目概率阈值0.33、26连通、一对一最大Dice匹配、预测和GT组件最小10体素。主结果`summary.csv`只保留五项与BraTS最终表对应的指标：整体Dice、HD95、全部真实病灶漏检记0的GT-anchored Dice、小病灶漏检记0的GT-anchored Dice和Lesion F1。UCSF是单类二值任务，因此Macro Dice与ET Dice合并为同一个整体Dice，不重复报告。小/中/大病灶仍采用原实验的“训练集拟合、测试集冻结”原则，但考虑UCSF扫描的物理间距不统一，主划分依据单个GT连通病灶的物理体积（mm³），而不复用BraTS的固定体素界值。脚本会从固定训练集拟合近似三等分界值并输出`training_lesion_size_distribution.csv`和`summary_by_lesion_size.csv`。测试集阈值不得根据最终结果再调；如需调概率阈值，应只在固定验证集完成，然后把选定阈值用于一次测试。
 
 ## 运行前检查
 
