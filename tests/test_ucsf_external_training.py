@@ -15,7 +15,11 @@ from losses.basics import BCEDiceLoss
 from losses.enhanced import BCEDiceWithBoundaryLoss
 from models.resunet3d import ResUNet3d
 from models.resunet_hf_concat_boundary import ResUNetHFConcatBoundary
-from scripts.eval_ucsf_baseline_full import classify_volume, derive_volume_strata
+from scripts.eval_ucsf_baseline_full import (
+    classify_volume,
+    derive_volume_strata,
+    summarize_core,
+)
 from training.trainer import Trainer
 from training.ucsf_trainer import UCSFTrainer
 
@@ -122,6 +126,32 @@ def test_ucsf_volume_strata_are_fitted_from_training_values():
     assert classify_volume(20.0, strata) == "small"
     assert classify_volume(21.0, strata) == "medium"
     assert classify_volume(41.0, strata) == "large"
+
+
+def test_ucsf_primary_summary_is_limited_to_brats_aligned_metrics(tmp_path):
+    cases = [{
+        "dice": 0.8,
+        "hd95_mm": 2.0,
+        "tp_lesions": 2,
+        "fn_lesions": 1,
+    }]
+    lesions = [
+        {"volume_stratum": "small", "gt_anchored_dice": 0.6},
+        {"volume_stratum": "small", "gt_anchored_dice": 0.0},
+        {"volume_stratum": "large", "gt_anchored_dice": 0.9},
+    ]
+    summary = summarize_core("baseline", tmp_path / "best_model_1.pth", cases, lesions)
+    metric_keys = {
+        "dice_mean",
+        "hd95_mm_mean",
+        "lesion_recall",
+        "lesion_gt_anchored_dice",
+        "small_lesion_gt_anchored_dice",
+    }
+    assert metric_keys.issubset(summary)
+    assert summary["lesion_gt_anchored_dice"] == 0.5
+    assert summary["small_lesion_gt_anchored_dice"] == 0.3
+    assert not {"surface_dice", "lesion_precision", "lesion_f1"}.intersection(summary)
 
 
 def test_ucsf_documentation_disables_five_fold_and_pins_formal_full():

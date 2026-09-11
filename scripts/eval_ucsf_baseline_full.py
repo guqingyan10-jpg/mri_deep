@@ -16,7 +16,7 @@ sys.path.insert(0, str(REPO_ROOT))
 sys.path.insert(0, str(REPO_ROOT / "evaluation"))
 
 from data.ucsf_bmsr import UCSFPreparedDataset, get_ucsf_dataloader
-from advanced_metrics import hd95_single, nsd_single
+from advanced_metrics import hd95_single
 from wt_lesion_stratified import match_wt_components
 from models.resunet3d import ResUNet3d
 from models.resunet_hf_concat_boundary import ResUNetHFConcatBoundary
@@ -120,7 +120,6 @@ def evaluate_model(
     device: str,
     threshold: float,
     min_component_size: int,
-    boundary_tolerance_mm: float,
     volume_strata: dict[str, tuple[float, float | None]],
 ):
     model = build_model(model_name).to(device)
@@ -148,22 +147,12 @@ def evaluate_model(
                 min_component_size=min_component_size,
             )
             hd95 = hd95_single(prediction, target, voxel_spacing=spacing)
-            surface_dice = nsd_single(
-                prediction,
-                target,
-                tau=boundary_tolerance_mm,
-                voxel_spacing=spacing,
-            )
             case_rows.append({
                 "model": model_name,
                 "subject_id": subject_id,
                 "threshold": threshold,
                 "dice": binary_dice(prediction, target),
-                "voxel_recall": float(np.logical_and(prediction, target).sum() / max(1, target.sum())),
-                "voxel_precision": float(np.logical_and(prediction, target).sum() / max(1, prediction.sum())),
                 "hd95_mm": hd95,
-                "surface_dice_at_tolerance": surface_dice,
-                "surface_valid": bool(np.isfinite(hd95) and np.isfinite(surface_dice)),
                 "gt_lesions": matching["gt_lesions"],
                 "pred_lesions": matching["pred_lesions"],
                 "tp_lesions": matching["tp"],
@@ -211,35 +200,32 @@ def summarize_lesion_strata(lesion_frame: pd.DataFrame) -> pd.DataFrame:
     return result.sort_values(["model", "_order"]).drop(columns="_order")
 
 
-def summarize(model_name: str, checkpoint: Path, cases: list[dict]) -> dict:
+def summarize_core(
+    model_name: str, checkpoint: Path, cases: list[dict], lesions: list[dict],
+) -> dict:
+    """Return the compact UCSF endpoints corresponding to the final BraTS analysis."""
     tp = sum(row["tp_lesions"] for row in cases)
-    fp = sum(row["fp_lesions"] for row in cases)
     fn = sum(row["fn_lesions"] for row in cases)
     recall = tp / (tp + fn) if tp + fn else float("nan")
-    precision = tp / (tp + fp) if tp + fp else float("nan")
-    f1 = 2 * recall * precision / (recall + precision) if recall + precision else 0.0
     hd95 = [row["hd95_mm"] for row in cases]
-    surface = [row["surface_dice_at_tolerance"] for row in cases]
     dice = [row["dice"] for row in cases]
+    small = [row for row in lesions if row["volume_stratum"] == "small"]
     return {
         "model": model_name,
         "checkpoint": str(checkpoint.resolve()),
         "n_test_scans": len(cases),
-        "case_dice_mean": safe_mean(dice),
-        "case_dice_std": safe_std(dice),
+        "dice_mean": safe_mean(dice),
+        "dice_std": safe_std(dice),
         "hd95_mm_mean": safe_mean(hd95),
         "hd95_mm_std": safe_std(hd95),
-        "surface_dice_at_tolerance_mean": safe_mean(surface),
-        "surface_dice_at_tolerance_std": safe_std(surface),
-        "surface_valid_scans": sum(row["surface_valid"] for row in cases),
-        "gt_lesions": tp + fn,
-        "pred_lesions": tp + fp,
-        "tp_lesions": tp,
-        "fp_lesions": fp,
-        "fn_lesions": fn,
         "lesion_recall": recall,
-        "lesion_precision": precision,
-        "lesion_f1": f1,
+        "lesion_gt_anchored_dice": safe_mean(
+            [row["gt_anchored_dice"] for row in lesions]
+        ),
+        "small_lesion_gt_anchored_dice": safe_mean(
+            [row["gt_anchored_dice"] for row in small]
+        ),
+        "small_gt_lesions": len(small),
     }
 
 
@@ -256,7 +242,10 @@ def main() -> None:
     parser.add_argument("--seed", type=int, default=55)
     parser.add_argument("--threshold", type=float, default=0.33)
     parser.add_argument("--min-component-size", type=int, default=10)
-    parser.add_argument("--boundary-tolerance-mm", type=float, default=1.0)
+    parser.add_argument(
+        "--boundary-tolerance-mm", type=float, default=1.0,
+        help=argparse.SUPPRESS,
+    )
     parser.add_argument("--output-dir", type=Path, default=None)
     args = parser.parse_args()
 
@@ -302,12 +291,11 @@ def main() -> None:
             device,
             args.threshold,
             args.min_component_size,
-            args.boundary_tolerance_mm,
             volume_strata,
         )
         all_cases.extend(cases)
         all_lesions.extend(lesions)
-        summaries.append(summarize(model_name, checkpoint, cases))
+        summaries.append(summarize_core(model_name, checkpoint, cases, lesions))
 
     case_frame = pd.DataFrame(all_cases)
     lesion_frame = pd.DataFrame(all_lesions)
@@ -325,7 +313,6 @@ def main() -> None:
         "seed": args.seed,
         "threshold": args.threshold,
         "min_component_size": args.min_component_size,
-        "boundary_tolerance_mm": args.boundary_tolerance_mm,
         "lesion_size_definition": "individual GT connected-component physical volume; thresholds fitted on training split only",
         "lesion_volume_strata_mm3": volume_strata,
         "notes": [
@@ -333,7 +320,7 @@ def main() -> None:
             "A GT lesion is detected when one retained predicted component overlaps it after one-to-one Dice matching.",
             "Missed GT lesions receive zero GT-anchored Dice.",
             "Small/medium/large thresholds are never fitted on validation or test data.",
-            "Surface metrics remain NaN for empty GT or prediction and valid counts are reported.",
+            "The primary table is restricted to Dice, HD95, lesion recall, overall GT-anchored lesion Dice, and small-lesion GT-anchored Dice.",
         ],
     }
     (output_dir / "evaluation.json").write_text(
