@@ -1,0 +1,51 @@
+{
+  "github_repository": "https://github.com/guqingyan10-jpg/mri_deep",
+  "github_master_commit": "b42237a97199fd522d2a4bb93f825b8945433e12",
+  "files": [
+    {
+      "path": "models/resunet3d.py",
+      "matches_github_master": true,
+      "sha256_lf": "b493885c70c2ad263e1bb240cc2dd5adc510e84c52acdac23cfe68df7cd3d965"
+    },
+    {
+      "path": "models/resunet_edge.py",
+      "matches_github_master": true,
+      "sha256_lf": "2f5e82d631eb7bde6d162a6968b324e1349978ec5559b6e3021994d65bf4679b"
+    },
+    {
+      "path": "models/resunet_hf_concat_boundary.py",
+      "matches_github_master": true,
+      "sha256_lf": "d910dcbdfa23000941d51bd7c8ed9a68d8c74d015936b3a50f878c6b9dacd84f"
+    },
+    {
+      "path": "models/base_blocks.py",
+      "matches_github_master": true,
+      "sha256_lf": "24afd7ab591f7c5585bb432b5dce2cd81235941fa8c3f9aa1f0d4ba8b126e0ad"
+    },
+    {
+      "path": "losses/enhanced.py",
+      "matches_github_master": true,
+      "sha256_lf": "d67aca92140e6b79ef018e7f75a321cb8c70110ac358a67934b6f4b5f23880b0"
+    },
+    {
+      "path": "losses/basics.py",
+      "matches_github_master": true,
+      "sha256_lf": "236fae189c56dab0934279cdd87d0856745096a03c66aebe480e1d43ec730b83"
+    },
+    {
+      "path": "scripts/train_ucsf_baseline_full.py",
+      "matches_github_master": true,
+      "sha256_lf": "259cc0eb93b0c99cd06c430470bdf30f6bbeea7af67ac5b457a3430f9e32aecb"
+    },
+    {
+      "path": "scripts/prepare_ucsf_bmsr.py",
+      "matches_github_master": true,
+      "sha256_lf": "269463ad732ce653b89a818dbcc2dfc32c54546455539fe640d2708884a2ebd3"
+    },
+    {
+      "path": "data/ucsf_bmsr.py",
+      "matches_github_master": true,
+      "sha256_lf": "0beb55c078503733d88571688988da54b18dd4a08bc1db181f61ee93ba9ff167"
+    }
+  ]
+}
