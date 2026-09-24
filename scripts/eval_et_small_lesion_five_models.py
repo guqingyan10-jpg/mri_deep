@@ -1,10 +1,12 @@
-"""Evaluate five seed-55 BraTS models on individual small ET lesions.
+"""Evaluate five seed-55 BraTS models on small and medium ET lesions.
 
 This reuses the project's 26-connected, one-to-one lesion matcher. The small
-stratum (10-44 voxels) was fitted on the training split and frozen before the
-37-case test evaluation; unmatched GT lesions contribute Dice=0 only to the
-GT-anchored mean. The historical nnUNet3d surrogate is used for the fourth
-model, matching the original four-baseline comparison.
+(10-44 voxels) and medium (45-4678 voxels) strata were fitted on the training
+split and frozen before the 37-case test evaluation. Results are reported for
+each stratum and for the pooled small+medium set. Unmatched GT lesions
+contribute Dice=0 only to the GT-anchored mean. The historical nnUNet3d
+surrogate is used for the fourth model, matching the original four-baseline
+comparison.
 """
 
 from __future__ import annotations
@@ -46,6 +48,8 @@ STRATA = OrderedDict((
     ("medium", (45, 4678)),
     ("large", (4679, None)),
 ))
+TARGET_STRATA = ("small", "medium")
+EXPECTED_TEST_LESIONS = {"small": 31, "medium": 36}
 PACKAGED_WEIGHTS = (
     PROJECT_ROOT / "deliverables" / "AFBMS_ResUNet_handoff_20260907"
     / "artifacts" / "weights"
@@ -126,6 +130,48 @@ def load_model(model_class, kwargs, checkpoint: Path, device):
     return model.to(device).eval()
 
 
+def pooled_summary(details, strata):
+    """Pool per-GT-lesion rows across one or more frozen size strata."""
+    selected = [row for row in details if row["stratum"] in strata]
+    detected_rows = [row for row in selected if row["detected"]]
+    gt_lesions = len(selected)
+    detected = len(detected_rows)
+    return {
+        "gt_lesions": gt_lesions,
+        "detected": detected,
+        "missed": gt_lesions - detected,
+        "lesion_recall": detected / gt_lesions if gt_lesions else float("nan"),
+        "matched_lesion_dice": (
+            sum(row["matched_dice"] for row in detected_rows) / detected
+            if detected else float("nan")
+        ),
+        "gt_anchored_lesion_dice": (
+            sum(row["gt_anchored_dice"] for row in selected) / gt_lesions
+            if gt_lesions else float("nan")
+        ),
+    }
+
+
+def result_row(label, model_id, checkpoint, test_cases, stratum, summary):
+    ranges = {"small": "10-44", "medium": "45-4678", "small_medium": "10-4678"}
+    return {
+        "model": label,
+        "model_id": model_id,
+        "seed": 55,
+        "split": "test",
+        "stratum": stratum,
+        "voxel_range": ranges[stratum],
+        "checkpoint": str(checkpoint),
+        "test_cases": test_cases,
+        "gt_lesions": summary["gt_lesions"],
+        "detected": summary["detected"],
+        "missed": summary["missed"],
+        "lesion_recall": summary["lesion_recall"],
+        "matched_lesion_dice": summary["matched_lesion_dice"],
+        "gt_anchored_lesion_dice": summary["gt_anchored_lesion_dice"],
+    }
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--csv", type=Path, default=PROJECT_ROOT / "tumourCSV.csv")
@@ -133,7 +179,7 @@ def main() -> None:
     parser.add_argument("--strata-json", type=Path, help="Optional frozen training ET strata to verify")
     parser.add_argument("--checkpoint", action="append", default=[], metavar="MODEL=PATH",
                         help="Override a model's best checkpoint file or directory; repeat as needed")
-    parser.add_argument("--output-dir", type=Path, default=Path("et_small_lesion_five_models_results"))
+    parser.add_argument("--output-dir", type=Path, default=Path("et_small_medium_lesion_five_models_results"))
     parser.add_argument("--device", default=None, help="cuda or cpu (default: choose automatically)")
     parser.add_argument("--dry-run", action="store_true", help="Check paths without loading MRI data")
     args = parser.parse_args()
@@ -154,40 +200,64 @@ def main() -> None:
     args.output_dir.mkdir(parents=True, exist_ok=True)
     summary_rows = []
     detail_rows = []
-    reference_gt = None
+    reference_gt = {}
     for name, (label, model_class, kwargs, _, _) in MODEL_SPECS.items():
         checkpoint = selected[name]
         print(f"Evaluating {label} on {device}")
         model = load_model(model_class, kwargs, checkpoint, device)
         cases, details = evaluate_model(model, loader, device, 0.33, 10, 2, STRATA, "ET")
-        small = summarize_stratified_cases(cases, STRATA)["small"]
-        gt_identity = {(row["case_id"], row["gt_lesion_id"], row["gt_voxels"])
-                       for row in details if row["stratum"] == "small"}
-        if small["gt_lesions"] != 31 or len(gt_identity) != 31:
-            raise ValueError(f"expected 31 small ET GT lesions for {label}, got {small['gt_lesions']}")
-        if reference_gt is not None and gt_identity != reference_gt:
-            raise ValueError(f"GT small-lesion identities changed for {label}")
-        reference_gt = gt_identity
-        summary_rows.append({
-            "model": label, "model_id": name, "seed": 55, "split": "test",
-            "checkpoint": str(checkpoint), "test_cases": len(manifest),
-            "small_gt_lesions": small["gt_lesions"], "detected": small["detected"],
-            "missed": small["missed"], "lesion_recall": small["lesion_recall"],
-            "matched_lesion_dice": small["matched_lesion_dice"],
-            "gt_anchored_lesion_dice": small["gt_anchored_lesion_dice"],
-        })
-        detail_rows.extend({"model": label, "model_id": name, **row}
-                           for row in details if row["stratum"] == "small")
-        print(f"  Matched={small['matched_lesion_dice']:.4f}  "
-              f"GT-anchored={small['gt_anchored_lesion_dice']:.4f}  "
-              f"Detected={small['detected']}/{small['gt_lesions']}")
+        summaries = summarize_stratified_cases(cases, STRATA)
+        for stratum in TARGET_STRATA:
+            summary = summaries[stratum]
+            expected = EXPECTED_TEST_LESIONS[stratum]
+            gt_identity = {
+                (row["case_id"], row["gt_lesion_id"], row["gt_voxels"])
+                for row in details if row["stratum"] == stratum
+            }
+            if summary["gt_lesions"] != expected or len(gt_identity) != expected:
+                raise ValueError(
+                    f"expected {expected} {stratum} ET GT lesions for {label}, "
+                    f"got {summary['gt_lesions']}"
+                )
+            if stratum in reference_gt and gt_identity != reference_gt[stratum]:
+                raise ValueError(f"GT {stratum}-lesion identities changed for {label}")
+            reference_gt[stratum] = gt_identity
+            summary_rows.append(result_row(
+                label, name, checkpoint, len(manifest), stratum, summary
+            ))
+            print(
+                f"  {stratum:<6} Matched={summary['matched_lesion_dice']:.4f}  "
+                f"GT-anchored={summary['gt_anchored_lesion_dice']:.4f}  "
+                f"Detected={summary['detected']}/{summary['gt_lesions']}"
+            )
+
+        combined = pooled_summary(details, TARGET_STRATA)
+        summary_rows.append(result_row(
+            label, name, checkpoint, len(manifest), "small_medium", combined
+        ))
+        print(
+            f"  pooled Matched={combined['matched_lesion_dice']:.4f}  "
+            f"GT-anchored={combined['gt_anchored_lesion_dice']:.4f}  "
+            f"Detected={combined['detected']}/{combined['gt_lesions']}"
+        )
+        detail_rows.extend(
+            {"model": label, "model_id": name, **row}
+            for row in details if row["stratum"] in TARGET_STRATA
+        )
         del model
         gc.collect()
         if device.type == "cuda":
             torch.cuda.empty_cache()
 
     pd.DataFrame(summary_rows).to_csv(args.output_dir / "summary.csv", index=False)
-    pd.DataFrame(detail_rows).to_csv(args.output_dir / "small_lesions.csv", index=False)
+    detail_frame = pd.DataFrame(detail_rows)
+    detail_frame.to_csv(args.output_dir / "small_medium_lesions.csv", index=False)
+    detail_frame[detail_frame["stratum"] == "small"].to_csv(
+        args.output_dir / "small_lesions.csv", index=False
+    )
+    detail_frame[detail_frame["stratum"] == "medium"].to_csv(
+        args.output_dir / "medium_lesions.csv", index=False
+    )
     manifest.to_csv(args.output_dir / "test_cases.csv", index=False)
     print(f"Saved to {args.output_dir.resolve()}")
 
