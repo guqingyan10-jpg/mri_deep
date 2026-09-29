@@ -118,7 +118,20 @@ def main():
         raise FileNotFoundError(args.csv)
     output_dir = (args.output_dir or Path("/root/autodl-tmp/paper_baselines") / args.model / f"seed_{args.seed}")
     output_dir = output_dir.expanduser().resolve()
-    device = torch.device(args.device or ("cuda" if torch.cuda.is_available() else "cpu"))
+    if args.device is None:
+        if not torch.cuda.is_available():
+            raise RuntimeError(
+                "CUDA is unavailable; refusing to start full-volume training on CPU. "
+                "Check nvidia-smi and the installed PyTorch CUDA build. "
+                "For a CPU-only architecture check, pass --preflight --device cpu."
+            )
+        device = torch.device("cuda")
+    else:
+        device = torch.device(args.device)
+        if device.type == "cuda" and not torch.cuda.is_available():
+            raise RuntimeError("CUDA was requested but is unavailable; check the NVIDIA driver and PyTorch CUDA build")
+        if device.type != "cuda" and not args.preflight:
+            raise RuntimeError("full-volume training requires CUDA; CPU is supported only for --preflight")
     seed_all(args.seed)
 
     loaders = {phase: get_dataloader(BratsDataset, str(args.csv), phase,

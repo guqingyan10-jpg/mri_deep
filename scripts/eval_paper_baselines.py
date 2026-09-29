@@ -57,7 +57,14 @@ def main():
     args = parser.parse_args()
 
     args.csv = args.csv.expanduser().resolve()
-    device = torch.device(args.device or ("cuda" if torch.cuda.is_available() else "cpu"))
+    if args.device is None:
+        if not torch.cuda.is_available():
+            raise RuntimeError("CUDA is unavailable; refusing to run full-volume evaluation on CPU")
+        device = torch.device("cuda")
+    else:
+        device = torch.device(args.device)
+        if device.type == "cuda" and not torch.cuda.is_available():
+            raise RuntimeError("CUDA was requested but is unavailable; check the NVIDIA driver and PyTorch CUDA build")
     loader, cases = evaluation_dataloader(str(args.csv), "test")
     actual_ids = cases["case_id"].astype(str).tolist()
     if len(actual_ids) != 37:

@@ -72,6 +72,20 @@ python scripts/train_paper_baselines.py --model superlight --preflight
 
 The preflight verifies file paths, split, source revisions, parameter-count range and a small forward pass. Inspect its output before starting GPU training. Run each model independently; two simultaneous full-volume jobs can exceed GPU memory.
 
+The default training and preflight paths require a working CUDA GPU and stop immediately if `torch.cuda.is_available()` is false. This prevents a driver/PyTorch mismatch from silently starting a very slow CPU run. `--preflight --device cpu` is available only to inspect the architecture without GPU training. If imports already work, do not reinstall MONAI or the other project packages to fix a CUDA driver error. Check the current GPU and PyTorch build with `nvidia-smi --query-gpu=name,driver_version --format=csv,noheader` and `python -c "import torch; print(torch.__version__, torch.version.cuda, torch.cuda.is_available())"`; then use a compatible PyTorch CUDA build or an AutoDL machine with a compatible driver.
+
+For the reported AutoDL machine with NVIDIA driver `550.107.02` and an incompatible PyTorch `2.12.1+cu130`, replace only the PyTorch family with the [official 2.5.1 CUDA 12.4 wheels](https://docs.pytorch.org/get-started/previous-versions/). NVIDIA lists driver `550.54.14` or newer for [CUDA 12.4](https://docs.nvidia.com/cuda/archive/12.4.0/cuda-toolkit-release-notes/) and driver family 580 or newer for [CUDA 13.x](https://docs.nvidia.com/deploy/cuda-compatibility/minor-version-compatibility.html). Put pip's temporary files on the data disk so the smaller system disk is not used for wheel extraction:
+
+```bash
+mkdir -p /root/autodl-tmp/pip-tmp
+TMPDIR=/root/autodl-tmp/pip-tmp python -m pip install --no-cache-dir --upgrade \
+  torch==2.5.1 torchvision==0.20.1 torchaudio==2.5.1 \
+  --index-url https://download.pytorch.org/whl/cu124
+python -c 'import torch; print(torch.__version__, torch.version.cuda, torch.cuda.is_available()); assert torch.cuda.is_available(); print(torch.cuda.get_device_name(0))'
+```
+
+Only run full-volume training after the last command reports `True`. The baseline training command itself remains `python -u scripts/train_paper_baselines.py --model doubleblock` (or `superlight`); it never loads a pretrained ResUNet.
+
 If this branch is already checked out on AutoDL, update it with `git pull --ff-only` instead of running the first-time `git switch -c` command. The `torchvision.io` image-extension warning does not block these 3D MRI models; a GitHub clone timeout was the earlier training blocker.
 
 ```bash
