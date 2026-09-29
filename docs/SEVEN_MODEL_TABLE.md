@@ -76,10 +76,13 @@ only detected GT lesions while GT-anchored Dice includes zeros for misses.
 The SuperLightNet test pass fixes random seeds and case order because the
 released model samples a viewing direction even in evaluation mode.
 
-If an AutoDL run fails with `ModuleNotFoundError: No module named 'skimage'`,
-install the package under its distribution name with
-`python -m pip install scikit-image`. The evaluation package imports its
-visualization module at startup, even when this table only needs metrics.
+The evaluation package loads optional visualization dependencies (`skimage`,
+`plotly`, `ipywidgets`) only when a visualization function is requested. An
+AutoDL evaluation run therefore needs the metrics dependencies but does not
+need these plotting packages. If running an older repository copy that fails
+while importing `evaluation.visualization`, update `evaluation/__init__.py`
+from this branch before retrying. Notebook and plotting functions still need
+their corresponding optional packages when called.
 
 The old table is a historical comparison. Its FULL row was originally trained
 with ResUNet warm-start and a boundary auxiliary objective; the two paper

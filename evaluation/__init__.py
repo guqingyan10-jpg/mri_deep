@@ -1,72 +1,54 @@
-"""
-BraTS2020 Evaluation Package.
+"""BraTS2020 evaluation utilities.
 
-Contains:
-  - compute_metrics              — TP/FP/TN/FN pixel-level metrics
-  - metric                        — accuracy, precision, recall, f1
-  - plot_confusion_matrix         — confusion matrix visualization
-  - compute_scores_per_classes    — per-class Dice/IoU
-  - compute_scores_per_classes_mean — mean per-class Dice/IoU
-  - compute_results               — prediction collection for visualization
-  - print_metrics_table           — formatted metrics output
-
-Visualization:
-  - Image3dToGIF3d               — 3D GIF generation from MRI volumes
-  - ShowResult                   — ground truth vs prediction overlay
-  - tumour_graphics              — interactive slice viewer
-  - generate_3d_plotly           — 3D Plotly scatter visualization
-  - merging_two_gif              — side-by-side GIF merge
-
-Usage:
-    from evaluation.evaluator import compute_metrics, compute_scores_per_classes_mean
-    from evaluation.visualization import ShowResult, Image3dToGIF3d
+Import metric and visualization modules only when their public functions are
+requested. Lesion evaluation should not need optional notebook or plotting
+packages merely to import :mod:`evaluation.wt_lesion_stratified`.
 """
 
-from evaluation.evaluator import (
-    compute_metrics,
-    metric,
-    plot_confusion_matrix,
-    compute_scores_per_classes,
-    compute_scores_per_classes_mean,
-    compute_results,
-    print_metrics_table,
-)
+from importlib import import_module
 
-from evaluation.visualization import (
-    Image3dToGIF3d,
-    ShowResult,
-    tumour_graphics,
-    generate_3d_plotly,
-    merging_two_gif,
-    get_all_csv_file,
-)
 
-from evaluation.advanced_metrics import (
-    per_class_recall_precision,
-    hd95_single,
-    nsd_single,
-    compute_hd95_all,
-    lesion_wise_detection,
-    compute_lesion_wise_all,
-    compute_small_case_dice,
-    boundary_overlay,
-    save_boundary_comparison,
-    compute_all_advanced_metrics,
-    print_comparison_table,
-)
+_EXPORT_MODULES = {
+    # Original evaluator
+    "compute_metrics": "evaluator",
+    "metric": "evaluator",
+    "plot_confusion_matrix": "evaluator",
+    "compute_scores_per_classes": "evaluator",
+    "compute_scores_per_classes_mean": "evaluator",
+    "compute_results": "evaluator",
+    "print_metrics_table": "evaluator",
+    # Optional visualization utilities
+    "Image3dToGIF3d": "visualization",
+    "ShowResult": "visualization",
+    "tumour_graphics": "visualization",
+    "generate_3d_plotly": "visualization",
+    "merging_two_gif": "visualization",
+    "get_all_csv_file": "visualization",
+    # Advanced metrics
+    "per_class_recall_precision": "advanced_metrics",
+    "hd95_single": "advanced_metrics",
+    "nsd_single": "advanced_metrics",
+    "compute_hd95_all": "advanced_metrics",
+    "lesion_wise_detection": "advanced_metrics",
+    "compute_lesion_wise_all": "advanced_metrics",
+    "compute_small_case_dice": "advanced_metrics",
+    "boundary_overlay": "advanced_metrics",
+    "save_boundary_comparison": "advanced_metrics",
+    "compute_all_advanced_metrics": "advanced_metrics",
+    "print_comparison_table": "advanced_metrics",
+}
 
-__all__ = [
-    # Evaluator (original)
-    'compute_metrics', 'metric', 'plot_confusion_matrix',
-    'compute_scores_per_classes', 'compute_scores_per_classes_mean',
-    'compute_results', 'print_metrics_table',
-    # Visualization (original)
-    'Image3dToGIF3d', 'ShowResult', 'tumour_graphics',
-    'generate_3d_plotly', 'merging_two_gif', 'get_all_csv_file',
-    # Advanced metrics (new)
-    'per_class_recall_precision', 'hd95_single', 'compute_hd95_all',
-    'lesion_wise_detection', 'compute_lesion_wise_all',
-    'compute_small_case_dice',
-    'boundary_overlay', 'save_boundary_comparison',
-    'compute_all_advanced_metrics', 'print_comparison_table',
-]
+__all__ = list(_EXPORT_MODULES)
+
+
+def __getattr__(name):
+    module_name = _EXPORT_MODULES.get(name)
+    if module_name is None:
+        raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+    value = getattr(import_module(f".{module_name}", __name__), name)
+    globals()[name] = value
+    return value
+
+
+def __dir__():
+    return sorted(set(globals()) | set(__all__))
