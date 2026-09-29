@@ -9,7 +9,7 @@ These baselines use the authors' architecture files at fixed Git revisions:
 
 DoubleBlock-ViT is a MaxViT-based Transformer hybrid. SuperLightNet's released implementation uses grouped multi-axis Hadamard product attention and convolution; it is best described as a lightweight attention model, not as a conventional self-attention Transformer baseline.
 
-The [DoubleBlock-ViT paper](https://doi.org/10.1016/j.cmpb.2025.109165) and the [SuperLightNet CVPR 2025 paper](https://openaccess.thecvf.com/content/CVPR2025/papers/Yu_SuperLightNet_Lightweight_Parameter_Aggregation_Network_for_Multimodal_Brain_Tumor_Segmentation_CVPR_2025_paper.pdf) describe the architectures. The source files are downloaded on first run and checked against their Git revision and blob hash. They are not copied into this repository. DoubleBlock's two unguarded, import-time CUDA demo statements are skipped; the model definitions remain unchanged.
+The [DoubleBlock-ViT paper](https://doi.org/10.1016/j.cmpb.2025.109165) and the [SuperLightNet CVPR 2025 paper](https://openaccess.thecvf.com/content/CVPR2025/papers/Yu_SuperLightNet_Lightweight_Parameter_Aggregation_Network_for_Multimodal_Brain_Tumor_Segmentation_CVPR_2025_paper.pdf) describe the architectures. Exact author source files and their original licenses are bundled under `third_party/paper_baselines/` at the fixed Git revisions above. The loader verifies their SHA-256 before constructing a model. It makes **no network request** during training, so the AutoDL container only needs to pull this repository. DoubleBlock's two unguarded, import-time CUDA demo statements are skipped; the model definitions remain unchanged. DoubleBlock's source is MIT-licensed and SuperLightNet's is GPL-3.0-licensed; their original license files are included beside the source.
 
 SuperLightNet's published `Jtrain.py` imports `Jnetworksv2.JCMNetv8`, a module missing from the pinned public checkout. This adapter instantiates the released `Jnetworks/superlightnet.py::NormalU_Net` directly. It reproduces that public architecture file, but an exact match to the authors' unpublished training module or paper checkpoint cannot be verified from the available source.
 
@@ -29,6 +29,8 @@ DoubleBlock outputs `[ET, TC, WT]`; the adapter reorders to this project's `[WT,
 | SuperLightNet output | Four logits for background and BraTS labels 1, 2, 4; positive classes trained with independent sigmoids | Original four-channel head retained; foreground probabilities combined into nested WT/TC/ET logits | No learned layers changed; the target/output adapter changes the optimization objective. |
 | Spatial compatibility | Authors use their own fixed-size patches/preprocessing | High-end zero padding to model-compatible sizes, then crop back to the project tensor shape | No learned layers changed; boundary context differs from paper inputs. |
 | Data and optimizer | DoubleBlock reports BraTS 2020/2021, 128³ crops, augmentation, AdamW `3e-4`; SuperLightNet reports BraTS 2019/2021 and an AdamW `1e-3` training example | Both use this project's fixed BraTS 2020 cases, no augmentation, Adam `5e-4` | Training protocol deliberately changed for comparison with FULL. Paper Dice scores are not directly comparable. |
+
+The previous AutoDL script attempted to clone the author repositories at runtime and could fail when the container could not reach GitHub. Once this branch is updated, a partial checkout left at `/root/autodl-tmp/paper_baseline_sources/` is harmless: bundled sources take precedence. Do not retry the author-repository clones.
 
 Both new models are **parallel baselines**, like the existing ResUNet and nnU-Net runs. A new run loads neither a ResUNet checkpoint nor an author checkpoint. `--resume` restores only that *same model's* interrupted run, with its optimizer, scheduler and RNG state.
 
@@ -69,6 +71,8 @@ python scripts/train_paper_baselines.py --model superlight --preflight
 ```
 
 The preflight verifies file paths, split, source revisions, parameter-count range and a small forward pass. Inspect its output before starting GPU training. Run each model independently; two simultaneous full-volume jobs can exceed GPU memory.
+
+If this branch is already checked out on AutoDL, update it with `git pull --ff-only` instead of running the first-time `git switch -c` command. The `torchvision.io` image-extension warning does not block these 3D MRI models; a GitHub clone timeout was the earlier training blocker.
 
 ```bash
 python -u scripts/train_paper_baselines.py --model doubleblock 2>&1 | tee /root/autodl-tmp/doubleblock_train.log

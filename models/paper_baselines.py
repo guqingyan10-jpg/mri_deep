@@ -1,13 +1,14 @@
-"""Pinned, unmodified paper architectures adapted to the project's BraTS regions.
+"""Pinned author architectures with project-specific BraTS I/O adapters.
 
-The upstream Python files are fetched separately and never copied into this
-repository.  Only I/O compatibility lives here: spatial padding and output
-order/region conversion.  See docs/PAPER_BASELINES.md for provenance.
+Exact upstream source files and their licenses are bundled in third_party so
+AutoDL training does not require network access to the authors' GitHub repos.
+See docs/PAPER_BASELINES.md for provenance and comparison details.
 """
 
 from __future__ import annotations
 
 import ast
+import hashlib
 import importlib.util
 import math
 import subprocess
@@ -32,15 +33,34 @@ SOURCES = {
     ),
 }
 
+BUNDLED_SOURCES = {
+    "doubleblock": (
+        "third_party/paper_baselines/doubleblock/DB_MaxViT.py",
+        "1b9caf37be4b0c1b4fd00d16dd9ef4dfd71610bcf2e009c1bc4124aa5176c8b2",
+    ),
+    "superlight": (
+        "third_party/paper_baselines/superlight/superlightnet.py",
+        "b613d7e09f5795274e04bb71c66096fc9477aec03b80d3c570cbf9a5a278b303",
+    ),
+}
+
 
 def ensure_source(name: str, source_dir: Path) -> Path:
-    """Fetch a fixed upstream commit; reject an unexpected checkout."""
-    url, commit, relative_module = SOURCES[name]
+    """Prefer the exact bundled source; never fetch during a training run."""
+    relative_bundle, expected_sha256 = BUNDLED_SOURCES[name]
+    bundled = Path(__file__).resolve().parents[1] / relative_bundle
+    if bundled.is_file():
+        actual_sha256 = hashlib.sha256(bundled.read_bytes()).hexdigest()
+        if actual_sha256 != expected_sha256:
+            raise RuntimeError(f"{name} bundled source checksum mismatch: {bundled}")
+        return bundled
+
+    _, commit, relative_module = SOURCES[name]
     checkout = source_dir / name
     if not checkout.exists():
-        checkout.parent.mkdir(parents=True, exist_ok=True)
-        subprocess.run(["git", "clone", "--filter=blob:none", url, str(checkout)], check=True)
-        subprocess.run(["git", "-C", str(checkout), "checkout", "--detach", commit], check=True)
+        raise FileNotFoundError(
+            f"{name} bundled source missing: {bundled}; pull the latest codex/paper-baselines branch"
+        )
     actual = subprocess.check_output(
         ["git", "-C", str(checkout), "rev-parse", "HEAD"], text=True
     ).strip()
