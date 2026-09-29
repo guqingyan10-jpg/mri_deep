@@ -19,6 +19,7 @@ class SevenModelTableTest(unittest.TestCase):
         rows = table.rows_template()
         by_id = {row["model_id"]: row for row in rows}
         self.assertEqual(by_id["unet"]["macro_dice"], .7935)
+        self.assertEqual(by_id["resunet"]["macro_dice"], .8206)
         self.assertEqual(by_id["afbms"]["lesion_f1_26conn_micro"], .5385)
         self.assertAlmostEqual(by_id["resunet"]["small_lesion_matched_dice"],
                                .3684612447499045)

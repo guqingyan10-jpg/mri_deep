@@ -4,8 +4,21 @@
 DoubleBlock-ViT, SuperLightNet, and a **matched small-lesion Dice** column. The
 current reviewable template is [seven_model_comparison.md](seven_model_comparison/seven_model_comparison.md).
 Blank cells mean the result has not been measured; they are never filled with
-invented values. The five existing six-column rows retain the exact displayed
-numbers from the supplied table.
+invented values. The historical rows retain the supplied values except for the
+ResUNet Macro Dice rounding correction described below.
+
+The saved seed-55, 37-case test result has ResUNet `Macro_Dice_mean =
+0.8206477051717229`; to four decimals this is **0.8206**, while the supplied
+screenshot says 0.8207. The table uses 0.8206. All other displayed ResUNet
+values and all six displayed AFBMS-ResUNet values agree with the saved overall
+and formal ET-lesion test summaries. The old report `COMPREHENSIVE_REPORT.md`
+contains ET Dice values matching the screenshot for U-Net and Attention U-Net,
+but its ET HD95 values (9.5045 and 10.2126 mm) differ from the screenshot
+(16.24 and 16.93 mm); its nnU-Net ET Dice (0.7584) also differs from the
+screenshot (0.7577). The matching test-result files for these three models
+are absent from the local handoff, so their screenshot values remain
+**unverified**, not independently reproduced. Training logs do not establish
+test-set results.
 
 Run from the project root **after training has reached its maximum epoch or
 early stopping**. The script refuses to test a still-running or interrupted
@@ -25,7 +38,7 @@ caches. The results should be copied back into the manuscript only after every
 cell is filled and the seven checkpoint/protocol identities have been checked.
 
 The old five models' Macro Dice, ET Dice, ET HD95, Boundary Dice, lesion F1 and
-GT-anchored small-lesion Dice are **not rerun**. For their missing matched
+GT-anchored small-lesion Dice are **not rerun** by this script. For their missing matched
 small-lesion Dice, the script first looks for
 `et_small_medium_lesion_five_models_results/summary.csv` and checks its
 `test_cases.csv`, 37 test IDs, seed, 31 GT small lesions, and agreement with the
@@ -62,6 +75,11 @@ other evaluator's per-case mean lesion F1. The frozen small ET stratum is
 only detected GT lesions while GT-anchored Dice includes zeros for misses.
 The SuperLightNet test pass fixes random seeds and case order because the
 released model samples a viewing direction even in evaluation mode.
+
+If an AutoDL run fails with `ModuleNotFoundError: No module named 'skimage'`,
+install the package under its distribution name with
+`python -m pip install scikit-image`. The evaluation package imports its
+visualization module at startup, even when this table only needs metrics.
 
 The old table is a historical comparison. Its FULL row was originally trained
 with ResUNet warm-start and a boundary auxiliary objective; the two paper

@@ -1,7 +1,8 @@
 """Fill only missing entries of the seven-model BraTS2020 comparison table.
 
-The five historical six-column results below are transcribed from the supplied
-table, not recomputed.  Three missing matched small-lesion values are taken
+The historical six-column results below are transcribed from the supplied
+table, except the ResUNet Macro Dice is corrected from the saved raw mean
+(0.8206477051717229 -> 0.8206). Three missing matched small-lesion values are taken
 from a verified prior summary when available, otherwise from the original
 five-model checkpoints.  The two new paper models are evaluated once each on
 the frozen 37-case test split; that pass computes all seven table columns.
@@ -24,7 +25,7 @@ sys.path.insert(0, str(ROOT / "scripts"))
 
 TABLE = [
     ("unet", "3D U-Net", .7935, .7494, 16.24, .7415, .4315, .0687, None),
-    ("resunet", "3D ResUNet", .8207, .7585, 10.26, .7503, .5213, .0357,
+    ("resunet", "3D ResUNet", .8206, .7585, 10.26, .7503, .5213, .0357,
      .3684612447499045),
     ("attention", "3D Attention U-Net", .7743, .7317, 16.93, .7062, .5081,
      .0076, None),
@@ -120,8 +121,11 @@ def write_table(rows, output_dir):
         "10–44 体素 GT ET 病灶；GT 锚定 Dice 对漏检计 0，matched Dice 仅平均"
         "成功匹配的 GT 病灶。— 表示尚未取得可验证结果。",
         "",
-        "前五行原有六列逐字保留用户给出的四位小数，不代表重新评估；"
-        "两个新增模型须以各自训练完成的 best_model_*.pth 计算。",
+        "旧表核对：ResUNet 的 Macro Dice 已按原始测试均值 0.8206477051717229 "
+        "校正为 0.8206；ResUNet 和 AFBMS-ResUNet 其余指标有保存的测试结果支撑。"
+        "U-Net、Attention U-Net 和 nnU-Net 风格网络仍沿用截图数值，缺少同口径"
+        "原始测试明细，暂未核实。两个新增模型须以各自训练完成的 "
+        "best_model_*.pth 计算。",
     ))
     (output_dir / "seven_model_comparison.md").write_text(
         "\n".join(lines) + "\n", encoding="utf-8")
@@ -318,7 +322,8 @@ def main():
         raise RuntimeError("expected the original 37 unique BraTS test cases")
     csv_digest = sha256(args.csv)
 
-    # The historical table's six existing entries per model are never inferred.
+    # Existing historical entries are never inferred; the one corrected value
+    # comes from the saved raw seed-55 test mean.
     # Reuse the five-model summary if it exists. Two published matched values
     # are already in TABLE; only the three still missing require old inference.
     if not args.only_new:
