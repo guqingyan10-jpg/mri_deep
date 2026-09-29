@@ -99,6 +99,12 @@ If full-volume training runs out of memory, use `--crop-size 96 128 128` **from 
 
 After both trainings finish, evaluate on the frozen 37-case test split with the same 26-connected lesion matcher, threshold `0.33`, minimum component size 10 voxels, and training-derived ET size strata (`small=10–44`, `medium=45–4678`, `large>=4679`). GT-anchored Dice assigns zero to an unmatched GT lesion; matched Dice is conditional on a match. For matched initialization, train FULL from scratch first:
 
+To fill the existing five-model comparison table with both paper baselines and
+an additional matched small-lesion Dice column, use
+[`scripts/build_seven_model_table.py`](../scripts/build_seven_model_table.py)
+as described in [`docs/SEVEN_MODEL_TABLE.md`](SEVEN_MODEL_TABLE.md). It reuses
+the historical table values and computes only missing cells.
+
 ```bash
 python -u scripts/train_hf_concat_boundary.py \
   --boundary_weight 0.1 --multiscale_context_v2 --seed 55 --from_scratch \
