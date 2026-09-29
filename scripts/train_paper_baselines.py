@@ -37,8 +37,8 @@ def parse_args():
     p.add_argument("--seed", type=int, default=55)
     p.add_argument("--crop-size", type=int, nargs=3, metavar=("D", "H", "W"),
                    help="Optional memory-saving train crop; changes FULL's full-volume protocol")
-    p.add_argument("--preflight", action="store_true", help="Check split, upstream model and one small forward pass")
-    p.add_argument("--resume", action="store_true", help="Resume optimizer, scheduler and RNG from last_state.pth")
+    p.add_argument("--preflight", action="store_true", help="Check split, one real training case, upstream model and forward pass")
+    p.add_argument("--resume", action="store_true", help="Resume only this model's interrupted run from last_state.pth")
     p.add_argument("--device", default=None)
     return p.parse_args()
 
@@ -126,6 +126,17 @@ def main():
                for phase in ("train", "valid", "test")}
     manifest = split_manifest(loaders)
     check_case_paths(loaders)
+    if args.preflight or args.crop_size is not None:
+        sample = loaders["train"].dataset[0]
+        image_shape = tuple(sample["image"].shape)
+        mask_shape = tuple(sample["mask"].shape)
+        if image_shape != (4, 100, 170, 170) or mask_shape != (3, 100, 170, 170):
+            raise RuntimeError(f"unexpected FULL dataset tensor shape: {image_shape}, {mask_shape}")
+        if not np.isfinite(sample["image"]).all() or not np.isfinite(sample["mask"]).all():
+            raise RuntimeError("non-finite values in first training case")
+        if args.crop_size and any(s > n for s, n in zip(args.crop_size, image_shape[1:])):
+            raise ValueError(f"crop {args.crop_size} exceeds FULL tensor shape {image_shape[1:]}")
+        print(f"BraTS sample: image={image_shape}, mask={mask_shape}")
     model = PaperBaseline(args.model, args.source_dir.expanduser()).to(device)
     parameters = sum(p.numel() for p in model.parameters() if p.requires_grad)
     if args.model == "doubleblock" and not 5_000_000 <= parameters <= 10_000_000:
@@ -138,6 +149,8 @@ def main():
         "upstream_commit": SOURCES[args.model][1], "csv": str(args.csv),
         "csv_sha256": sha256(args.csv), "split": manifest,
         "seed": args.seed, "epochs": args.epochs, "lr": args.lr,
+        "initialization": "from scratch, author model initialization; no ResUNet or paper checkpoint",
+        "resume_policy": "only last_state.pth from the identical model run, never another model",
         "optimizer": "Adam(default betas, no weight decay)",
         "scheduler": "ReduceLROnPlateau(mode=min, patience=2)",
         "loss": "project BCEDiceLoss on [WT,TC,ET]",
