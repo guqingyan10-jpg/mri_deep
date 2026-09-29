@@ -11,6 +11,8 @@ DoubleBlock-ViT is a MaxViT-based Transformer hybrid. SuperLightNet's released i
 
 The [DoubleBlock-ViT paper](https://doi.org/10.1016/j.cmpb.2025.109165) and the [SuperLightNet CVPR 2025 paper](https://openaccess.thecvf.com/content/CVPR2025/papers/Yu_SuperLightNet_Lightweight_Parameter_Aggregation_Network_for_Multimodal_Brain_Tumor_Segmentation_CVPR_2025_paper.pdf) describe the architectures. The source files are downloaded on first run and checked against their Git revision and blob hash. They are not copied into this repository. DoubleBlock's two unguarded, import-time CUDA demo statements are skipped; the model definitions remain unchanged.
 
+SuperLightNet's published `Jtrain.py` imports `Jnetworksv2.JCMNetv8`, a module missing from the pinned public checkout. This adapter instantiates the released `Jnetworks/superlightnet.py::NormalU_Net` directly. It reproduces that public architecture file, but an exact match to the authors' unpublished training module or paper checkpoint cannot be verified from the available source.
+
 The SuperLightNet author code samples a viewing direction inside its forward pass even during evaluation. The evaluation script fixes the RNG seed immediately before its ordered test-case pass. Results from this network are therefore reproducible for the recorded environment and case order, but its single-pass inference remains stochastic by design.
 
 The common environment pins MONAI 1.4.0, as in DoubleBlock's repository. SuperLightNet's README instead lists MONAI 1.3.0. The preflight is the compatibility check for the common environment; save the actual installed package versions with the paper results.
@@ -27,7 +29,7 @@ Two differences remain and must be stated with results. FULL's segmentation loss
 
 ## AutoDL commands
 
-Use an AutoDL image with CUDA-enabled PyTorch 2.2 or newer and at least 24 GB VRAM (the SuperLightNet authors' minimum). Adjust the BraTS path in `tumourCSV.csv` only if your data is mounted elsewhere. An edited CSV changes its SHA-256; use the same edited file for every run and record it with the results.
+Use an AutoDL image with CUDA-enabled PyTorch 2.2 or newer. The SuperLightNet authors list 24 GB VRAM for their original setup; this project's padded full volumes can need more, especially for DoubleBlock. Prefer a larger GPU for the default full-volume protocol. Adjust the BraTS path in `tumourCSV.csv` only if your data is mounted elsewhere. An edited CSV changes its SHA-256; use the same edited file for every run and record it with the results.
 
 ```bash
 cd /root/autodl-tmp
