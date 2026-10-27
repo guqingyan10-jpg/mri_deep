@@ -1,31 +1,31 @@
 # AFBMS-ResUNet
 
-用于多模态脑肿瘤 MRI 分割的 3D ResUNet 研究代码。论文主模型由四级局部高频特征融合（LHFC）、训练期边界辅助监督（ABS，权重 **0.1**）和瓶颈处的自适应残差多尺度上下文（AR-MSC V2）组成。基础通道数为 24；BraTS2020 输出 WT、TC、ET，UCSF-BMSR 复训为单通道脑转移瘤分割。不要把较早的 `w=0.3` 实验或 V1/V3 上下文模块当作论文主模型。
+Research code for 3D ResUNet-based multimodal brain tumor MRI segmentation. The manuscript's main model combines four-level local high-frequency feature fusion (LHFC), auxiliary boundary supervision (ABS, loss weight **0.1**) during training, and adaptive residual multi-scale context (AR-MSC V2) at the bottleneck. The base channel count is 24. The BraTS2020 model predicts WT, TC, and ET; the model retrained on UCSF-BMSR predicts a single brain-metastasis mask. The earlier `w=0.3` experiments and V1/V3 context modules are not the manuscript's main model.
 
-## 仓库内容
+## Repository contents
 
-| 目录 | 用途 |
+| Path | Purpose |
 | --- | --- |
-| `models/`, `losses/`, `training/`, `data/` | 网络、损失、训练及数据读取；论文主模型在 `models/resunet_hf_concat_boundary.py` |
-| `scripts/` | BraTS 和 UCSF 的训练、评估、病灶分析及图像示例生成入口 |
-| `evaluation/` | 区域、边界与病灶级评价实现 |
-| `tests/` | 模型连接、数据划分、匹配规则及脚本契约测试 |
-| `docs/` | 外部数据复训和对照实验的专项说明 |
-| `tumourCSV.csv` | BraTS2020 病例清单和本项目固定划分使用的源文件 |
+| `models/`, `losses/`, `training/`, `data/` | Networks, losses, training, and data loading. The main model is defined in `models/resunet_hf_concat_boundary.py`. |
+| `scripts/` | Training, evaluation, lesion analysis, and prediction-figure scripts for BraTS and UCSF. |
+| `evaluation/` | Region-, boundary-, and lesion-level evaluation. |
+| `tests/` | Tests for model connections, data splits, matching rules, and script contracts. |
+| `docs/` | Focused instructions for retraining and comparison experiments. |
+| `tumourCSV.csv` | BraTS2020 case list used as the source for this project's fixed split. |
 
-旧 Notebook、内部计划稿及本机导出的依赖清单已从当前代码树移除；需要核对历史时仍可通过 Git 提交历史查看。
+Old notebooks, internal planning notes, and machine-specific dependency exports have been removed from the current tree. They remain available in Git history.
 
-## 数据与环境
+## Data and environment
 
-论文在 BraTS2020 **有标签训练集的 368 例**上固定划分为 257/74/37 例；这 37 例是本项目留出的测试集，**不是 BraTS 官方隐藏测试集**。BraTS 原始数据与引用要求见 [CBICA 官方页面](https://www.med.upenn.edu/cbica/brats2020/data.html)；本项目所用副本来自 [Kaggle 镜像](https://www.kaggle.com/datasets/awsaf49/brats2020-training-data)。UCSF-BMSR 的 461 个公开带标签扫描按患者分组后用于独立数据集复训和测试；访问与许可见 [UCSF 数据页面](https://imagingdatasets.ucsf.edu/dataset/1)。请勿将原始 MRI 或权重提交到本仓库。
+The study splits **368 labeled BraTS2020 training cases** into 257 training, 74 validation, and 37 held-out test cases. The 37-case test set is this project's holdout, **not the official hidden BraTS test set**. See the [official CBICA page](https://www.med.upenn.edu/cbica/brats2020/data.html) for the original data and citation requirements; this project used a [Kaggle mirror](https://www.kaggle.com/datasets/awsaf49/brats2020-training-data). The 461 publicly available labeled UCSF-BMSR scans were split by patient for retraining and evaluation on a separate dataset; see the [UCSF dataset page](https://imagingdatasets.ucsf.edu/dataset/1) for access and licensing. Do not commit raw MRI data or model weights to this repository.
 
-建议 Python 3.10。先建立隔离环境，再运行 `pip install -r requirements.txt`；已有匹配 CUDA 的 PyTorch 时，可保留该轮子并安装其余依赖。官方 nnU-Net v2 PlainConv 架构对照另需 `requirements_nnunet_architecture.txt`。UCSF 专项环境清单保留在 `requirements_ucsf.txt`。
+Python 3.10 is recommended. Create an isolated environment, then run `pip install -r requirements.txt`. If your AutoDL environment already has a compatible CUDA build of PyTorch, you may retain it and install the remaining dependencies. The official nnU-Net v2 PlainConv architecture comparison additionally requires `requirements_nnunet_architecture.txt`. A UCSF-specific environment specification is retained in `requirements_ucsf.txt`.
 
-`tumourCSV.csv` 中的 `path` 列保存原 AutoDL 数据位置。换机器后须将其映射为当地的 BraTS 图像目录；不要修改病例 ID、随机划分或测试集组成来适配路径。
+The `path` column in `tumourCSV.csv` contains the original AutoDL data locations. On another machine, map these paths to the local BraTS image directory without changing case IDs, the random split, or test-set membership.
 
-## 论文主模型
+## Reproducing the main model
 
-先得到同一随机种子的 ResUNet BCE–Dice 基线最佳权重，再从该权重初始化主模型。下例以 seed 55 为例，路径需按本机实际位置填写：
+First train a ResUNet BCE–Dice baseline for a given seed. Then initialize the main model from that seed's best baseline checkpoint. For example, with seed 55 (replace the paths with your own):
 
 ```bash
 python scripts/train_baseline_bcedice.py \
@@ -38,16 +38,16 @@ python scripts/train_hf_concat_boundary.py \
   --checkpoint_dir /path/to/seed55/full
 ```
 
-对 seed 42/123 的配对运行可先检查：
+To inspect the paired runs for seeds 42 and 123 before launching them:
 
 ```bash
 python scripts/run_multiscale_v2_seed_screen.py --seeds 42 123 --dry_run
 ```
 
-基线、消融和病灶级评价入口分别见 `scripts/eval_key_comparison.py`、`scripts/eval_et_lesion_stratified.py` 与 `scripts/eval_et_small_lesion_five_models.py`。α 敏感性分析使用 `scripts/eval_alpha_sensitivity.py`。这些脚本有部分 AutoDL 默认路径；在新机器运行前先检查脚本参数和权重位置。病灶匹配与 GT-anchored Dice 的核对入口见 [代码审核索引](CODE_REVIEW_GUIDE.md)。
+The main entry points for baseline comparison, ablation, and lesion-level evaluation are `scripts/eval_key_comparison.py`, `scripts/eval_et_lesion_stratified.py`, and `scripts/eval_et_small_lesion_five_models.py`. Use `scripts/eval_alpha_sensitivity.py` for the alpha-sensitivity analysis. Some scripts contain AutoDL default paths; check their arguments and checkpoint locations before running them elsewhere. See the [code review guide](CODE_REVIEW_GUIDE.md) for lesion matching and GT-anchored Dice checks.
 
-UCSF-BMSR 的患者级划分、Baseline/Full 复训和统一评价见 [UCSF 操作说明](docs/UCSF_EXTERNAL_BASELINE_FULL.md)。这项比较经过**数据集内重新训练**，不是零样本外部测试。真实预测的典型病例图可由 `scripts/select_boundary_typical_cases.py` 和 `scripts/run_multiseed_typical_case_analysis.py` 生成。
+The [UCSF instructions](docs/UCSF_EXTERNAL_BASELINE_FULL.md) cover patient-level splitting, Baseline/Full retraining, and consistent evaluation. This comparison involves **retraining within the UCSF dataset**, not zero-shot external testing. The scripts `scripts/select_boundary_typical_cases.py` and `scripts/run_multiseed_typical_case_analysis.py` generate representative figures from actual predictions.
 
-## 核查
+## Verification
 
-安装 `pytest` 后运行 `python -m pytest tests -q`。模型权重、原始 MRI、缓存、论文草稿和本机结果均不属于源代码仓库；`.gitignore` 会排除这些文件。不同 AutoDL 环境的 GPU、CUDA 和数据目录仍需按实际配置。
+After installing `pytest`, run `python -m pytest tests -q`. Model weights, raw MRI data, caches, manuscript drafts, and local results do not belong in the source repository and are excluded by `.gitignore`. Configure GPU, CUDA, and data paths for the AutoDL environment you use.
