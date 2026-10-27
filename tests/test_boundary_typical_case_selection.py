@@ -22,23 +22,33 @@ def _load_module(name, path):
 # The selector itself is executed on AutoDL with PyTorch.  Its deterministic
 # ranking logic and boundary metrics can still be tested in the lightweight
 # local review environment by stubbing only the training/inference imports.
-sys.modules.setdefault("torch", types.ModuleType("torch"))
+_MISSING = object()
+_original_modules = {}
+
+
+def _replace_module(name, module):
+    _original_modules[name] = sys.modules.get(name, _MISSING)
+    sys.modules[name] = module
+
+
+if "torch" not in sys.modules:
+    _replace_module("torch", types.ModuleType("torch"))
 
 evaluation_package = types.ModuleType("evaluation")
 evaluation_package.__path__ = [str(ROOT / "evaluation")]
-sys.modules["evaluation"] = evaluation_package
-sys.modules["evaluation.advanced_metrics"] = _load_module(
+_replace_module("evaluation", evaluation_package)
+_replace_module("evaluation.advanced_metrics", _load_module(
     "boundary_advanced_metrics", ROOT / "evaluation" / "advanced_metrics.py"
-)
-sys.modules["evaluation.wt_lesion_stratified"] = _load_module(
+))
+_replace_module("evaluation.wt_lesion_stratified", _load_module(
     "boundary_wt_lesion_stratified",
     ROOT / "evaluation" / "wt_lesion_stratified.py",
-)
+))
 
 dataset_module = types.ModuleType("data.dataset")
 dataset_module.BratsDataset = object
 dataset_module.get_dataloader = lambda *args, **kwargs: None
-sys.modules["data.dataset"] = dataset_module
+_replace_module("data.dataset", dataset_module)
 
 for module_name, class_name in (
     ("models.resunet3d", "ResUNet3d"),
@@ -47,11 +57,18 @@ for module_name, class_name in (
 ):
     model_module = types.ModuleType(module_name)
     setattr(model_module, class_name, type(class_name, (), {}))
-    sys.modules[module_name] = model_module
+    _replace_module(module_name, model_module)
 
 SPEC = importlib.util.spec_from_file_location("boundary_case_selector", SCRIPT)
 MODULE = importlib.util.module_from_spec(SPEC)
-SPEC.loader.exec_module(MODULE)
+try:
+    SPEC.loader.exec_module(MODULE)
+finally:
+    for name, original in _original_modules.items():
+        if original is _MISSING:
+            sys.modules.pop(name, None)
+        else:
+            sys.modules[name] = original
 
 
 def _case_rows(case_id, values, small_gt=0):

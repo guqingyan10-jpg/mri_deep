@@ -1,6 +1,6 @@
 # 新增评价代码审核入口
 
-请在默认 `master` 分支按以下顺序查看：
+请在仓库当前维护分支按以下顺序查看：
 
 1. [病灶级核心实现](evaluation/wt_lesion_stratified.py)  
    WT/ET共用的分层、26邻域连通域、一对一匹配、Recall、Miss rate、Matched Dice和GT-anchored Dice。

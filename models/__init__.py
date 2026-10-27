@@ -25,7 +25,6 @@ from models.resunet_fgfe import ResUNetFGFE
 from models.resunet_hf_boundary import ResUNetHFBoundary
 from models.resunet_hf_concat_boundary import ResUNetHFConcatBoundary
 from models.fgfe_module import FGFE, LaplacianPyramid3d
-from models.sla_module import SLA3D, ChannelAttention3D, SpatialAttention3D, ResUpSLA
 
 __all__ = [
     'DoubleConv', 'Down', 'Up', 'Out',
@@ -34,5 +33,4 @@ __all__ = [
     'ResUNetFGFE', 'FGFE', 'LaplacianPyramid3d',
     'ResUNetHFBoundary',
     'ResUNetHFConcatBoundary',
-    'SLA3D', 'ChannelAttention3D', 'SpatialAttention3D', 'ResUpSLA',
 ]

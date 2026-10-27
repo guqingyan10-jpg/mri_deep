@@ -10,14 +10,19 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 def _load_advanced_metrics():
-    if "torch" not in sys.modules:
+    injected_torch = "torch" not in sys.modules
+    if injected_torch:
         sys.modules["torch"] = types.ModuleType("torch")
-    spec = importlib.util.spec_from_file_location(
-        "advanced_metrics_for_test", ROOT / "evaluation" / "advanced_metrics.py"
-    )
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
-    return module
+    try:
+        spec = importlib.util.spec_from_file_location(
+            "advanced_metrics_for_test", ROOT / "evaluation" / "advanced_metrics.py"
+        )
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        return module
+    finally:
+        if injected_torch:
+            sys.modules.pop("torch", None)
 
 
 advanced_metrics = _load_advanced_metrics()

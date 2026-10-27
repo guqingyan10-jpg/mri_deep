@@ -66,6 +66,8 @@ def test_seed_experiment_builder_defines_existing_and_gated_directories():
         "edge_laplacian_concat",
         "hf_concat_boundary_w0.1",
         "hf_concat_boundary_w0.1_multiscale",
+        "hf_concat_boundary_w0.1_multiscale_v2",
+        "hf_concat_boundary_w0.1_multiscale_v3",
         "hf_concat_boundary_w0.05",
         "edge_laplacian_gated_concat",
         "hf_gated_concat_boundary_w0.1",
@@ -77,7 +79,7 @@ def test_seed_experiment_builder_configures_two_gated_models():
     build_seed_experiments = _load_seed_builder()
     experiments = build_seed_experiments(123, "/root/autodl-tmp/stability")
 
-    assert len(experiments) == 7
+    assert len(experiments) == 9
     gated = [
         spec for spec in experiments
         if spec["model_kwargs"].get("fusion") == "gated_concat"
@@ -94,11 +96,20 @@ def test_seed_experiment_builder_configures_two_gated_models():
     assert len(multiscale) == 1
     assert multiscale[0]["model_class"].__name__ == "ResUNetHFConcatBoundary"
 
+    for version in ("multiscale_context_v2", "multiscale_context_v3"):
+        matching = [
+            spec for spec in experiments
+            if spec["model_kwargs"].get(version) is True
+        ]
+        assert len(matching) == 1
+        assert matching[0]["model_class"].__name__ == "ResUNetHFConcatBoundary"
 
-def test_primary_indicator_contract_remains_exactly_four_metrics():
+
+def test_primary_indicator_contract_includes_lesion_f1():
     assert _load_primary_contract() == [
         ("Macro_Dice_mean", "Macro Dice", "high"),
         ("ET_Dice_mean", "ET Dice", "high"),
         ("Small_case_ET_Dice_mean", "Small-case Dice", "high"),
         ("ET_HD95_mean", "ET HD95", "low"),
+        ("Lesion_F1_mean", "Lesion F1", "high"),
     ]
