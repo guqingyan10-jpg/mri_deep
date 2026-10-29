@@ -52,6 +52,14 @@ The [UCSF instructions](docs/UCSF_EXTERNAL_BASELINE_FULL.md) cover patient-level
 
 The authors' pinned DoubleBlock-ViT source and its project adapter are included for offline AutoDL training. See the [paper baseline instructions](docs/PAPER_BASELINES.md) for dependencies, the fixed BraTS split, preflight, training, and resume commands. Run `python scripts/train_paper_baselines.py --model doubleblock --preflight` before training. These are architecture comparisons under this project's training protocol; the source files do not establish any test-set performance claim.
 
+## Official nnU-Net v2 system comparison
+
+For the complete official nnU-Net v2 baseline on the frozen BraTS/UCSF cases,
+see the [official system workflow](docs/OFFICIAL_NNUNET_SYSTEM.md). It uses native
+MRI, official planning/preprocessing and the default 1000-epoch trainer, then
+aligns predictions to the original study scoring grid. Run it in the documented
+isolated environment; it is separate from the PlainConvUNet architecture-only run.
+
 ## Verification
 
 After installing `pytest`, run `python -m pytest tests -q`. Model weights, raw MRI data, caches, manuscript drafts, and local results do not belong in the source repository and are excluded by `.gitignore`. Configure GPU, CUDA, and data paths for the AutoDL environment you use.
