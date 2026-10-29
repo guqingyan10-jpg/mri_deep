@@ -1,0 +1,2 @@
+# Keep author source and license files byte-for-byte identical to pinned Git blobs.
+third_party/paper_baselines/** -text whitespace=-trailing-space

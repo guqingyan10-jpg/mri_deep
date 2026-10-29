@@ -48,6 +48,10 @@ The main entry points for baseline comparison, ablation, and lesion-level evalua
 
 The [UCSF instructions](docs/UCSF_EXTERNAL_BASELINE_FULL.md) cover patient-level splitting, Baseline/Full retraining, and consistent evaluation. This comparison involves **retraining within the UCSF dataset**, not zero-shot external testing. The scripts `scripts/select_boundary_typical_cases.py` and `scripts/run_multiseed_typical_case_analysis.py` generate representative figures from actual predictions.
 
+## DoubleBlock-ViT architecture comparison
+
+The authors' pinned DoubleBlock-ViT source and its project adapter are included for offline AutoDL training. See the [paper baseline instructions](docs/PAPER_BASELINES.md) for dependencies, the fixed BraTS split, preflight, training, and resume commands. Run `python scripts/train_paper_baselines.py --model doubleblock --preflight` before training. These are architecture comparisons under this project's training protocol; the source files do not establish any test-set performance claim.
+
 ## Verification
 
 After installing `pytest`, run `python -m pytest tests -q`. Model weights, raw MRI data, caches, manuscript drafts, and local results do not belong in the source repository and are excluded by `.gitignore`. Configure GPU, CUDA, and data paths for the AutoDL environment you use.
