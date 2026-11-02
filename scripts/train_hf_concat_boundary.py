@@ -11,9 +11,10 @@ Loss:
 Fairness:
     The data split, seed, optimizer, learning rate, scheduler, batch size,
     gradient accumulation, early stopping, and checkpoint policy match the
-    baseline and existing ablation scripts. A new run warm-starts from the
-    baseline ResUNet best checkpoint; an interrupted run resumes from this
-    experiment's latest checkpoint.
+    baseline and existing ablation scripts. By default a new run warm-starts
+    from the baseline ResUNet best checkpoint. --from-scratch instead keeps
+    random initialization; an interrupted run reloads this experiment's own
+    latest checkpoint using the legacy Trainer's recovery behavior.
 
 Usage:
     python scripts/train_hf_concat_boundary.py                      # w=0.3 (default)
@@ -368,5 +369,6 @@ if gates is not None:
           f"{os.path.join(CHECKPOINT_DIR, 'multiscale_gates.txt')}")
 
 print(f"\nDone. Model saved to: {CHECKPOINT_DIR}")
-print("Evaluate with:")
-print('  python scripts/eval_all_experiments.py --filter "HF Concat Boundary"')
+print("Evaluate the best_model_*.pth from this exact experiment directory:")
+print(f"  {CHECKPOINT_DIR}")
+print("The default evaluation registry still points to historical runs; select this run explicitly.")
