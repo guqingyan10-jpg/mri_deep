@@ -91,3 +91,47 @@ but it does not restore optimizer/scheduler/RNG state exactly. An uninterrupted
 scratch run is the cleanest initialization comparison. If interrupted, record
 that fact instead of claiming exact continuation. For a later independent seed,
 change both the seed argument and every corresponding output/log/lock path.
+
+## Evaluate UCSF Full alone after completion
+
+The existing evaluator now accepts `--models full`, so no Baseline checkpoint
+is required inside the new scratch output tree. It selects that run's
+validation-loss `best_model_N.pth`; it does not select by test Dice.
+
+```bash
+cd /root/autodl-tmp/mri_deep
+git switch master
+git pull --ff-only origin master
+
+CUDA_VISIBLE_DEVICES=0 python -u scripts/eval_ucsf_baseline_full.py \
+  --models full --seed 55 --metric-profile both \
+  --manifest /root/autodl-tmp/ucsf_bmsr_prepared/manifest.csv \
+  --training-root /root/autodl-tmp/afbms_full_from_scratch/ucsf \
+  --threshold 0.33 --min-component-size 10 \
+  --output-dir /root/autodl-tmp/afbms_full_from_scratch/ucsf/seed55/evaluation_both
+```
+
+`both` performs each test inference once, retaining the historical UCSF HD95
+in `summary.csv`/`summary.json` and additionally writing the exact official-
+baseline manuscript HD95 definition in `summary_manuscript.csv`/`.json`.
+Dice and lesion metrics use the same predictions. These are different metric
+definitions, not thresholds to choose based on test performance. Previous
+models also need the manuscript profile before comparing all HD95 values in
+one harmonized table. Historical behavior remains the default if no profile
+is specified. The evaluator never loads or modifies the old warm-start run.
+
+The fixed test manifest, checkpoint hash and initialization record are saved.
+Only the training GT defines the physical-volume lesion strata. The overall
+lesion F1 pools TP/FP/FN over the test set, and missed GT lesions receive zero
+in the GT-anchored Dice. Printed SD is across test scans, not random seeds.
+
+Download the small archive for table preparation:
+
+```text
+/root/autodl-tmp/afbms_full_from_scratch/ucsf/seed55/evaluation_both/results_for_table.zip
+```
+
+It contains summary metrics, per-case/per-lesion results and provenance,
+without MRI arrays or weights. A new table row can be labelled
+`AFBMS-ResUNet (from scratch)` alongside the retained historical warm-start
+row. No test result is supplied by the code itself.

@@ -3,8 +3,10 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import sys
+import zipfile
 from pathlib import Path
 
 import numpy as np
@@ -15,7 +17,7 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO_ROOT))
 sys.path.insert(0, str(REPO_ROOT / "evaluation"))
 
-from data.ucsf_bmsr import UCSFPreparedDataset, get_ucsf_dataloader
+from data.ucsf_bmsr import UCSFPreparedDataset, get_ucsf_dataloader, read_manifest
 from advanced_metrics import hd95_single
 from wt_lesion_stratified import match_wt_components
 from models.resunet3d import ResUNet3d
@@ -31,6 +33,33 @@ def find_best(directory: Path) -> Path:
     if not checkpoints:
         raise FileNotFoundError(f"No best_model_*.pth in {directory}")
     return max(checkpoints, key=checkpoint_epoch)
+
+
+def file_sha256(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as stream:
+        for block in iter(lambda: stream.read(1024 * 1024), b""):
+            digest.update(block)
+    return digest.hexdigest()
+
+
+def checkpoint_provenance(checkpoint: Path, manifest: Path, seed: int) -> dict:
+    """Validate scratch-run provenance without changing any training files."""
+    result = {"checkpoint": str(checkpoint.resolve()), "sha256": file_sha256(checkpoint)}
+    marker = checkpoint.parent / "initialization_protocol.json"
+    if marker.is_file():
+        initialization = json.loads(marker.read_text(encoding="utf-8"))
+        if initialization.get("manifest_sha256") != file_sha256(manifest):
+            raise ValueError("Evaluation manifest differs from this Full run's training manifest")
+        if initialization.get("seed") != seed:
+            raise ValueError("Evaluation seed differs from this Full run's training seed")
+        completion = checkpoint.parent / "training_complete.json"
+        if not completion.is_file() or json.loads(completion.read_text(encoding="utf-8")).get("status") != "completed":
+            raise ValueError("Scratch Full is not marked completed; wait for training to finish")
+        result["initialization"] = initialization
+    else:
+        result["initialization"] = "legacy run; no initialization protocol file"
+    return result
 
 
 def build_model(model_name: str):
@@ -121,7 +150,10 @@ def evaluate_model(
     threshold: float,
     min_component_size: int,
     volume_strata: dict[str, tuple[float, float | None]],
+    metric_profile: str = "legacy-ucsf",
 ):
+    if metric_profile not in {"legacy-ucsf", "manuscript", "both"}:
+        raise ValueError(f"Unknown metric profile: {metric_profile}")
     model = build_model(model_name).to(device)
     state = torch.load(checkpoint, map_location=device, weights_only=False)
     if not isinstance(state, dict):
@@ -146,19 +178,30 @@ def evaluate_model(
                 target,
                 min_component_size=min_component_size,
             )
-            hd95 = hd95_single(prediction, target, voxel_spacing=spacing)
-            case_rows.append({
+            legacy_hd95 = (hd95_single(prediction, target, voxel_spacing=spacing)
+                           if metric_profile in {"legacy-ucsf", "both"} else None)
+            manuscript_hd95 = None
+            if metric_profile in {"manuscript", "both"}:
+                # Reuse the exact surface implementation used by official nnU-Net scoring.
+                from scripts.eval_official_nnunet import surface_metrics
+                manuscript_hd95, _ = surface_metrics(prediction, target, spacing, profile="manuscript")
+            row = {
                 "model": model_name,
                 "subject_id": subject_id,
                 "threshold": threshold,
                 "dice": binary_dice(prediction, target),
-                "hd95_mm": hd95,
+                "hd95_mm": manuscript_hd95 if metric_profile == "manuscript" else legacy_hd95,
+                "gt_empty": not bool(target.any()),
+                "pred_empty": not bool(prediction.any()),
                 "gt_lesions": matching["gt_lesions"],
                 "pred_lesions": matching["pred_lesions"],
                 "tp_lesions": matching["tp"],
                 "fp_lesions": matching["fp"],
                 "fn_lesions": matching["fn"],
-            })
+            }
+            if metric_profile == "both":
+                row["hd95_mm_manuscript"] = manuscript_hd95
+            case_rows.append(row)
             matches = {item["gt_index"]: item for item in matching["matches"]}
             voxel_volume = float(np.prod(spacing))
             for gt_index, component in enumerate(matching["gt_components"]):
@@ -175,6 +218,7 @@ def evaluate_model(
                     "matched_dice": float(match["dice"]) if match is not None else float("nan"),
                     "gt_anchored_dice": float(match["dice"]) if match is not None else 0.0,
                 })
+            print(f"Evaluated {model_name} {len(case_rows)}/{len(dataloader.dataset)}: {subject_id}", flush=True)
     return case_rows, lesion_rows
 
 
@@ -232,10 +276,16 @@ def summarize_core(
         ),
         "lesion_f1": lesion_f1,
         "small_gt_lesions": len(small),
+        "hd95_finite_cases": sum(bool(np.isfinite(value)) for value in hd95),
+        "gt_empty_cases": sum(bool(row.get("gt_empty", False)) for row in cases),
+        "pred_empty_cases": sum(bool(row.get("pred_empty", False)) for row in cases),
+        "tp_lesions": tp,
+        "fp_lesions": fp,
+        "fn_lesions": fn,
     }
 
 
-def main() -> None:
+def main(argv=None) -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
         "--manifest", type=Path,
@@ -246,6 +296,11 @@ def main() -> None:
         default=Path("/root/autodl-tmp/ucsf_baseline_full"),
     )
     parser.add_argument("--seed", type=int, default=55)
+    parser.add_argument("--models", nargs="+", choices=("baseline", "full"),
+                        default=("baseline", "full"), help="Select Full alone for a scratch-only training directory")
+    parser.add_argument("--metric-profile", choices=("legacy-ucsf", "manuscript", "both"),
+                        default="legacy-ucsf",
+                        help="both performs inference once and writes historical plus harmonized HD95 summaries")
     parser.add_argument("--threshold", type=float, default=0.33)
     parser.add_argument("--min-component-size", type=int, default=10)
     parser.add_argument(
@@ -253,9 +308,43 @@ def main() -> None:
         help=argparse.SUPPRESS,
     )
     parser.add_argument("--output-dir", type=Path, default=None)
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
+    if len(args.models) != len(set(args.models)):
+        parser.error("Each model may be selected only once")
+    if not 0 < args.threshold < 1 or args.min_component_size < 1:
+        parser.error("Threshold must be in (0,1) and minimum component size must be positive")
+
+    frame = read_manifest(args.manifest)
+    checkpoints = {name: find_best(args.training_root / f"seed{args.seed}" / name) for name in args.models}
+    provenance = {name: checkpoint_provenance(path, args.manifest, args.seed)
+                  for name, path in checkpoints.items()}
+    protocol = {
+        "manifest": str(args.manifest.resolve()),
+        "manifest_sha256": file_sha256(args.manifest),
+        "seed": args.seed,
+        "models": list(args.models),
+        "checkpoints": provenance,
+        "metric_profile": args.metric_profile,
+        "summary_csv_profile": "manuscript" if args.metric_profile == "manuscript" else "legacy-ucsf",
+        "threshold": args.threshold,
+        "min_component_size": args.min_component_size,
+        "split": {split: frame.loc[frame["split"] == split, "subject_id"].astype(str).tolist()
+                  for split in ("train", "valid", "test")},
+        "std_definition": "population standard deviation across test scans, not across training seeds",
+        "hd95_profiles": {
+            "legacy-ucsf": "maximum of the two directional 95th percentiles; NaN for an empty mask, excluded from the HD95 mean",
+            "manuscript": "95th percentile of pooled bidirectional distances; both-empty 0, one-empty physical image diagonal",
+        },
+    }
 
     output_dir = args.output_dir or args.training_root / f"seed{args.seed}" / "evaluation"
+    metadata_path = output_dir / "evaluation.json"
+    if output_dir.exists() and any(output_dir.iterdir()):
+        if not metadata_path.is_file():
+            raise ValueError("Nonempty evaluation directory has no protocol record; choose a new --output-dir")
+        previous = json.loads(metadata_path.read_text(encoding="utf-8"))
+        if previous.get("protocol") != protocol:
+            raise ValueError("Existing evaluation belongs to another checkpoint/protocol; choose a new --output-dir")
     output_dir.mkdir(parents=True, exist_ok=True)
     training_loader = get_ucsf_dataloader(
         UCSFPreparedDataset,
@@ -286,10 +375,9 @@ def main() -> None:
     all_cases = []
     all_lesions = []
     summaries = []
-    for model_name in ("baseline", "full"):
-        checkpoint = find_best(
-            args.training_root / f"seed{args.seed}" / model_name
-        )
+    manuscript_summaries = []
+    for model_name in args.models:
+        checkpoint = checkpoints[model_name]
         cases, lesions = evaluate_model(
             model_name,
             checkpoint,
@@ -298,10 +386,16 @@ def main() -> None:
             args.threshold,
             args.min_component_size,
             volume_strata,
+            metric_profile=args.metric_profile,
         )
         all_cases.extend(cases)
         all_lesions.extend(lesions)
         summaries.append(summarize_core(model_name, checkpoint, cases, lesions))
+        if args.metric_profile == "both":
+            common_cases = [{**row, "hd95_mm": row["hd95_mm_manuscript"]} for row in cases]
+            manuscript_summaries.append(summarize_core(model_name, checkpoint, common_cases, lesions))
+        if file_sha256(checkpoint) != provenance[model_name]["sha256"]:
+            raise RuntimeError("Checkpoint changed during inference; use a stable completed model and a new output directory")
 
     case_frame = pd.DataFrame(all_cases)
     lesion_frame = pd.DataFrame(all_lesions)
@@ -310,11 +404,18 @@ def main() -> None:
     case_frame.to_csv(output_dir / "per_case.csv", index=False)
     lesion_frame.to_csv(output_dir / "per_gt_lesion.csv", index=False)
     summary_frame.to_csv(output_dir / "summary.csv", index=False)
+    (output_dir / "summary.json").write_text(summary_frame.to_json(orient="records", indent=2), encoding="utf-8")
+    if manuscript_summaries:
+        common_frame = pd.DataFrame(manuscript_summaries)
+        common_frame.to_csv(output_dir / "summary_manuscript.csv", index=False)
+        (output_dir / "summary_manuscript.json").write_text(common_frame.to_json(orient="records", indent=2), encoding="utf-8")
     lesion_strata_frame.to_csv(output_dir / "summary_by_lesion_size.csv", index=False)
-    paired = case_frame.pivot(index="subject_id", columns="model", values="dice")
-    paired["full_minus_baseline_dice"] = paired["full"] - paired["baseline"]
-    paired.reset_index().to_csv(output_dir / "paired_case_dice.csv", index=False)
+    if {"baseline", "full"}.issubset(args.models):
+        paired = case_frame.pivot(index="subject_id", columns="model", values="dice")
+        paired["full_minus_baseline_dice"] = paired["full"] - paired["baseline"]
+        paired.reset_index().to_csv(output_dir / "paired_case_dice.csv", index=False)
     metadata = {
+        "protocol": protocol,
         "manifest": str(args.manifest.resolve()),
         "seed": args.seed,
         "threshold": args.threshold,
@@ -333,6 +434,20 @@ def main() -> None:
         json.dumps(metadata, indent=2), encoding="utf-8"
     )
     print(summary_frame.to_string(index=False))
+    if manuscript_summaries:
+        print("\nHarmonized manuscript HD95 (same predictions; no second inference):")
+        print(pd.DataFrame(manuscript_summaries).to_string(index=False))
+    archive = output_dir / "results_for_table.zip"
+    with zipfile.ZipFile(archive, "w", compression=zipfile.ZIP_DEFLATED) as stream:
+        for path in sorted(output_dir.iterdir()):
+            if path.suffix in {".json", ".csv"}:
+                stream.write(path, path.name)
+        for name, checkpoint in checkpoints.items():
+            for filename in ("initialization_protocol.json", "training_complete.json", "train_log.csv"):
+                path = checkpoint.parent / filename
+                if path.is_file():
+                    stream.write(path, f"training/{name}/{filename}")
+    print(f"Download for table: {archive.resolve()}")
     print(f"Results: {output_dir.resolve()}")
 
 
