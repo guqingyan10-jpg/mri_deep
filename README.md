@@ -38,6 +38,11 @@ python scripts/train_hf_concat_boundary.py \
   --checkpoint_dir /path/to/seed55/full
 ```
 
+To train Full from random initialization on either dataset while retaining the
+existing early stopping, see [Full from scratch](docs/FULL_FROM_SCRATCH.md).
+Use separate output directories; this experiment does not require a Baseline
+checkpoint and does not replace the historical warm-start results.
+
 To inspect the paired runs for seeds 42 and 123 before launching them:
 
 ```bash

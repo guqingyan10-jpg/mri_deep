@@ -41,6 +41,7 @@ from losses.enhanced import BCEDiceWithBoundaryLoss
 from models.resunet3d import ResUNet3d
 from models.resunet_hf_concat_boundary import ResUNetHFConcatBoundary
 from training.config import check_exist, check_exist_last, config, seed_everything
+from training.initialization_guard import guard_full_initialization
 from training.trainer import Trainer
 
 
@@ -188,7 +189,10 @@ parser.add_argument("--checkpoint_dir", type=str, default=None,
                     help="Directory dedicated to this experiment run")
 parser.add_argument("--baseline_checkpoint", type=str, default=None,
                     help="Exact baseline best_model checkpoint for warm-start")
-parser.add_argument("--from_scratch", action="store_true")
+parser.add_argument("--from_scratch", "--from-scratch", action="store_true",
+                    help="Random initialization; requires a new or certified scratch-run directory")
+parser.add_argument("--csv", default=config.path_to_csv,
+                    help="Original tumourCSV.csv; preserve its case IDs and row order")
 args = parser.parse_args()
 
 seed_everything(args.seed)
@@ -220,6 +224,17 @@ else:
     DEFAULT_CHECKPOINT_DIR = f"/root/autodl-tmp/ResUNet_HFConcatBoundary_w{args.boundary_weight}_model"
 CHECKPOINT_DIR = args.checkpoint_dir or DEFAULT_CHECKPOINT_DIR
 os.makedirs(CHECKPOINT_DIR, exist_ok=True)
+guard_full_initialization(
+    CHECKPOINT_DIR, from_scratch=args.from_scratch, dataset="BraTS2020",
+    seed=args.seed, manifest=args.csv, epochs=args.epochs, lr=args.lr,
+    model_settings={
+        "fusion": args.fusion, "boundary_weight": args.boundary_weight,
+        "multiscale_context": args.multiscale_context,
+        "multiscale_context_v2": args.multiscale_context_v2,
+        "multiscale_context_v3": args.multiscale_context_v3,
+        "base_channels": 24,
+    },
+)
 
 print("=" * 72)
 print("Final Combination: Laplacian HF + Multi-scale Fusion + Boundary Head")
@@ -230,7 +245,11 @@ print(f"  Bottleneck MSC:   {args.multiscale_context}")
 print(f"  Bottleneck MSC V2: {args.multiscale_context_v2}")
 print(f"  Bottleneck MSC V3: {args.multiscale_context_v3}")
 print(f"  Loss:             BCEDiceLoss + {args.boundary_weight} * boundary BCE")
-print("  Warm-start:       baseline ResUNet best_model checkpoint")
+print("  Initialization:   " + (
+    "random (--from_scratch); no baseline weights"
+    if args.from_scratch else "baseline ResUNet best_model checkpoint"
+))
+print(f"  Data CSV:         {args.csv}")
 print(f"  Checkpoint:       {CHECKPOINT_DIR}")
 
 print("\n" + "=" * 72)
@@ -273,7 +292,7 @@ trainer = HFConcatBoundaryTrainer(
     batch_size=1,
     fold=0,
     num_epochs=args.epochs,
-    path_to_csv=config.path_to_csv,
+    path_to_csv=args.csv,
     model_type=CHECKPOINT_DIR,
     display_plot=True,
     early_stopping_patience=25,

@@ -16,7 +16,9 @@ Baseline和Full共同使用：
 - ReduceLROnPlateau patience 2；early stopping patience 25、min_delta `1e-4`。
 - 相同主损失 `BCE + global Dice`。
 
-Full固定为正式AFBMS-ResUNet：普通LHFC concat、ABS权重0.1、AR-MSC V2。它从同一seed、同一UCSF划分训练得到的Baseline最佳权重warm-start，与原BraTS Full训练方式一致。模型输出由原来的WT/TC/ET三通道改为一个脑转移瘤通道，这是任务标签变化所必需的唯一输出层适配。
+Full固定为正式AFBMS-ResUNet：普通LHFC concat、ABS权重0.1、AR-MSC V2。默认从同一seed、同一UCSF划分训练得到的Baseline最佳权重warm-start，与原BraTS Full训练方式一致。模型输出由原来的WT/TC/ET三通道改为一个脑转移瘤通道，这是任务标签变化所必需的唯一输出层适配。
+
+另支持 `--models full --from-scratch`：Full随机初始化，不训练或读取配对Baseline，其他训练设置和早停保持不变。请使用独立输出根目录，见[从零训练说明](FULL_FROM_SCRATCH.md)。
 
 官方benchmark采用nnU-Net v1并允许指定fold或训练`all`，但它没有规定本项目Baseline/Full必须采用五折。五折会改变原论文的训练协议和计算预算，因此本次主外部比较不使用；如以后需要和官方nnU-Net报告方式对齐，可作为独立补充实验。
 

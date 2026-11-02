@@ -3,7 +3,8 @@
 The protocol mirrors the formal BraTS experiment: seed 55, Adam 5e-4,
 BCEDice main loss, batch 1 with accumulation 4, ReduceLROnPlateau patience 2,
 up to 200 epochs, and early stopping patience 25/min_delta 1e-4. Full is
-warm-started from the paired external-dataset Baseline best checkpoint.
+warm-started from the paired external-dataset Baseline best checkpoint by
+default. --from-scratch trains Full without loading or requiring a Baseline.
 """
 
 from __future__ import annotations
@@ -26,6 +27,7 @@ from losses.enhanced import BCEDiceWithBoundaryLoss
 from models.resunet3d import ResUNet3d
 from models.resunet_hf_concat_boundary import ResUNetHFConcatBoundary
 from training.config import check_exist_last, seed_everything
+from training.initialization_guard import guard_full_initialization
 from training.ucsf_trainer import UCSFBoundaryTrainer, UCSFTrainer
 
 
@@ -148,9 +150,20 @@ def train_baseline(args, output: Path, device: str) -> Path:
     return checkpoint
 
 
-def train_full(args, output: Path, device: str, baseline: Path) -> Path:
+def train_full(args, output: Path, device: str, baseline: Path | None = None) -> Path:
     directory = output / f"seed{args.seed}" / "full"
     directory.mkdir(parents=True, exist_ok=True)
+    from_scratch = getattr(args, "from_scratch", False)
+    guard_full_initialization(
+        directory, from_scratch=from_scratch, dataset="UCSF-BMSR",
+        seed=args.seed, manifest=args.manifest, epochs=args.epochs, lr=args.lr,
+        model_settings={
+            "fusion": "concat", "boundary_weight": 0.1,
+            "multiscale_context_v2": True, "base_channels": 24,
+        },
+    )
+    if not from_scratch and baseline is None:
+        raise ValueError("Warm-start Full requires a paired Baseline; use --from-scratch for random initialization")
     existing = completed_checkpoint(directory)
     if existing:
         print(f"Full already completed: {existing}")
@@ -179,6 +192,8 @@ def train_full(args, output: Path, device: str, baseline: Path) -> Path:
     if resume:
         print(f"Resuming UCSF Full: {resume}")
         trainer.load_pretrain_model(resume)
+    elif from_scratch:
+        print("Full initialization: random (--from-scratch); no baseline weights loaded")
     else:
         matched, total = load_matching_baseline(model, baseline, device)
         print(f"Full warm-start: loaded {matched}/{total} shape-compatible tensors from {baseline}")
@@ -210,7 +225,11 @@ def print_protocol(args, frame) -> None:
     print("Optimizer:         Adam; ReduceLROnPlateau patience=2")
     print("Early stopping:    patience=25, min_delta=1e-4")
     print("Baseline:          ResUNet3d, n_channels=24, BCE+Dice")
-    print("Full:              LHFC+ABS(0.1)+AR-MSC V2, paired Baseline warm-start")
+    print("Full:              LHFC+ABS(0.1)+AR-MSC V2")
+    print("Initialization:    " + (
+        "random (--from-scratch); no paired Baseline required"
+        if getattr(args, "from_scratch", False) else "paired Baseline warm-start"
+    ))
     print("=" * 72)
 
 
@@ -230,6 +249,8 @@ def main() -> None:
     parser.add_argument("--epochs", type=int, default=200)
     parser.add_argument("--lr", type=float, default=5e-4)
     parser.add_argument("--dry-run", action="store_true")
+    parser.add_argument("--from-scratch", "--from_scratch", action="store_true",
+                        help="Train Full with random initialization, without requiring/loading a paired Baseline")
     args = parser.parse_args()
 
     frame = read_manifest(args.manifest)
@@ -247,9 +268,10 @@ def main() -> None:
     device = "cuda" if torch.cuda.is_available() else "cpu"
     args.output_root.mkdir(parents=True, exist_ok=True)
     baseline_directory = args.output_root / f"seed{args.seed}" / "baseline"
+    baseline = None
     if "baseline" in args.models:
         baseline = train_baseline(args, args.output_root, device)
-    else:
+    elif "full" in args.models and not args.from_scratch:
         baseline = completed_checkpoint(baseline_directory)
         if baseline is None:
             raise FileNotFoundError(
