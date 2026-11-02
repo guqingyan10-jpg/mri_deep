@@ -135,3 +135,41 @@ It contains summary metrics, per-case/per-lesion results and provenance,
 without MRI arrays or weights. A new table row can be labelled
 `AFBMS-ResUNet (from scratch)` alongside the retained historical warm-start
 row. No test result is supplied by the code itself.
+
+## Evaluate only the new BraTS Full row
+
+The table is a **single-seed (55), fixed 37-case test comparison**. The primary
+five columns are Macro Dice, ET Dice, ET HD95, Boundary Dice (ET surface Dice
+at 1 mm), and pooled ET lesion F1. This is separate from three-seed ablations.
+
+Only the new scratch Full checkpoint is evaluated; no other model weights are
+loaded. Other comparison-table rows retain their historical results.
+
+```bash
+cd /root/autodl-tmp/mri_deep
+git switch master
+git pull --ff-only origin master
+
+CUDA_VISIBLE_DEVICES=0 python -u scripts/eval_brats_full.py \
+  --checkpoint-dir /root/autodl-tmp/afbms_full_from_scratch/brats/seed55 \
+  --seed 55 --metric-profile legacy-brats \
+  --csv /root/autodl-tmp/mri_deep/tumourCSV.csv \
+  --output-dir /root/autodl-tmp/afbms_full_from_scratch/brats/seed55/evaluation_legacy
+```
+
+The `best_model_N.pth` is loaded strictly into the formal LHFC+ABS(0.1)+AR-MSC
+V2 model. Its initialization record and CSV hash are verified. The ET matcher
+and HD95/NSD implementations are reused from existing evaluation code.
+`legacy-brats` retains directional-max HD95 and excludes empty surfaces from
+surface means, recording the number of eligible cases. The optional
+`manuscript` profile uses the same pooled-distance/empty-mask definition as
+the complete official nnU-Net adapter. Never combine different definitions
+under one undifferentiated column.
+
+The run writes `comparison_row.csv`, `summary.csv`/`.json`, per-case and
+per-lesion results, the protocol, and `results_for_table.zip`. The archive
+contains no weights or MRI data. Send the archive to add one labelled
+`AFBMS-ResUNet (from scratch)` row to the supplied historical table. No other
+architecture dependencies are needed. `--dry-run` verifies paths and case IDs
+without reading MRI or loading a network. Seed 55 remains a single training
+run; this entry point does not turn it into a three-seed aggregate.
